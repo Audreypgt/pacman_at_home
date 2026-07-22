@@ -1,0 +1,20 @@
+highscore_filename=
+
+level array of multiple levels
+
+width_lvl0= 
+height_lvl0=
+width_lvl1= 
+height_lvl1=
+width_lvl2= 
+height_lvl2=
+width_lvl3= 
+height_lvl3=
+
+lives= 3
+pacgum= 42
+points_per_pacgum= 10
+points_per_super_pacgum= 50
+points_per_ghost= 200
+seed= 42
+lvl_max_time= 90
