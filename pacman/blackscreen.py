@@ -41,7 +41,7 @@ class GameController(object):
 
     def render(self):
         """draw images to the screen"""
-        pygame.display.update()
+        pygame.display.flip()
 
 
 if __name__ == "__main__":
