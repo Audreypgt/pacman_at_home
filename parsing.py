@@ -2,6 +2,7 @@ from sys import argv
 from typing import Any, Annotated
 import json
 from pydantic import BaseModel, Field, field_validator, ValidationInfo
+from pydantic_core import PydanticUseDefault
 
 
 class ArgsError(Exception):
@@ -74,7 +75,7 @@ class Configuration(BaseModel):
 
             return value
         except Exception:
-            return field_info["attributes"]["default"]
+            raise PydanticUseDefault
 
     @field_validator("highscore_filename", mode="before")
     @classmethod
