@@ -1,2 +1,0 @@
-resources
-https://pydantic.dev/docs/validation/latest/concepts/fields/
