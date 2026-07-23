@@ -36,7 +36,7 @@ class Configuration(BaseModel):
     def validation_setdefault(cls, value: Any, field: ValidationInfo) -> Any:
         """Create a dummy BaseModel class to test each field and catch errors
         in order to return a default value for the given field, this allows us
-        to prevent pydantic from exiting with an error in case a field is not 
+        to prevent pydantic from exiting with an error in case a field is not
         filled properly
         """
         try:
