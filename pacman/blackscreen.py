@@ -1,4 +1,5 @@
 import pygame
+import random
 # from pygame.locals import *
 
 
@@ -16,6 +17,7 @@ class GameController(object):
         pygame.init()
         self.screen = pygame.display.set_mode(SCREENSIZE, 0, 32)
         self.background = None
+        # self.clock = pygame.time.Clock()
 
     def set_background(self):
         self.background = pygame.surface.Surface(SCREENSIZE).convert()
@@ -28,7 +30,6 @@ class GameController(object):
         """function called once per frame of the game == our game loop
         """
         self.check_events()
-        # self.render()
 
     def check_events(self):
         """check different events, for now checking if the player clicks
@@ -44,8 +45,25 @@ class GameController(object):
         pygame.display.flip()
 
 
+class Sprite(pygame.sprite.Sprite):
+    def __init__(self, image):
+        super().__init__()
+
+        self.image = image
+
+        self.rect = self.image.get_rect()
+
+
 if __name__ == "__main__":
     game = GameController()
     game.set_background()
+
+    # container class to hold and manage mutliple sprite objects
+    all_sprites_list = pygame.sprite.Group()
+    pacman = Sprite(pygame.image.load('sprites/pacman.png'))
+    all_sprites_list.add(pacman)
+
     while True:
         game.update()
+        all_sprites_list.draw(game.screen)
+        game.render()
