@@ -11,7 +11,7 @@ class ArgsError(Exception):
 
 
 # todo: check json format regarding levels with Luka (Ady reuses variables
-# (like lvl width), and Jolyne as attribute levels with each level inside like
+# (like lvl width), and Jolyne has attribute levels with each level inside like
 # we have now), after this add the relevant fields to Configuration class
 # add way to remove comments
 
