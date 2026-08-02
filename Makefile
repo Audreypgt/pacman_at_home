@@ -9,21 +9,22 @@ run: install
 install:
 	@$(P3) -m venv pacman_venv
 	@source pacman_venv/bin/activate \
-	&& pip install --quiet --upgrade pip \
-	&& pip install --quiet -r requirements.txt
+	&& pip install --upgrade pip \
+	&& pip install -r requirements.txt
 
 debug: install
 	@source pacman_venv/bin/activate \
 	&& python -m pdb pac-man.py
 
-clean:
+venv-clean:
 	@if [ -r "pacman_venv" ]; then \
 		rm -r pacman_venv; \
     fi
 
-# 	@if [ -r "mazegen/__pycache__" ]; then \
-# 		rm -r ./mazegen/__pycache__; \
-#     fi
+clean:
+	@if [ -r "pacman/__pycache__" ]; then \
+		rm -r ./pacman/__pycache__; \
+    fi
 
 	@if [ -r "__pycache__" ]; then \
 		rm -r ./__pycache__; \
@@ -32,6 +33,9 @@ clean:
 	@if [ -r ".mypy_cache" ]; then \
 		rm -r ./.mypy_cache; \
     fi
+
+
+fclean: clean venv-clean
 
 lint: install
 # 	@source pacman_venv/bin/activate \

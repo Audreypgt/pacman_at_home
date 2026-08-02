@@ -3,22 +3,66 @@
 
     "levels": {
         "level_0": {
-            "width_lvl0": ,
-            "height_lvl0": ,
-            // randomize (same for 1st level then different)
+            "width_lvl": 15,
+            "height_lvl": 15,
             "seed": 42,
-            "pacgum": 42,
-
+            "pacgum": 42
+        },
+        "level_1": {
+            "width_lvl": 17,
+            "height_lvl": 17,
+            "seed": 42,
+            "pacgum": 42
+        },
+        "level_2": {
+            "width_lvl": 20,
+            "height_lvl": 20,
+            "seed": 42,
+            "pacgum": 42
+        },
+        "level_3": {
+            "width_lvl": 22,
+            "height_lvl": 22,
+            "seed": 42,
+            "pacgum": 42
+        },
+        "level_4": {
+            "width_lvl": 25,
+            "height_lvl": 25,
+            "seed": 42,
+            "pacgum": 42
+        },
+        "level_5": {
+            "width_lvl": 27,
+            "height_lvl": 27,
+            "seed": 42,
+            "pacgum": 42
+        },
+        "level_6": {
+            "width_lvl": 30,
+            "height_lvl": 30,
+            "seed": 42,
+            "pacgum": 42
+        },
+        "level_7": {
+            "width_lvl": 32,
+            "height_lvl": 32,
+            "seed": 42,
+            "pacgum": 42
+        },
+        "level_8": {
+            "width_lvl": 35,
+            "height_lvl": 35,
+            "seed": 42,
+            "pacgum": 42
+        },
+        "level_9": {
+            "width_lvl": 40,
+            "height_lvl": 40,
+            "seed": 42,
+            "pacgum": 42
         }
     },
-
-    "width_lvl1": ,
-    "height_lvl1" ,
-    "width_lvl2" ,
-    "height_lvl2" ,
-    "width_lvl3" ,
-    "height_lvl3" ,
-
     "lives": 3,
     "points_per_pacgum": 10,
     "points_per_super_pacgum": 50,

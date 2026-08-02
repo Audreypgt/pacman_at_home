@@ -10,24 +10,78 @@ class ArgsError(Exception):
     pass
 
 
-# todo: check json format regarding levels with Luka (Ady reuses variables
-# (like lvl width), and Jolyne has attribute levels with each level inside like
-# we have now), after this add the relevant fields to Configuration class
-# add way to remove comments
+# todo: add way to remove comments
+
+class LevelConfiguration(BaseModel):
+    width_lvl: int = Field(ge=12, le=50, default=13)
+    height_lvl: int = Field(ge=12, le=50, default=13)
+    pacgum: int = Field(default=42)
+    seed: int = Field(default=42)
 
 
 class Configuration(BaseModel):
     highscore_filename: str = Field(default="highscore.txt")
-    # levels: dict[] = ???
-    width_lvl: int = Field(ge=12, le=50, default=13)
-    height_lvl: int = Field(ge=12, le=50, default=13)
-
+    # randomize levels (same for 1st level then different)
+    levels: dict[str, LevelConfiguration] = Field(default={
+        "level_0": LevelConfiguration(),
+        "level_1": LevelConfiguration(
+            width_lvl=17,
+            height_lvl=17,
+            seed=42,
+            pacgum=42
+        ),
+        "level_2": LevelConfiguration(
+            width_lvl=20,
+            height_lvl=20,
+            seed=42,
+            pacgum=42
+        ),
+        "level_3": LevelConfiguration(
+            width_lvl=22,
+            height_lvl=22,
+            seed=42,
+            pacgum=42
+        ),
+        "level_4": LevelConfiguration(
+            width_lvl=25,
+            height_lvl=25,
+            seed=42,
+            pacgum=42
+        ),
+        "level_5": LevelConfiguration(
+            width_lvl=27,
+            height_lvl=27,
+            seed=42,
+            pacgum=42
+        ),
+        "level_6": LevelConfiguration(
+            width_lvl=30,
+            height_lvl=30,
+            seed=42,
+            pacgum=42
+        ),
+        "level_7": LevelConfiguration(
+            width_lvl=32,
+            height_lvl=32,
+            seed=42,
+            pacgum=42
+        ),
+        "level_8": LevelConfiguration(
+            width_lvl=35,
+            height_lvl=35,
+            seed=42,
+            pacgum=42
+        ),
+        "level_9": LevelConfiguration(
+            width_lvl=40,
+            height_lvl=40,
+            seed=42,
+            pacgum=42
+        )})
     lives: int = Field(le=999, default=3)
-    pacgum: int = Field(default=42)
     points_per_pacgum: int = Field(default=10)
     points_per_super_pacgum: int = Field(default=50)
     points_per_ghost: int = Field(default=200)
-    seed: int = Field(default=42)
     lvl_max_time: int = Field(default=90)
 
     @field_validator("*", mode="before")
@@ -59,6 +113,7 @@ class Configuration(BaseModel):
                     Field(**field_info["attributes"])]
             TestValues(test_field=value)
 
+            # --------------- TEST PARSER ---------------
             # test = TestValues(test_field=value)
             # print("field_info")
             # print(field_info)
@@ -74,6 +129,17 @@ class Configuration(BaseModel):
             # print()
 
             return value
+        except Exception:
+            raise PydanticUseDefault
+
+    @field_validator("levels", mode="before")
+    @classmethod
+    def validation_level(cls, value: Any) -> Any:
+        levels: dict[str, LevelConfiguration] = {}
+        try:
+            for index, level in enumerate(value.values()):
+                levels["level" + str(index)] = LevelConfiguration(**level)
+            return levels
         except Exception:
             raise PydanticUseDefault
 
@@ -109,12 +175,13 @@ def parse() -> Configuration:
 
 
 if __name__ == "__main__":
-    config = Configuration(width_lvl=14, height_lvl=14)
-    print(config)
+    config = parse()
+    # print(config)
 
-    # example of dict unpacking:
-    # config = Configuration(**{"width_lvl":"14", "height_lvl":14})
 
-    # getting our configuration back to a json format in a txt file
-    # with open("file.txt", "w") as file:
-    #     print(config.model_dump_json(indent=4), file=file)
+# example of dict unpacking:
+# config = Configuration(**{"width_lvl":"14", "height_lvl":14})
+
+# getting our configuration back to a json format in a txt file
+# with open("file.txt", "w") as file:
+#     print(config.model_dump_json(indent=4), file=file)
