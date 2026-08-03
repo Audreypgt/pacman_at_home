@@ -105,12 +105,12 @@ class GameController(object):
             # menu.main_menu._open(loading)
             self.screen.fill("black")
             self.update()
-            self.clock.tick(1)
-            self.time += self.clock.get_time()
+            self.time += self.clock.tick(60) / 1000
+            self.time = round(self.time, 2)
             print(self.time)
             self.render(mazegen)
             # game ends after 90 seconds and goes back to menu
-            if self.time == 90000:
+            if self.time == 9.00:
                 self.running = False
         self.running = True
 
