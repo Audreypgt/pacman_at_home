@@ -37,6 +37,7 @@ class GameController(object):
         move
         """
         self.check_events()
+        all_sprites_list.update()
         # move ghosts
 
     def check_events(self):
@@ -49,6 +50,14 @@ class GameController(object):
                 # find a way to resume game after, instead of starting again
                 if event.key == pygame.K_ESCAPE:
                     self.running = False
+                if event.key == pygame.K_UP:
+                    pacman.direction = (0, -1)
+                if event.key == pygame.K_DOWN:
+                    pacman.direction = (0, 1)
+                if event.key == pygame.K_LEFT:
+                    pacman.direction = (-1, 0)
+                if event.key == pygame.K_RIGHT:
+                    pacman.direction = (1, 0)
 
     def render(self, mazegen):
         """draw images to the screen"""
@@ -110,7 +119,7 @@ class GameController(object):
             print(self.time)
             self.render(mazegen)
             # game ends after 90 seconds and goes back to menu
-            if self.time == 9.00:
+            if self.time == 90.00:
                 self.running = False
         self.running = True
 
@@ -130,6 +139,14 @@ class Sprite(pygame.sprite.Sprite):
         super().__init__()
         self.image = image
         self.rect = self.image.get_rect()
+        self.direction = (0, 0)
+        self.speed = 4
+
+    def update(self):
+        self.rect.x += self.direction[0] * self.speed
+        self.rect.y += self.direction[1] * self.speed
+
+
 
 
 if __name__ == "__main__":
