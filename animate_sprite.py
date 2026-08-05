@@ -13,10 +13,9 @@ def load_frames(sheet, x, y, frame_width, frame_height, num_frames):
 
     for i in range(num_frames):
         frame = sheet.subsurface(
-            pygame.Rect(x + i * frame_width, y, frame_width, frame_height)
+            pygame.Rect(x, y + i * frame_height, frame_width, frame_height)
         )
         frames.append(frame)
-
     return frames
 
 frames = load_frames(spritesheet, 790, 1, 43, 43, 12)
@@ -25,17 +24,17 @@ animation_speed = 0.10
 clock = pygame.time.Clock()
 carryOn = True
 while carryOn:
-    screen.fill((30, 30, 30))
+    screen.fill((0, 0, 0))
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            running = False
+            carryOn = False
 
     current_frame += animation_speed
     if current_frame >= len(frames):
         current_frame = 0
 
-    screen.blit(frames[int(current_frame)], (100, 300))
+    screen.blit(frames[int(current_frame)], (300, 300))
 
     pygame.display.flip()
     clock.tick(60)
