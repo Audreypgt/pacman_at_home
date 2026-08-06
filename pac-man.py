@@ -4,6 +4,7 @@ import pygame_menu
 from pygame_menu import themes
 import mazegenerator  # type: ignore
 from parsing import parse
+import sprites
 
 
 TILEWIDTH = 16
@@ -50,13 +51,13 @@ class GameController(object):
                 # find a way to resume game after, instead of starting again
                 if event.key == pygame.K_ESCAPE:
                     self.running = False
-                if event.key == pygame.K_UP:
+                if event.key == pygame.K_UP or event.key == pygame.K_w:
                     pacman.direction = (0, -1)
-                if event.key == pygame.K_DOWN:
+                if event.key == pygame.K_DOWN or event.key == pygame.K_s:
                     pacman.direction = (0, 1)
-                if event.key == pygame.K_LEFT:
+                if event.key == pygame.K_LEFT or event.key == pygame.K_a:
                     pacman.direction = (-1, 0)
-                if event.key == pygame.K_RIGHT:
+                if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
                     pacman.direction = (1, 0)
 
     def render(self, mazegen):
