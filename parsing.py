@@ -10,8 +10,6 @@ class ArgsError(Exception):
     pass
 
 
-# todo: add way to remove comments
-
 class LevelConfiguration(BaseModel):
     width_lvl: int = Field(ge=12, le=50, default=13)
     height_lvl: int = Field(ge=12, le=50, default=13)
@@ -155,9 +153,18 @@ class Configuration(BaseModel):
             return "highscore.txt"
 
 
+class JSONWithCommentsDecoder(json.JSONDecoder):
+    def init(self, **kw) -> None:
+        super().__init__(**kw)
+
+    def decodemoilejson(self, s: str) -> Any:
+        s = '\n'.join(line if not line.lstrip().startswith('//')
+                      else '' for line in s.split('\n'))
+        return super().decode(s)
+
+
 def parse() -> Configuration:
     """return dict with width, length... as key and the values given in the
-    config.json file
     """
 
     if not len(argv) == 2:
@@ -167,8 +174,9 @@ def parse() -> Configuration:
     if not argv[1].endswith(('.json')):
         raise ArgsError("Configuration file must be a json file\n")
 
-    with open(argv[1], "r") as text:
-        parse_file = json.load(text)
+    with open(argv[1], "r") as file:
+        parse_file = json.load(file, cls=JSONWithCommentsDecoder)
+        # parse_file = json.load(text)
 
     # return an object made of each value and key of the json file as variables
     return Configuration(**parse_file)
@@ -176,7 +184,7 @@ def parse() -> Configuration:
 
 if __name__ == "__main__":
     config = parse()
-    # print(config)
+    print(config)
 
 
 # example of dict unpacking:
