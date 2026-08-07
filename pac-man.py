@@ -4,7 +4,7 @@ import pygame_menu
 from pygame_menu import themes
 import mazegenerator  # type: ignore
 from parsing import parse
-import sprites
+# import sprites
 
 
 TILEWIDTH = 16
@@ -28,11 +28,11 @@ class GameController(object):
         self.background = None
         self.running = True
 
-    def set_background(self):
+    def set_background(self) -> None:
         self.background = pygame.Surface(SCREENSIZE).convert()
         self.background.fill(BLACK)
 
-    def update(self):
+    def update(self) -> None:
         """function called once per frame of the game == our game loop
         call the function that checks the user inputs, and makes the ghosts
         move
@@ -41,7 +41,7 @@ class GameController(object):
         all_sprites_list.update()
         # move ghosts
 
-    def check_events(self):
+    def check_events(self) -> None:
         """check user inputs, which keys are pressed"""
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -60,7 +60,7 @@ class GameController(object):
                 if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
                     pacman.direction = (1, 0)
 
-    def render(self, mazegen):
+    def render(self, mazegen) -> None:
         """draw images to the screen"""
         # draw background
         self.set_background()
@@ -68,12 +68,23 @@ class GameController(object):
 
         # draw maze
         self.draw_maze(mazegen)
+        # draw gums
+        self.add_gums(mazegen)
         # draw sprites
         all_sprites_list.draw(self.screen)
         # updates the screen with everything just drawn
         pygame.display.flip()
 
-    def draw_maze(self, mazegen):
+    def add_gums(self, mazegen) -> None:
+        gum = pygame.image.load('sprites/pretzel.png').convert()
+        cy = 0
+        cx = 0
+        for line in mazegen.maze:
+            for cell in line:
+                if not (cell & 15):
+                    self.screen.blit(gum, (cx, cy))
+
+    def draw_maze(self, mazegen) -> None:
         cy = 0
         cx = 0
         for line in mazegen.maze:
@@ -105,11 +116,11 @@ class GameController(object):
         # 3 = 0011 Fermee au Nord et a l'Est
         # 15 = 1111 tout ferme
 
-    def start_game(self):
+    def start_game(self) -> None:
         """create maze, check user inputs and render new elements"""
         mazegen = mazegenerator.MazeGenerator()
         self.clock = pygame.time.Clock()
-        self.time = 0
+        self.time = 0.0
         print(self.clock)
         while self.running:
             # menu.main_menu._open(loading)
@@ -124,7 +135,7 @@ class GameController(object):
                 self.running = False
         self.running = True
 
-    def set_difficulty(self, difficulty):
+    def set_difficulty(self, difficulty) -> None:
         """select difficulty level from menu"""
         pass
 

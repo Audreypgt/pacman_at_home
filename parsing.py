@@ -2,8 +2,9 @@ from sys import argv
 from typing import Any, Annotated
 import json
 from collections.abc import Callable
-from pydantic import BaseModel, Field, field_validator, ValidationInfo
-from pydantic_core import PydanticUseDefault
+from pydantic import (  # type: ignore
+    BaseModel, Field, field_validator, ValidationInfo)
+from pydantic_core import PydanticUseDefault  # type: ignore
 
 
 class ArgsError(Exception):
