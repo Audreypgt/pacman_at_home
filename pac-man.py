@@ -140,7 +140,7 @@ class Sprite(pygame.sprite.Sprite):
         super().__init__()
         self.image = image
         self.rect = self.image.get_rect()
-        self.direction = (0, 0)
+        self.direction: tuple[int, int] = (0, 0)
         self.speed = 4
 
     def update(self):
