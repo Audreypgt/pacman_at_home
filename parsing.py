@@ -1,6 +1,7 @@
 from sys import argv
 from typing import Any, Annotated
 import json
+from collections.abc import Callable
 from pydantic import BaseModel, Field, field_validator, ValidationInfo
 from pydantic_core import PydanticUseDefault
 
@@ -157,8 +158,8 @@ class JSONWithCommentsDecoder(json.JSONDecoder):
     def init(self, **kw) -> None:
         super().__init__(**kw)
 
-    def decodemoilejson(self, s: str) -> Any:
-        s = '\n'.join(line if not line.lstrip().startswith('//')
+    def decode(self, s: str, _: Callable[..., Any] = lambda: "") -> Any:
+        s = '\n'.join(line if not line.lstrip().startswith(('//', '#'))
                       else '' for line in s.split('\n'))
         return super().decode(s)
 
@@ -171,7 +172,7 @@ def parse() -> Configuration:
         raise ArgsError("Wrong amount of arguments, parameters should be "
                         "python program file and configuration file\n")
 
-    if not argv[1].endswith(('.json')):
+    if not argv[1].endswith((".json")):
         raise ArgsError("Configuration file must be a json file\n")
 
     with open(argv[1], "r") as file:
