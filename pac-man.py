@@ -148,8 +148,6 @@ class Sprite(pygame.sprite.Sprite):
         self.rect.y += self.direction[1] * self.speed
 
 
-
-
 if __name__ == "__main__":
     configuration = parse()
     game = GameController()
