@@ -4,7 +4,6 @@ import pygame_menu
 from pygame_menu import themes
 import mazegenerator  # type: ignore
 from parsing import parse
-import sprites
 
 
 TILEWIDTH = 16

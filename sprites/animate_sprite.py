@@ -1,8 +1,9 @@
 import pygame, sys, os
-# pygame.init()
+pygame.init()
 
-# window_size = (800, 600)
-# game_window = pygame.display.set_mode(window_size)
+DISPLAY_W, DISPLAY_H = 800, 600
+canvas = pygame.Surface((DISPLAY_W, DISPLAY_H))
+window = pygame.display.set_mode((DISPLAY_W, DISPLAY_H))
 
 class Sprite(pygame.sprite.Sprite):
 
@@ -10,9 +11,9 @@ class Sprite(pygame.sprite.Sprite):
     SPRITE_W = 40
     SPRITE_H = 40
 
-    def __init__(self, image):
-        self.image = image
-        self.sheet = self.image.load(image).convert_alpha()
+    def __init__(self, filename):
+        self.filename = filename
+        self.sheet = pygame.image.load(filename).convert_alpha()
 
     def get_sprite(self, x, y, w, h):
         sprite = pygame.Surface((w, h), pygame.SRCALPHA)
@@ -27,26 +28,61 @@ class Sprite(pygame.sprite.Sprite):
         return self.get_sprite(x, y, w, h)
 
 
-# my_sprite = 
+my_sheet = Sprite('sprites/pac_sheet.png')
 
-# run = True
-# while run:
-#     for event in pygame.event.get():
-#         if event.type == pygame.QUIT:
-#             run = False
+pacwoman_frames = [my_sheet.get_sprite_at(row, 17) for row in range(9)]
 
-#     keys = pygame.key.get_pressed()
-#     if keys[pygame.K_LEFT] or keys[pygame.K_a]:
-#         right1.rect.x -= 5
-#     if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
-#         right1.rect.x += 5
-#     if keys[pygame.K_UP] or keys[pygame.K_w]:
-#         right1.rect.y -= 5
-#     if keys[pygame.K_DOWN] or keys[pygame.K_s]:
-#         right1.rect.y += 5
+ROTATION = {"right": 0, "up": 90, "left": 180, "down": 270}
 
-#     game_window.fill((0, 0, 0))
-#     sprites.draw(game_window)
-#     pygame.display.update()
+SPEED = 3
+ANIMATION_SPEED = 6
 
-# pygame.quit()
+pacwoman_x, pacwoman_y = DISPLAY_W // 2, DISPLAY_H // 2
+facing = "right"
+frame_index = 0
+frame_timer = 0
+clock = pygame.time.Clock()
+
+run = True
+while run:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            run = False
+
+    keys = pygame.key.get_pressed()
+    moving = False
+
+    if keys[pygame.K_LEFT] or keys[pygame.K_a]:
+        pacwoman_x -= SPEED
+        facing = "left"
+        moving = True
+    elif keys[pygame.K_RIGHT] or keys[pygame.K_d]:
+        pacwoman_x += SPEED
+        facing = "right"
+        moving = True
+    elif keys[pygame.K_UP] or keys[pygame.K_w]:
+        pacwoman_x -= SPEED
+        facing = "up"
+        moving = True
+    elif keys[pygame.K_DOWN] or keys[pygame.K_s]:
+        pacwoman_x += SPEED
+        facing = "down"
+        moving = True
+
+    pacwoman_x = max(0, min(DISPLAY_W - Sprite.SPRITE_W, pacwoman_x))
+    pacwoman_y = max(0, min(DISPLAY_H - Sprite.SPRITE_H, pacwoman_y))
+
+    if moving:
+        frame_timer += 1
+        if frame_timer >= ANIMATION_SPEED:
+            frame_timer = 0
+            frame_index = (frame_index + 1) % len(pacwoman_frames)
+
+    canvas.fill((0, 0, 0))
+    current_frame = pygame.transform.rotate(pacwoman_frames[frame_index], ROTATION[facing])
+    canvas.blit(current_frame, (pacwoman_x, pacwoman_y))
+    window.blit(canvas, (0, 0))
+    pygame.display.update()
+    clock.tick(60)
+
+pygame.quit()
