@@ -16,10 +16,10 @@ SCREENHEIGHT = NROWS * TILEHEIGHT
 SCREENSIZE = (SCREENWIDTH, SCREENHEIGHT)
 BLACK = (0, 0, 0)
 PINK = (255, 209, 220)
-BLINKY      = (255,   0,   0)
+BLINKY = (255,   0,   0)
 INKY = (161, 255, 254)
-PINKY     = (255, 192, 203)
-CLYDE   = (255, 165,   0)
+PINKY = (255, 192, 203)
+CLYDE = (255, 165,   0)
 
 # create surface for the game to be a square and change values
 # like for draw maze to percentage of the screen
