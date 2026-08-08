@@ -12,7 +12,6 @@ class Sprite(pygame.sprite.Sprite):
     SPRITE_H = 40
 
     def __init__(self, filename):
-        self.filename = filename
         self.sheet = pygame.image.load(filename).convert_alpha()
 
     def get_sprite(self, x, y, w, h):
@@ -23,9 +22,18 @@ class Sprite(pygame.sprite.Sprite):
     def get_sprite_at(self, row, col, w=None, h=None):
         w = w or self.SPRITE_W
         h = h or self.SPRITE_H
-        x = col * self.CELL
-        y = row * self.CELL
-        return self.get_sprite(x, y, w, h)
+        return self.get_sprite(col * self.CELL, row * self.CELL, w, h)
+
+class Pacwoman:
+    def __init__(self, x, y, sprite_sheet):
+        self.x = x
+        self.y = y
+        self.direction = (1, 0)
+        self.move_speed = 3
+        self.animation_speed = 6
+        self.move_timer = 0
+        self.frame_index = 0
+        self.state = "idle"
 
 
 my_sheet = Sprite('sprites/pac_sheet.png')
@@ -61,11 +69,11 @@ while run:
         facing = "right"
         moving = True
     elif keys[pygame.K_UP] or keys[pygame.K_w]:
-        pacwoman_x -= SPEED
+        pacwoman_y -= SPEED
         facing = "up"
         moving = True
     elif keys[pygame.K_DOWN] or keys[pygame.K_s]:
-        pacwoman_x += SPEED
+        pacwoman_y += SPEED
         facing = "down"
         moving = True
 
