@@ -77,12 +77,17 @@ class GameController(object):
 
     def add_gums(self, mazegen) -> None:
         gum = pygame.image.load('sprites/pretzel.png').convert()
-        cy = 0
-        cx = 0
+        gum = pygame.transform.scale(gum, (16, 15))
+        cx: float = 0
+        cy: float = 0
+
         for line in mazegen.maze:
             for cell in line:
-                if not (cell & 15):
-                    self.screen.blit(gum, (cx, cy))
+                if cell != 15:
+                    self.screen.blit(gum, (cx + 15.5, cy + 16.5))
+                cx += 50
+            cx = 0
+            cy += 50
 
     def draw_maze(self, mazegen) -> None:
         cy = 0
