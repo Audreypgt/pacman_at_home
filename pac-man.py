@@ -16,6 +16,10 @@ SCREENHEIGHT = NROWS * TILEHEIGHT
 SCREENSIZE = (SCREENWIDTH, SCREENHEIGHT)
 BLACK = (0, 0, 0)
 PINK = (255, 209, 220)
+BLINKY      = (255,   0,   0)
+INKY = (161, 255, 254)
+PINKY     = (255, 192, 203)
+CLYDE   = (255, 165,   0)
 
 # create surface for the game to be a square and change values
 # like for draw maze to percentage of the screen
@@ -76,8 +80,8 @@ class GameController(object):
         pygame.display.flip()
 
     def add_gums(self, mazegen) -> None:
-        gum = pygame.image.load('sprites/pretzel.png').convert()
-        gum = pygame.transform.scale(gum, (16, 15))
+        gum = pygame.transform.scale(
+            pygame.image.load('sprites/pretzel.png').convert(), (16, 15))
         cx: float = 0
         cy: float = 0
 

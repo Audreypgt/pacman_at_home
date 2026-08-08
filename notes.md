@@ -4,8 +4,11 @@ https://coderslegacy.com/python/python-pygame-tutorial/
 https://pacmancode.com/
 https://www.geeksforgeeks.org/python/pygame-drawing-objects-and-shapes/
 
-# Vectors
 
+# Ghosts
+https://stackoverflow.com/questions/73328115/pacman-ghost-movement
+
+# Vectors
 ## Vector Basics
 Vectors are a data structure useful for storing informations like position and velocity.
 
