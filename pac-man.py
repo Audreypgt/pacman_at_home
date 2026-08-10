@@ -5,6 +5,7 @@ from pygame_menu import themes
 import mazegenerator  # type: ignore
 from parsing import parse
 from movements import PacSpriteSheet, Pacwoman
+from ghosts import Ghosts
 
 
 TILEWIDTH = 16
