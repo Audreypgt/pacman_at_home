@@ -4,7 +4,7 @@ import pygame_menu
 from pygame_menu import themes
 import mazegenerator  # type: ignore
 from parsing import parse
-# import sprites
+from movements import PacSpriteSheet, Pacwoman
 
 
 TILEWIDTH = 16
@@ -42,6 +42,10 @@ class GameController(object):
         move
         """
         self.check_events()
+        keys = pygame.key.get_pressed()
+        pacman.input(keys)
+        pacman.move()
+        pacman.update()
         all_sprites_list.update()
         # move ghosts
 
@@ -55,14 +59,6 @@ class GameController(object):
                 # find a way to resume game after, instead of starting again
                 if event.key == pygame.K_ESCAPE:
                     self.running = False
-                if event.key == pygame.K_UP or event.key == pygame.K_w:
-                    pacman.direction = (0, -1)
-                if event.key == pygame.K_DOWN or event.key == pygame.K_s:
-                    pacman.direction = (0, 1)
-                if event.key == pygame.K_LEFT or event.key == pygame.K_a:
-                    pacman.direction = (-1, 0)
-                if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
-                    pacman.direction = (1, 0)
 
     def render(self, mazegen) -> None:
         """draw images to the screen"""
@@ -77,6 +73,7 @@ class GameController(object):
         # draw sprites
         all_sprites_list.draw(self.screen)
         # updates the screen with everything just drawn
+        pacman.draw(self.screen)
         pygame.display.flip()
 
     def add_gums(self, mazegen) -> None:
@@ -155,17 +152,17 @@ class GameController(object):
     # is pressed, then call function for level 10
 
 
-class Sprite(pygame.sprite.Sprite):
-    def __init__(self, image):
-        super().__init__()
-        self.image = image
-        self.rect = self.image.get_rect()
-        self.direction: tuple[int, int] = (0, 0)
-        self.speed = 4
+# class Sprite(pygame.sprite.Sprite):
+#     def __init__(self, image):
+#         super().__init__()
+#         self.image = image
+#         self.rect = self.image.get_rect()
+#         self.direction: tuple[int, int] = (0, 0)
+#         self.speed = 4
 
-    def update(self):
-        self.rect.x += self.direction[0] * self.speed
-        self.rect.y += self.direction[1] * self.speed
+#     def update(self):
+#         self.rect.x += self.direction[0] * self.speed
+#         self.rect.y += self.direction[1] * self.speed
 
 
 if __name__ == "__main__":
@@ -174,9 +171,11 @@ if __name__ == "__main__":
     game.set_background()
 
     # container class to hold and manage mutliple sprite objects
+    pac_sheet = PacSpriteSheet("sprites/pac_sheet.png")
+    pacman = Pacwoman(SCREENWIDTH // 2, SCREENHEIGHT // 2, pac_sheet, SCREENWIDTH, SCREENHEIGHT)
     all_sprites_list: pygame.sprite.Group = pygame.sprite.Group()
-    pacman = Sprite(pygame.image.load('sprites/pacman.png'))
-    all_sprites_list.add(pacman)
+    # pacman = Sprite(pygame.image.load('sprites/pacman.png'))
+    # all_sprites_list.add(pacman)
 
     # Menu
     main_menu = pygame_menu.Menu(
