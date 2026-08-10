@@ -162,8 +162,8 @@ if __name__ == "__main__":
     # container class to hold and manage mutliple sprite objects
     pac_sheet = PacSpriteSheet("sprites/pac_sheet.png")
     entry_x, entry_y = game.mazegen.maze_entry
-    spawn_x = entry_x * 50 + (50 - PacSpriteSheet.SPRITE_H) // 2
-    spawn_y = entry_y * 50 + (50 - PacSpriteSheet.SPRITE_W) // 2
+    spawn_x = entry_x * 50 + (50 - PacSpriteSheet.SPRITE_W) // 2
+    spawn_y = entry_y * 50 + (50 - PacSpriteSheet.SPRITE_H) // 2
     pacman = Pacwoman(spawn_x, spawn_y, pac_sheet, SCREENWIDTH, SCREENHEIGHT)
 
     # Menu
