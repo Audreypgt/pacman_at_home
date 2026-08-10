@@ -1,27 +1,8 @@
 import pygame
+from movements import PacSpriteSheet
 
 
-class PacSpriteSheet():
-
-    CELL = 47
-    SPRITE_W = 40
-    SPRITE_H = 40gi
-
-    def __init__(self, filename):
-        self.sheet = pygame.image.load(filename).convert_alpha()
-
-    def get_sprite(self, x, y, w, h):
-        sprite = pygame.Surface((w, h), pygame.SRCALPHA)
-        sprite.blit(self.sheet, (0, 0), (x, y, w, h))
-        return sprite
-
-    def get_sprite_at(self, row, col, w=None, h=None):
-        w = w or self.SPRITE_W
-        h = h or self.SPRITE_H
-        return self.get_sprite(col * self.CELL, row * self.CELL, w, h)
-
-
-class Pacwoman:
+class Ghosts:
     def __init__(self, x, y, sprite_sheet, screen_w, screen_y):
         self.x = x
         self.y = y
@@ -34,10 +15,26 @@ class Pacwoman:
         self.frame_index = 0
         self.state = "idle"
         self.frame_sets = {
-            (-1, 0): [sprite_sheet.get_sprite_at(8, 17) ,sprite_sheet.get_sprite_at(7, 17), sprite_sheet.get_sprite_at(6, 17)],
-            (1, 0): [sprite_sheet.get_sprite_at(0, 17) ,sprite_sheet.get_sprite_at(1, 17), sprite_sheet.get_sprite_at(2, 17)],
-            (0, 1): [sprite_sheet.get_sprite_at(3, 17), sprite_sheet.get_sprite_at(4, 17), sprite_sheet.get_sprite_at(5, 17)],
-            (0, -1): [sprite_sheet.get_sprite_at(9, 17), sprite_sheet.get_sprite_at(10,17), sprite_sheet.get_sprite_at(11, 17)]
+            # West
+            (-1, 0): [
+                sprite_sheet.get_sprite_at(8, 0),
+                sprite_sheet.get_sprite_at(6, 0)
+                ],
+            # East
+            (1, 0): [
+                sprite_sheet.get_sprite_at(4, 0),
+                sprite_sheet.get_sprite_at(5, 0),
+                ],
+            # South
+            (0, 1): [
+                sprite_sheet.get_sprite_at(2, 0),
+                sprite_sheet.get_sprite_at(3, 0),
+                ],
+            # North
+            (0, -1): [
+                sprite_sheet.get_sprite_at(6, 0),
+                sprite_sheet.get_sprite_at(7, 0)
+                ]
         }
         self.current_frame = self.frame_sets[self.direction][0]
 
@@ -99,7 +96,6 @@ class Pacwoman:
             self.state = "idle"
         else:
             self.x, self.y = clamped_x, clamped_y
-
 
     def update(self):
         if self.state == "moving":
