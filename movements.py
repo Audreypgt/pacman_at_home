@@ -5,7 +5,7 @@ class PacSpriteSheet():
 
     CELL = 47
     SPRITE_W = 40
-    SPRITE_H = 40gi
+    SPRITE_H = 40
 
     def __init__(self, filename):
         self.sheet = pygame.image.load(filename).convert_alpha()
@@ -99,7 +99,6 @@ class Pacwoman:
             self.state = "idle"
         else:
             self.x, self.y = clamped_x, clamped_y
-
 
     def update(self):
         if self.state == "moving":
