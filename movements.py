@@ -1,9 +1,4 @@
 import pygame
-# pygame.init()
-
-# DISPLAY_W, DISPLAY_H = 800, 600
-# canvas = pygame.Surface((DISPLAY_W, DISPLAY_H))
-# window = pygame.display.set_mode((DISPLAY_W, DISPLAY_H))
 
 class PacSpriteSheet():
 
@@ -58,21 +53,53 @@ class Pacwoman:
             self.direction = (0, 1)
             self.state = "moving"
 
-    def move(self):
-        if self.state == "moving":
-            new_x = self.x + self.direction[0] * self.move_speed
-            new_y = self.y + self.direction[1] * self.move_speed
-            clamped_x = max(0, min(self.screen_w- PacSpriteSheet.SPRITE_W, new_x))
-            clamped_y = max(0, min(self.screen_y - PacSpriteSheet.SPRITE_H, new_y))
+    def move(self, mazegen):
+        if self.state != "moving":
+            return
 
-            if clamped_x == self.x and clamped_y == self.y:
-                self.state = "idle"
-            else:
-                self.x, self.y = clamped_x, clamped_y
+        MAZE_CELL = 50
+        dx, dy = self.direction
+
+        maze_height = len(mazegen.maze)
+        maze_width = len(mazegen.maze[0])
+
+        center_x = self.x + PacSpriteSheet.SPRITE_W // 2
+        center_y = self.y + PacSpriteSheet.SPRITE_H // 2
+        col = center_x // MAZE_CELL
+        row = center_y // MAZE_CELL
+
+        if not (0 <= maze_height and 0 <= col <= maze_width):
+            self.state = "idle"
+            return
+
+        cell = mazegen.maze[row][col]
+        wall_bit = {(0, -1): 1, (1, 0): 2, (0, 1): 4, (-1, 0): 8}[self.direction]
+
+        if cell & wall_bit:
+            self.state = "idle"
+            return
+
+        offset = (MAZE_CELL - PacSpriteSheet.SPRITE_W) // 2
+        if dx != 0:
+            self.y = row * MAZE_CELL + offset
+        elif dy != 0:
+            self.x = col * MAZE_CELL + offset
+
+        new_x = self.x + dx * self.move_speed
+        new_y = self.y + dy * self.move_speed
+
+        maze_pixel_w = maze_width * MAZE_CELL
+        maze_pixel_h = maze_height * MAZE_CELL
+        clamped_x = max(0, min(self.screen_w - PacSpriteSheet.SPRITE_W, new_x))
+        clamped_y = max(0, min(self.screen_y - PacSpriteSheet.SPRITE_H, new_y))
+
+        if clamped_x == self.x and clamped_y == self.y:
+            self.state = "idle"
+        else:
+            self.x, self.y = clamped_x, clamped_y
 
 
     def update(self):
-        
         if self.state == "moving":
             self.move_timer += 1
             if self.move_timer >= self.animation_speed:
@@ -83,25 +110,3 @@ class Pacwoman:
     def draw(self, surface):
         surface.blit(self.current_frame, (self.x, self.y))
 
-# sprite_sheet = PacSpriteSheet("sprites/pac_sheet.png")
-# pacwoman = Pacwoman(DISPLAY_W // 2, DISPLAY_H // 2, sprite_sheet)
-# clock = pygame.time.Clock()
-
-# run = True
-# while run:
-#     for event in pygame.event.get():
-#         if event.type == pygame.QUIT:
-#             run = False
-
-#     keys = pygame.key.get_pressed()
-#     pacwoman.input(keys)
-#     pacwoman.move()
-#     pacwoman.update()
-
-#     canvas.fill((0, 0, 0))
-#     pacwoman.draw(canvas)
-#     window.blit(canvas, (0, 0))
-#     pygame.display.update()
-#     clock.tick(60)
-
-# pygame.quit()

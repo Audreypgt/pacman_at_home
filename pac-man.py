@@ -44,7 +44,7 @@ class GameController(object):
         self.check_events()
         keys = pygame.key.get_pressed()
         pacman.input(keys)
-        pacman.move()
+        pacman.move(self.mazegen)
         pacman.update()
         all_sprites_list.update()
         # move ghosts
@@ -124,7 +124,6 @@ class GameController(object):
 
     def start_game(self) -> None:
         """create maze, check user inputs and render new elements"""
-        mazegen = mazegenerator.MazeGenerator()
         self.clock = pygame.time.Clock()
         self.time = 0.0
         print(self.clock)
@@ -135,7 +134,7 @@ class GameController(object):
             self.time += self.clock.tick(60) / 1000
             self.time = round(self.time, 2)
             print(self.time)
-            self.render(mazegen)
+            self.render(self.mazegen)
             # game ends after 90 seconds and goes back to menu
             if self.time == 90.00:
                 self.running = False
@@ -152,30 +151,20 @@ class GameController(object):
     # is pressed, then call function for level 10
 
 
-# class Sprite(pygame.sprite.Sprite):
-#     def __init__(self, image):
-#         super().__init__()
-#         self.image = image
-#         self.rect = self.image.get_rect()
-#         self.direction: tuple[int, int] = (0, 0)
-#         self.speed = 4
-
-#     def update(self):
-#         self.rect.x += self.direction[0] * self.speed
-#         self.rect.y += self.direction[1] * self.speed
-
-
 if __name__ == "__main__":
     configuration = parse()
     game = GameController()
     game.set_background()
+    game.mazegen = mazegenerator.MazeGenerator()
+
+    all_sprites_list: pygame.sprite.Group = pygame.sprite.Group()
 
     # container class to hold and manage mutliple sprite objects
     pac_sheet = PacSpriteSheet("sprites/pac_sheet.png")
-    pacman = Pacwoman(SCREENWIDTH // 2, SCREENHEIGHT // 2, pac_sheet, SCREENWIDTH, SCREENHEIGHT)
-    all_sprites_list: pygame.sprite.Group = pygame.sprite.Group()
-    # pacman = Sprite(pygame.image.load('sprites/pacman.png'))
-    # all_sprites_list.add(pacman)
+    entry_x, entry_y = game.mazegen.maze_entry
+    spawn_x = entry_x * 50 + (50 - PacSpriteSheet.SPRITE_H) // 2
+    spawn_y = entry_y * 50 + (50 - PacSpriteSheet.SPRITE_W) // 2
+    pacman = Pacwoman(spawn_x, spawn_y, pac_sheet, SCREENWIDTH, SCREENHEIGHT)
 
     # Menu
     main_menu = pygame_menu.Menu(
