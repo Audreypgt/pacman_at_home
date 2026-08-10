@@ -31,34 +31,34 @@ class Pacwoman:
         self.move_timer = 0
         self.frame_index = 0
         self.state = "idle"
-        # self.frame_sets = {
-        #     (-1, 0): [sprite_sheet.get_sprite_at(8, 17) ,sprite_sheet.get_sprite_at(7, 17), sprite_sheet.get_sprite_at(6, 17)],
-        #     (1, 0): [sprite_sheet.get_sprite_at(0, 17) ,sprite_sheet.get_sprite_at(1, 17), sprite_sheet.get_sprite_at(2, 17)],
-        #     (0, 1): [sprite_sheet.get_sprite_at(3, 17), sprite_sheet.get_sprite_at(4, 17), sprite_sheet.get_sprite_at(5, 17)],
-        #     (0, -1): [sprite_sheet.get_sprite_at(9, 17), sprite_sheet.get_sprite_at(10,17), sprite_sheet.get_sprite_at(11, 17)]
-        # }
         self.frame_sets = {
-            # West
-            (-1, 0): [
-                sprite_sheet.get_sprite_at(4, 0),
-                sprite_sheet.get_sprite_at(5, 0)
-                ],
-            # East
-            (1, 0): [
-                sprite_sheet.get_sprite_at(0, 0),
-                sprite_sheet.get_sprite_at(1, 0),
-                ],
-            # South
-            (0, 1): [
-                sprite_sheet.get_sprite_at(2, 0),
-                sprite_sheet.get_sprite_at(3, 0),
-                ],
-            # North
-            (0, -1): [
-                sprite_sheet.get_sprite_at(6, 0),
-                sprite_sheet.get_sprite_at(7, 0)
-                ]
+            (-1, 0): [sprite_sheet.get_sprite_at(8, 17) ,sprite_sheet.get_sprite_at(7, 17), sprite_sheet.get_sprite_at(6, 17)],
+            (1, 0): [sprite_sheet.get_sprite_at(0, 17) ,sprite_sheet.get_sprite_at(1, 17), sprite_sheet.get_sprite_at(2, 17)],
+            (0, 1): [sprite_sheet.get_sprite_at(3, 17), sprite_sheet.get_sprite_at(4, 17), sprite_sheet.get_sprite_at(5, 17)],
+            (0, -1): [sprite_sheet.get_sprite_at(9, 17), sprite_sheet.get_sprite_at(10,17), sprite_sheet.get_sprite_at(11, 17)]
         }
+        # self.frame_sets = {
+        #     # West
+        #     (-1, 0): [
+        #         sprite_sheet.get_sprite_at(4, 0),
+        #         sprite_sheet.get_sprite_at(5, 0)
+        #         ],
+        #     # East
+        #     (1, 0): [
+        #         sprite_sheet.get_sprite_at(0, 0),
+        #         sprite_sheet.get_sprite_at(1, 0),
+        #         ],
+        #     # South
+        #     (0, 1): [
+        #         sprite_sheet.get_sprite_at(2, 0),
+        #         sprite_sheet.get_sprite_at(3, 0),
+        #         ],
+        #     # North
+        #     (0, -1): [
+        #         sprite_sheet.get_sprite_at(6, 0),
+        #         sprite_sheet.get_sprite_at(7, 0)
+        #         ]
+        # }
         self.current_frame = self.frame_sets[self.direction][0]
 
     def input(self, keys):
