@@ -3,7 +3,6 @@ import random
 
 
 class PacSpriteSheet():
-
     CELL = 47
     SPRITE_W = 42
     SPRITE_H = 42
@@ -21,6 +20,7 @@ class PacSpriteSheet():
         h = h or self.SPRITE_H
         return self.get_sprite(col * self.CELL, row * self.CELL, w, h)
 
+
 class Pacwoman:
     def __init__(self, x, y, sprite_sheet, screen_w, screen_y):
         self.x = x
@@ -34,10 +34,22 @@ class Pacwoman:
         self.frame_index = 0
         self.state = "idle"
         self.frame_sets = {
-            (-1, 0): [sprite_sheet.get_sprite_at(8, 17) ,sprite_sheet.get_sprite_at(7, 17), sprite_sheet.get_sprite_at(6, 17)],
-            (1, 0): [sprite_sheet.get_sprite_at(0, 17) ,sprite_sheet.get_sprite_at(1, 17), sprite_sheet.get_sprite_at(2, 17)],
-            (0, 1): [sprite_sheet.get_sprite_at(3, 17), sprite_sheet.get_sprite_at(4, 17), sprite_sheet.get_sprite_at(5, 17)],
-            (0, -1): [sprite_sheet.get_sprite_at(9, 17), sprite_sheet.get_sprite_at(10,17), sprite_sheet.get_sprite_at(11, 17)]
+            (-1, 0): [
+                sprite_sheet.get_sprite_at(8, 17),
+                sprite_sheet.get_sprite_at(7, 17),
+                sprite_sheet.get_sprite_at(6, 17)],
+            (1, 0): [
+                sprite_sheet.get_sprite_at(0, 17),
+                sprite_sheet.get_sprite_at(1, 17),
+                sprite_sheet.get_sprite_at(2, 17)],
+            (0, 1): [
+                sprite_sheet.get_sprite_at(3, 17),
+                sprite_sheet.get_sprite_at(4, 17),
+                sprite_sheet.get_sprite_at(5, 17)],
+            (0, -1): [
+                sprite_sheet.get_sprite_at(9, 17),
+                sprite_sheet.get_sprite_at(10, 17),
+                sprite_sheet.get_sprite_at(11, 17)]
         }
         self.current_frame = self.frame_sets[self.direction][0]
 
@@ -75,7 +87,12 @@ class Pacwoman:
             return
 
         cell = mazegen.maze[row][col]
-        wall_bit = {(0, -1): 1, (1, 0): 2, (0, 1): 4, (-1, 0): 8}[self.direction]
+        wall_bit = {
+            (0, -1): 1,
+            (1, 0): 2,
+            (0, 1): 4,
+            (-1, 0): 8
+            }[self.direction]
 
         offset = (MAZE_CELL - PacSpriteSheet.SPRITE_W) // 2
         if dx != 0:
@@ -88,11 +105,15 @@ class Pacwoman:
 
         if cell & wall_bit:
             if dx == 1:
-                new_x = min(new_x, col * MAZE_CELL + (MAZE_CELL - PacSpriteSheet.SPRITE_W))
+                new_x = min(
+                    new_x, col * MAZE_CELL + (
+                        MAZE_CELL - PacSpriteSheet.SPRITE_W))
             elif dx == -1:
                 new_x = max(new_x, col * MAZE_CELL)
             elif dy == 1:
-                new_y = min(new_y, row * MAZE_CELL + (MAZE_CELL - PacSpriteSheet.SPRITE_H))
+                new_y = min(
+                    new_y, row * MAZE_CELL + (
+                        MAZE_CELL - PacSpriteSheet.SPRITE_H))
             elif dy == -1:
                 new_y = max(new_y, row * MAZE_CELL)
 
@@ -104,23 +125,80 @@ class Pacwoman:
         else:
             self.x, self.y = clamped_x, clamped_y
 
-
     def update(self):
         if self.state == "moving":
             self.move_timer += 1
             if self.move_timer >= self.animation_speed:
                 self.move_timer = 0
-                self.frame_index = (self.frame_index + 1) % len(self.frame_sets[self.direction])
-            self.current_frame = self.frame_sets[self.direction][self.frame_index]
+                self.frame_index = (self.frame_index + 1) % len(
+                    self.frame_sets[self.direction])
+            self.current_frame = self.frame_sets[self.direction][
+                self.frame_index]
 
     def draw(self, surface):
         surface.blit(self.current_frame, (self.x, self.y))
+
 
 class Ghosts(Pacwoman):
     def __init__(self, x, y, sprite_sheet, screen_w, screen_y):
         super().__init__(x, y, sprite_sheet, screen_w, screen_y)
         self.direction = (1, 0)
         self.state = "moving"
+        self.frame_sets = {}
+
+    def choose_random_direction(self, mazegen):
+        MAZE_CELL = 50
+
+        directions = {
+            (0, -1): 1,
+            (1, 0): 2,
+            (0, 1): 4,
+            (-1, 0): 8}
+
+        maze_height = len(mazegen.maze)
+        maze_width = len(mazegen.maze[0])
+
+        center_x = self.x + PacSpriteSheet.SPRITE_W // 2
+        center_y = self.y + PacSpriteSheet.SPRITE_H // 2
+        col = center_x // MAZE_CELL
+        row = center_y // MAZE_CELL
+
+        if not (0 <= row < maze_height and 0 <= col < maze_width):
+            self.state = "idle"
+            return
+
+        cell = mazegen.maze[row][col]
+        wall_bit = {
+            (0, -1): 1,
+            (1, 0): 2,
+            (0, 1): 4,
+            (-1, 0): 8
+            }[self.direction]
+
+        possible_directions = []
+
+        for direction, wall_bit in directions.items():
+            if not (cell & wall_bit):
+                possible_directions.append(direction)
+
+        if possible_directions:
+            self.direction = random.choice(possible_directions)
+            self.state = "moving"
+
+    def move_random(self, mazegen):
+        if self.state != "moving":
+            self.choose_random_direction(mazegen)
+
+        super().move(mazegen)
+
+        if self.state == "idle":
+            self.choose_random_direction(mazegen)
+
+
+class Blinky(Ghosts):
+    def __init__(self, x, y, sprite_sheet, screen_w, screen_y):
+        super().__init__(x, y, sprite_sheet, screen_w, screen_y)
+
         self.frame_sets = {
             # West
             (-1, 0): [
@@ -145,44 +223,85 @@ class Ghosts(Pacwoman):
         }
 
 
-    def choose_random_direction(self, mazegen):
-        MAZE_CELL = 50
+class Pinky(Ghosts):
+    def __init__(self, x, y, sprite_sheet, screen_w, screen_y):
+        super().__init__(x, y, sprite_sheet, screen_w, screen_y)
 
-        directions = {(0, -1) : 1,
-                     (1, 0) : 2,
-                     (0, 1) : 4,
-                     (-1, 0) : 8}
+        self.frame_sets = {
+            # West
+            (-1, 0): [
+                sprite_sheet.get_sprite_at(4, 1),
+                sprite_sheet.get_sprite_at(5, 1)
+                ],
+            # East
+            (1, 0): [
+                sprite_sheet.get_sprite_at(0, 1),
+                sprite_sheet.get_sprite_at(1, 1),
+                ],
+            # South
+            (0, 1): [
+                sprite_sheet.get_sprite_at(2, 1),
+                sprite_sheet.get_sprite_at(3, 1),
+                ],
+            # North
+            (0, -1): [
+                sprite_sheet.get_sprite_at(6, 1),
+                sprite_sheet.get_sprite_at(7, 1)
+                ]
+        }
 
-        maze_height = len(mazegen.maze)
-        maze_width = len(mazegen.maze[0])
 
-        center_x = self.x + PacSpriteSheet.SPRITE_W // 2
-        center_y = self.y + PacSpriteSheet.SPRITE_H // 2
-        col = center_x // MAZE_CELL
-        row = center_y // MAZE_CELL
+class Clyde(Ghosts):
+    def __init__(self, x, y, sprite_sheet, screen_w, screen_y):
+        super().__init__(x, y, sprite_sheet, screen_w, screen_y)
 
-        if not (0 <= row < maze_height and 0 <= col < maze_width):
-            self.state = "idle"
-            return
+        self.frame_sets = {
+            # West
+            (-1, 0): [
+                sprite_sheet.get_sprite_at(4, 3),
+                sprite_sheet.get_sprite_at(5, 3)
+                ],
+            # East
+            (1, 0): [
+                sprite_sheet.get_sprite_at(0, 3),
+                sprite_sheet.get_sprite_at(1, 3),
+                ],
+            # South
+            (0, 1): [
+                sprite_sheet.get_sprite_at(2, 3),
+                sprite_sheet.get_sprite_at(3, 3),
+                ],
+            # North
+            (0, -1): [
+                sprite_sheet.get_sprite_at(6, 3),
+                sprite_sheet.get_sprite_at(7, 3)
+                ]
+        }
 
-        cell = mazegen.maze[row][col]
-        wall_bit = {(0, -1): 1, (1, 0): 2, (0, 1): 4, (-1, 0): 8}[self.direction]
 
-        possible_directions = []
+class Inky(Ghosts):
+    def __init__(self, x, y, sprite_sheet, screen_w, screen_y):
+        super().__init__(x, y, sprite_sheet, screen_w, screen_y)
 
-        for direction, wall_bit in directions.items():
-            if not (cell & wall_bit):
-                possible_directions.append(direction)
-
-        if possible_directions:
-            self.direction = random.choice(possible_directions)
-            self.state = "moving"
-
-    def move_random(self, mazegen):
-        if self.state != "moving":
-            self.choose_random_direction(mazegen)
-
-        super().move(mazegen)
-
-        if self.state == "idle":
-            self.choose_random_direction(mazegen)
+        self.frame_sets = {
+            # West
+            (-1, 0): [
+                sprite_sheet.get_sprite_at(4, 2),
+                sprite_sheet.get_sprite_at(5, 2)
+                ],
+            # East
+            (1, 0): [
+                sprite_sheet.get_sprite_at(0, 2),
+                sprite_sheet.get_sprite_at(1, 2),
+                ],
+            # South
+            (0, 1): [
+                sprite_sheet.get_sprite_at(2, 2),
+                sprite_sheet.get_sprite_at(3, 2),
+                ],
+            # North
+            (0, -1): [
+                sprite_sheet.get_sprite_at(6, 2),
+                sprite_sheet.get_sprite_at(7, 2)
+                ]
+        }

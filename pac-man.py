@@ -5,7 +5,7 @@ from pygame_menu import themes
 import mazegenerator  # type: ignore
 from parsing import parse
 from pacwoman import PacSpriteSheet, Pacwoman
-from ghosts import Ghosts
+from ghosts import Blinky, Pinky, Clyde, Inky
 from pacgums import Pacgums
 
 
@@ -33,7 +33,7 @@ class GameController(object):
         self.screen = pygame.display.set_mode(SCREENSIZE, 0, 32)
         self.background = None
         self.running = False
-        self.paused = False
+        self.over = False
         self.pacgums = Pacgums()
 
     def set_background(self) -> None:
@@ -53,6 +53,14 @@ class GameController(object):
         self.pacgums.eat(self.pacwoman)
         # all_sprites_list.update(pacman)
         # move ghosts
+        self.blinky.move_random(self.mazegen)
+        self.blinky.update()
+        self.pinky.move_random(self.mazegen)
+        self.pinky.update()
+        self.clyde.move_random(self.mazegen)
+        self.clyde.update()
+        self.inky.move_random(self.mazegen)
+        self.inky.update()
 
     def check_events(self) -> None:
         """check user inputs, which keys are pressed"""
@@ -77,11 +85,11 @@ class GameController(object):
         # draw gums
         self.pacgums.draw(self.screen)
         # draw sprites
-        # all_sprites_list.draw(self.screen)
-        # updates the screen with everything just drawn
         self.pacwoman.draw(self.screen)
-        pacman.draw(self.screen)
-        blinky.draw(self.screen)
+        self.blinky.draw(self.screen)
+        self.pinky.draw(self.screen)
+        self.clyde.draw(self.screen)
+        self.inky.draw(self.screen)
         # updates the screen with everything just drawn
         pygame.display.flip()
 
@@ -132,6 +140,12 @@ class GameController(object):
         # 15 = 1111 tout ferme
 
     def set_up_game(self) -> None:
+        if self.over:
+            with open(configuration.highscore_filename, 'a') as f:
+                f.write(
+                    f"{self.looser.get_value()}: {self.pacgums.score}\n")
+            self.sort_score_file()
+            self.over = False
         self.clock = pygame.time.Clock()
         self.time = 0.0
         self.running = True
@@ -148,10 +162,36 @@ class GameController(object):
         self.pacgums.init_gums(game.mazegen)
 
         # Blinky
-        spawn_x_blky = len(game.mazegen.maze[0]) - 1
-        spawn_y_blky = len(game.mazegen.maze) - 1
-        self.blinky = Ghosts(
+        spawn_x_blky = (
+            len(game.mazegen.maze[0]) - 1) * 50 + (
+                50 - PacSpriteSheet.SPRITE_W) // 2
+        spawn_y_blky = (
+            len(game.mazegen.maze) - 1) * 50 + (
+                50 - PacSpriteSheet.SPRITE_H) // 2
+        self.blinky = Blinky(
             spawn_x_blky, spawn_y_blky, pac_sheet, SCREENWIDTH, SCREENHEIGHT)
+
+        # Pinky
+        spawn_x_pky = (50 - PacSpriteSheet.SPRITE_W) // 2
+        spawn_y_pky = (
+            len(game.mazegen.maze) - 1) * 50 + (
+                50 - PacSpriteSheet.SPRITE_H) // 2
+        self.pinky = Pinky(
+            spawn_x_pky, spawn_y_pky, pac_sheet, SCREENWIDTH, SCREENHEIGHT)
+
+        # Clyde
+        spawn_x_clyde = 0
+        spawn_y_clyde = 0
+        self.clyde = Clyde(
+            spawn_x_clyde, spawn_y_clyde, pac_sheet, SCREENWIDTH, SCREENHEIGHT)
+
+        # Inky
+        spawn_x_inky = (len(game.mazegen.maze[0]) - 1) * 50 + (
+                50 - PacSpriteSheet.SPRITE_W) // 2
+        spawn_y_inky = (50 - PacSpriteSheet.SPRITE_H) // 2
+        self.inky = Inky(
+            spawn_x_inky, spawn_y_inky, pac_sheet, SCREENWIDTH, SCREENHEIGHT)
+
         self.start_game()
 
     def start_game(self) -> None:
@@ -167,14 +207,41 @@ class GameController(object):
             # print(self.time)
             self.render(self.mazegen)
             # game ends after 90 seconds and goes back to menu
-            if self.time == 120:
+            if self.time >= 2:
                 self.running = False
                 self.over_menu()
 
+    def sort_score_file(self):
+        with open(configuration.highscore_filename, 'r') as f:
+            txt = f.read()
+        scores_list = txt.split("\n")
+        scores_dict = {}
+
+        for line in scores_list:
+            temp = line.split(": ")
+            if len(temp) < 2:
+                break
+            scores_dict.update({temp[0]: temp[1]})
+
+        scores_dict = dict(
+            sorted(scores_dict.items(),
+                   key=lambda item: item[1], reverse=True))
+        with open(configuration.highscore_filename, 'w') as f:
+            for name, score in scores_dict.items():
+                f.write(
+                    f"{name}: {score}\n")
+
+    def quit_game_over(self):
+        with open(configuration.highscore_filename, 'a') as f:
+            f.write(
+                f"{self.looser.get_value()}: {self.pacgums.score}\n")
+        self.sort_score_file()
+        pygame.quit()
+
     def start_menu(self):
         main_menu = pygame_menu.Menu(
-            "Pacman", 600, 400, theme=themes.THEME_SOLARIZED)
-        main_menu.add.button("Play", game.set_up_game)
+            "PacWOman", 600, 400, theme=themes.THEME_SOLARIZED)
+        main_menu.add.button("Play", self.set_up_game)
         # main_menu.add.button("Select level", select_level(main_menu))
         main_menu.add.button("Select level")
         # main_menu.add.button("Select difficulty??", game.set_difficulty)
@@ -183,24 +250,25 @@ class GameController(object):
         # changes the difficulty, then you press enter and you go back to
         # the main menu
         main_menu.add.button("Quit", pygame_menu.events.EXIT)
-        main_menu.mainloop(game.screen)
+        main_menu.mainloop(self.screen)
 
     def pause_menu(self):
         main_menu = pygame_menu.Menu(
-            "Pacman", 600, 400, theme=themes.THEME_SOLARIZED)
-        main_menu.add.button("Restart", game.set_up_game)
-        # pacwoman goes back to beginning but gums are not set
-        # back to zero
-        main_menu.add.button("Resume", game.start_game)
+            "PacWOman", 600, 400, theme=themes.THEME_SOLARIZED)
+        main_menu.add.button("Restart", self.set_up_game)
+        main_menu.add.button("Resume", self.start_game)
         main_menu.add.button("Quit", pygame_menu.events.EXIT)
-        main_menu.mainloop(game.screen)
+        main_menu.mainloop(self.screen)
 
     def over_menu(self):
+        self.over = True
         main_menu = pygame_menu.Menu(
-            "Pacman", 600, 400, theme=themes.THEME_SOLARIZED)
-        main_menu.add.text_input("Name: ", default="username")
-        main_menu.add.button("Restart", game.set_up_game)
-        main_menu.add.button("Give up", pygame_menu.events.EXIT)
+            "PacWOman", 600, 400, theme=themes.THEME_SOLARIZED)
+        self.looser = main_menu.add.text_input("Name: ", default="LOOSER")
+        main_menu.add.button("Restart", self.set_up_game)
+        main_menu.add.button(
+            "Give up like you did with your dreams", self.quit_game_over)
+        # ERROR ================= pygame.error: video system not initialized
         main_menu.mainloop(game.screen)
 
     # def set_difficulty(self, difficulty) -> None:
@@ -219,9 +287,6 @@ if __name__ == "__main__":
     game = GameController()
     game.set_background()
     game.mazegen = mazegenerator.MazeGenerator()
-
-    # container class to hold and manage mutliple sprite objects
-    # all_sprites_list: pygame.sprite.Group = pygame.sprite.Group()
 
     # start from starting menu
     game.start_menu()
