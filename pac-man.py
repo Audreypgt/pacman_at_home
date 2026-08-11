@@ -48,7 +48,7 @@ class GameController(object):
         pacman.move(mazegen)
         pacman.update()
         # blinky.input(keys)
-        blinky.blinky_move(mazegen)
+        blinky.move_random(mazegen)
         blinky.update()
         all_sprites_list.update()
         # move ghosts
