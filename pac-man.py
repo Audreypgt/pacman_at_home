@@ -4,8 +4,9 @@ import pygame_menu
 from pygame_menu import themes
 import mazegenerator  # type: ignore
 from parsing import parse
-from movements import PacSpriteSheet, Pacwoman
+from pacwoman import PacSpriteSheet, Pacwoman
 from ghosts import Ghosts
+from pacgums import Pacgums
 
 
 TILEWIDTH = 16
@@ -32,6 +33,7 @@ class GameController(object):
         self.screen = pygame.display.set_mode(SCREENSIZE, 0, 32)
         self.background = None
         self.running = True
+        self.pacgums = Pacgums()
 
     def set_background(self) -> None:
         self.background = pygame.Surface(SCREENSIZE).convert()
@@ -47,9 +49,6 @@ class GameController(object):
         pacman.input(keys)
         pacman.move(mazegen)
         pacman.update()
-        # blinky.input(keys)
-        blinky.move_random(mazegen)
-        blinky.update()
         all_sprites_list.update()
         # move ghosts
 
@@ -73,27 +72,13 @@ class GameController(object):
         # draw maze
         self.draw_maze(mazegen)
         # draw gums
-        self.add_gums(mazegen)
+        self.pacgums.draw(self.screen)
         # draw sprites
         # all_sprites_list.draw(self.screen)
         pacman.draw(self.screen)
         blinky.draw(self.screen)
         # updates the screen with everything just drawn
         pygame.display.flip()
-
-    def add_gums(self, mazegen) -> None:
-        gum = pygame.transform.scale(
-            pygame.image.load('sprites/pretzel.png').convert(), (16, 15))
-        cx: float = 0
-        cy: float = 0
-
-        for line in mazegen.maze:
-            for cell in line:
-                if cell != 15:
-                    self.screen.blit(gum, (cx + 15.5, cy + 16.5))
-                cx += 50
-            cx = 0
-            cy += 50
 
     def draw_maze(self, mazegen) -> None:
         cy = 0
@@ -160,22 +145,17 @@ if __name__ == "__main__":
     configuration = parse()
     game = GameController()
     game.set_background()
-    mazegen = mazegenerator.MazeGenerator()
+    game.mazegen = mazegenerator.MazeGenerator()
 
     # container class to hold and manage mutliple sprite objects
     all_sprites_list: pygame.sprite.Group = pygame.sprite.Group()
 
-    sprite_sheet = PacSpriteSheet("sprites/pac_sheet.png")
-    entry_x, entry_y = mazegen.maze_entry
+    # container class to hold and manage mutliple sprite objects
+    pac_sheet = PacSpriteSheet("sprites/pac_sheet.png")
+    entry_x, entry_y = game.mazegen.maze_entry
     spawn_x = entry_x * 50 + (50 - PacSpriteSheet.SPRITE_H) // 2
     spawn_y = entry_y * 50 + (50 - PacSpriteSheet.SPRITE_W) // 2
-    pacman = Pacwoman(spawn_x, spawn_y, sprite_sheet, SCREENWIDTH, SCREENHEIGHT)
-
-    # Ghosts
-    spawn_x_blky = len(mazegen.maze[0]) - 1
-    spawn_y_blky = len(mazegen.maze) - 1
-    blinky = Ghosts(
-        spawn_x_blky, spawn_y_blky, sprite_sheet, SCREENWIDTH, SCREENHEIGHT)
+    pacman = Pacwoman(spawn_x, spawn_y, pac_sheet, SCREENWIDTH, SCREENHEIGHT)
 
     # Menu
     main_menu = pygame_menu.Menu(
