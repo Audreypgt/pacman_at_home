@@ -1,6 +1,7 @@
 import pygame
 from pygame.locals import *
 
+
 class App:
     def __init__(self):
         self._running = True
@@ -43,12 +44,13 @@ class App:
         if self.on_init() == False:
             self._running = False
 
-        while(self._running):
+        while self._running:
             for event in pygame.event.get():
                 self.on_event(event)
             self.on_loop()
             self.on_render()
         self.on_cleanup()
+
 
 if __name__ == "__main__":
     theApp = App()
