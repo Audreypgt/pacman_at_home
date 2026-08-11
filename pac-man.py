@@ -4,7 +4,9 @@ import pygame_menu
 from pygame_menu import themes
 import mazegenerator  # type: ignore
 from parsing import parse
-from movements import PacSpriteSheet, Pacwoman
+from pacwoman import PacSpriteSheet, Pacwoman
+from ghosts import Blinky, Pinky, Clyde, Inky
+from pacgums import Pacgums
 
 
 TILEWIDTH = 16
@@ -30,7 +32,9 @@ class GameController(object):
         pygame.init()
         self.screen = pygame.display.set_mode(SCREENSIZE, 0, 32)
         self.background = None
-        self.running = True
+        self.running = False
+        self.over = False
+        self.pacgums = Pacgums()
 
     def set_background(self) -> None:
         self.background = pygame.Surface(SCREENSIZE).convert()
@@ -43,11 +47,20 @@ class GameController(object):
         """
         self.check_events()
         keys = pygame.key.get_pressed()
-        pacman.input(keys)
-        pacman.move(self.mazegen)
-        pacman.update()
-        all_sprites_list.update()
+        self.pacwoman.input(keys)
+        self.pacwoman.move(self.mazegen)
+        self.pacwoman.update()
+        self.pacgums.eat(self.pacwoman)
+        # all_sprites_list.update(pacman)
         # move ghosts
+        self.blinky.move_random(self.mazegen)
+        self.blinky.update()
+        self.pinky.move_random(self.mazegen)
+        self.pinky.update()
+        self.clyde.move_random(self.mazegen)
+        self.clyde.update()
+        self.inky.move_random(self.mazegen)
+        self.inky.update()
 
     def check_events(self) -> None:
         """check user inputs, which keys are pressed"""
@@ -58,22 +71,26 @@ class GameController(object):
             if event.type == pygame.KEYDOWN:
                 # find a way to resume game after, instead of starting again
                 if event.key == pygame.K_ESCAPE:
-                    self.running = False
+                    self.pause_menu()
+                    self.paused = True
+                    # self.running = False
 
     def render(self, mazegen) -> None:
         """draw images to the screen"""
         # draw background
         self.set_background()
         # draw interface (score, lives, etc)
-
         # draw maze
         self.draw_maze(mazegen)
         # draw gums
-        self.add_gums(mazegen)
+        self.pacgums.draw(self.screen)
         # draw sprites
-        all_sprites_list.draw(self.screen)
+        self.pacwoman.draw(self.screen)
+        self.blinky.draw(self.screen)
+        self.pinky.draw(self.screen)
+        self.clyde.draw(self.screen)
+        self.inky.draw(self.screen)
         # updates the screen with everything just drawn
-        pacman.draw(self.screen)
         pygame.display.flip()
 
     def add_gums(self, mazegen) -> None:
@@ -122,27 +139,141 @@ class GameController(object):
         # 3 = 0011 Fermee au Nord et a l'Est
         # 15 = 1111 tout ferme
 
-    def start_game(self) -> None:
-        """create maze, check user inputs and render new elements"""
+    def set_up_game(self) -> None:
+        if self.over:
+            with open(configuration.highscore_filename, 'a') as f:
+                f.write(
+                    f"{self.looser.get_value()}: {self.pacgums.score}\n")
+            self.sort_score_file()
+            self.over = False
         self.clock = pygame.time.Clock()
         self.time = 0.0
-        print(self.clock)
+        self.running = True
+        pac_sheet = PacSpriteSheet("sprites/pac_sheet.png")
+
+        # Pacwoman
+        entry_x, entry_y = self.mazegen.maze_entry
+        spawn_x = entry_x * 50 + (50 - PacSpriteSheet.SPRITE_W) // 2
+        spawn_y = entry_y * 50 + (50 - PacSpriteSheet.SPRITE_H) // 2
+        self.pacwoman = Pacwoman(
+            spawn_x, spawn_y, pac_sheet, SCREENWIDTH, SCREENHEIGHT)
+
+        # Pacgums
+        self.pacgums.init_gums(game.mazegen)
+
+        # Blinky
+        spawn_x_blky = (
+            len(game.mazegen.maze[0]) - 1) * 50 + (
+                50 - PacSpriteSheet.SPRITE_W) // 2
+        spawn_y_blky = (
+            len(game.mazegen.maze) - 1) * 50 + (
+                50 - PacSpriteSheet.SPRITE_H) // 2
+        self.blinky = Blinky(
+            spawn_x_blky, spawn_y_blky, pac_sheet, SCREENWIDTH, SCREENHEIGHT)
+
+        # Pinky
+        spawn_x_pky = (50 - PacSpriteSheet.SPRITE_W) // 2
+        spawn_y_pky = (
+            len(game.mazegen.maze) - 1) * 50 + (
+                50 - PacSpriteSheet.SPRITE_H) // 2
+        self.pinky = Pinky(
+            spawn_x_pky, spawn_y_pky, pac_sheet, SCREENWIDTH, SCREENHEIGHT)
+
+        # Clyde
+        spawn_x_clyde = 0
+        spawn_y_clyde = 0
+        self.clyde = Clyde(
+            spawn_x_clyde, spawn_y_clyde, pac_sheet, SCREENWIDTH, SCREENHEIGHT)
+
+        # Inky
+        spawn_x_inky = (len(game.mazegen.maze[0]) - 1) * 50 + (
+                50 - PacSpriteSheet.SPRITE_W) // 2
+        spawn_y_inky = (50 - PacSpriteSheet.SPRITE_H) // 2
+        self.inky = Inky(
+            spawn_x_inky, spawn_y_inky, pac_sheet, SCREENWIDTH, SCREENHEIGHT)
+
+        self.start_game()
+
+    def start_game(self) -> None:
+        """create maze, check user inputs and render new elements"""
+        # if not self.paused:
+        # print(self.clock)
+        self.paused = False
         while self.running:
-            # menu.main_menu._open(loading)
             self.screen.fill("black")
             self.update()
             self.time += self.clock.tick(60) / 1000
             self.time = round(self.time, 2)
-            print(self.time)
+            # print(self.time)
             self.render(self.mazegen)
             # game ends after 90 seconds and goes back to menu
-            if self.time == 90.00:
+            if self.time >= 2:
                 self.running = False
-        self.running = True
+                self.over_menu()
 
-    def set_difficulty(self, difficulty) -> None:
-        """select difficulty level from menu"""
-        pass
+    def sort_score_file(self):
+        with open(configuration.highscore_filename, 'r') as f:
+            txt = f.read()
+        scores_list = txt.split("\n")
+        scores_dict = {}
+
+        for line in scores_list:
+            temp = line.split(": ")
+            if len(temp) < 2:
+                break
+            scores_dict.update({temp[0]: temp[1]})
+
+        scores_dict = dict(
+            sorted(scores_dict.items(),
+                   key=lambda item: item[1], reverse=True))
+        with open(configuration.highscore_filename, 'w') as f:
+            for name, score in scores_dict.items():
+                f.write(
+                    f"{name}: {score}\n")
+
+    def quit_game_over(self):
+        with open(configuration.highscore_filename, 'a') as f:
+            f.write(
+                f"{self.looser.get_value()}: {self.pacgums.score}\n")
+        self.sort_score_file()
+        pygame.quit()
+
+    def start_menu(self):
+        main_menu = pygame_menu.Menu(
+            "PacWOman", 600, 400, theme=themes.THEME_SOLARIZED)
+        main_menu.add.button("Play", self.set_up_game)
+        # main_menu.add.button("Select level", select_level(main_menu))
+        main_menu.add.button("Select level")
+        # main_menu.add.button("Select difficulty??", game.set_difficulty)
+        # select difficulty could send you to a menu page with only the
+        # difficulty and a button like <hard> and when you press -> key it
+        # changes the difficulty, then you press enter and you go back to
+        # the main menu
+        main_menu.add.button("Quit", pygame_menu.events.EXIT)
+        main_menu.mainloop(self.screen)
+
+    def pause_menu(self):
+        main_menu = pygame_menu.Menu(
+            "PacWOman", 600, 400, theme=themes.THEME_SOLARIZED)
+        main_menu.add.button("Restart", self.set_up_game)
+        main_menu.add.button("Resume", self.start_game)
+        main_menu.add.button("Quit", pygame_menu.events.EXIT)
+        main_menu.mainloop(self.screen)
+
+    def over_menu(self):
+        self.over = True
+        main_menu = pygame_menu.Menu(
+            "PacWOman", 600, 400, theme=themes.THEME_SOLARIZED)
+        self.looser = main_menu.add.text_input("Name: ", default="LOOSER")
+        main_menu.add.button("Restart", self.set_up_game)
+        main_menu.add.button(
+            "Give up like you did with your dreams", self.quit_game_over)
+        # ERROR ================= pygame.error: video system not initialized
+        main_menu.mainloop(game.screen)
+
+    # def set_difficulty(self, difficulty) -> None:
+    #     """select difficulty level from menu"""
+    #     pass
 
     # def select_level(main_menu):
     #     main_menu._open(level)
@@ -157,27 +288,5 @@ if __name__ == "__main__":
     game.set_background()
     game.mazegen = mazegenerator.MazeGenerator()
 
-    all_sprites_list: pygame.sprite.Group = pygame.sprite.Group()
-
-    # container class to hold and manage mutliple sprite objects
-    pac_sheet = PacSpriteSheet("sprites/pac_sheet.png")
-    entry_x, entry_y = game.mazegen.maze_entry
-    spawn_x = entry_x * 50 + (50 - PacSpriteSheet.SPRITE_H) // 2
-    spawn_y = entry_y * 50 + (50 - PacSpriteSheet.SPRITE_W) // 2
-    pacman = Pacwoman(spawn_x, spawn_y, pac_sheet, SCREENWIDTH, SCREENHEIGHT)
-
-    # Menu
-    main_menu = pygame_menu.Menu(
-        "Pacman", 600, 400, theme=themes.THEME_SOLARIZED)
-    main_menu.add.text_input("Name: ", default="username")
-    main_menu.add.button("Play", game.start_game)
-    main_menu.add.button("Resume")
-    # main_menu.add.button("Select level", select_level(main_menu))
-    main_menu.add.button("Select level")
-    # main_menu.add.button("Select difficulty??", game.set_difficulty)
-    # select difficulty could send you to a menu page with only the
-    # difficulty and a button like <hard> and when you press -> key it
-    # changes the difficulty, then you press enter and you go back to
-    # the main menu
-    main_menu.add.button("Quit", pygame_menu.events.EXIT)
-    main_menu.mainloop(game.screen)
+    # start from starting menu
+    game.start_menu()

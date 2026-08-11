@@ -1,8 +1,8 @@
 NAME = pacman
 
-P3 = python3
+P3 = python3.11
 
-run: install
+run:
 	@source pacman_venv/bin/activate \
 	&& $(P3) pac-man.py config.json
 
