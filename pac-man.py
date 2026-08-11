@@ -69,7 +69,6 @@ class GameController(object):
         # draw background
         self.set_background()
         # draw interface (score, lives, etc)
-
         # draw maze
         self.draw_maze(mazegen)
         # draw gums
@@ -158,17 +157,17 @@ if __name__ == "__main__":
     pacman = Pacwoman(spawn_x, spawn_y, pac_sheet, SCREENWIDTH, SCREENHEIGHT)
 
     # Menu
-    main_menu = pygame_menu.Menu(
-        "Pacman", 600, 400, theme=themes.THEME_SOLARIZED)
-    main_menu.add.text_input("Name: ", default="username")
-    main_menu.add.button("Play", game.start_game)
-    main_menu.add.button("Resume")
-    # main_menu.add.button("Select level", select_level(main_menu))
-    main_menu.add.button("Select level")
-    # main_menu.add.button("Select difficulty??", game.set_difficulty)
-    # select difficulty could send you to a menu page with only the
-    # difficulty and a button like <hard> and when you press -> key it
-    # changes the difficulty, then you press enter and you go back to
-    # the main menu
-    main_menu.add.button("Quit", pygame_menu.events.EXIT)
-    main_menu.mainloop(game.screen)
+    # main_menu = pygame_menu.Menu(
+    #     "Pacman", 600, 400, theme=themes.THEME_SOLARIZED)
+    # main_menu.add.text_input("Name: ", default="username")
+    # main_menu.add.button("Play", game.start_game)
+    # main_menu.add.button("Resume")
+    # # main_menu.add.button("Select level", select_level(main_menu))
+    # main_menu.add.button("Select level")
+    # # main_menu.add.button("Select difficulty??", game.set_difficulty)
+    # # select difficulty could send you to a menu page with only the
+    # # difficulty and a button like <hard> and when you press -> key it
+    # # changes the difficulty, then you press enter and you go back to
+    # # the main menu
+    # main_menu.add.button("Quit", pygame_menu.events.EXIT)
+    # main_menu.mainloop(game.screen)
