@@ -4,8 +4,9 @@ import pygame_menu
 from pygame_menu import themes
 import mazegenerator  # type: ignore
 from parsing import parse
-from movements import PacSpriteSheet, Pacwoman
+from pacwoman import PacSpriteSheet, Pacwoman
 from ghosts import Ghosts
+from pacgums import Pacgums
 
 
 TILEWIDTH = 16
@@ -32,6 +33,7 @@ class GameController(object):
         self.screen = pygame.display.set_mode(SCREENSIZE, 0, 32)
         self.background = None
         self.running = True
+        #self.pacgums = Pacgums()
 
     def set_background(self) -> None:
         self.background = pygame.Surface(SCREENSIZE).convert()
@@ -70,26 +72,12 @@ class GameController(object):
         # draw maze
         self.draw_maze(mazegen)
         # draw gums
-        self.add_gums(mazegen)
+        #self.pacgums.draw(self.screen)
         # draw sprites
         all_sprites_list.draw(self.screen)
         # updates the screen with everything just drawn
         pacman.draw(self.screen)
         pygame.display.flip()
-
-    def add_gums(self, mazegen) -> None:
-        gum = pygame.transform.scale(
-            pygame.image.load('sprites/pretzel.png').convert(), (16, 15))
-        cx: float = 0
-        cy: float = 0
-
-        for line in mazegen.maze:
-            for cell in line:
-                if cell != 15:
-                    self.screen.blit(gum, (cx + 15.5, cy + 16.5))
-                cx += 50
-            cx = 0
-            cy += 50
 
     def draw_maze(self, mazegen) -> None:
         cy = 0

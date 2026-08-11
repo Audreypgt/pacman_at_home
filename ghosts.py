@@ -1,5 +1,5 @@
 import pygame
-from movements import PacSpriteSheet
+from pacwoman import PacSpriteSheet
 
 
 class Ghosts:
