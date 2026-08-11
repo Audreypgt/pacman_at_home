@@ -80,7 +80,24 @@ class GameController(object):
         # all_sprites_list.draw(self.screen)
         # updates the screen with everything just drawn
         self.pacwoman.draw(self.screen)
+        pacman.draw(self.screen)
+        blinky.draw(self.screen)
+        # updates the screen with everything just drawn
         pygame.display.flip()
+
+    def add_gums(self, mazegen) -> None:
+        gum = pygame.transform.scale(
+            pygame.image.load('sprites/pretzel.png').convert(), (16, 15))
+        cx: float = 0
+        cy: float = 0
+
+        for line in mazegen.maze:
+            for cell in line:
+                if cell != 15:
+                    self.screen.blit(gum, (cx + 15.5, cy + 16.5))
+                cx += 50
+            cx = 0
+            cy += 50
 
     def draw_maze(self, mazegen) -> None:
         cy = 0
@@ -147,10 +164,10 @@ class GameController(object):
             self.update()
             self.time += self.clock.tick(60) / 1000
             self.time = round(self.time, 2)
-            print(self.time)
+            # print(self.time)
             self.render(self.mazegen)
             # game ends after 90 seconds and goes back to menu
-            if self.time >= 9.00:
+            if self.time == 120:
                 self.running = False
                 self.over_menu()
 

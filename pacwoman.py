@@ -113,4 +113,3 @@ class Pacwoman:
 
     def draw(self, surface):
         surface.blit(self.current_frame, (self.x, self.y))
-
