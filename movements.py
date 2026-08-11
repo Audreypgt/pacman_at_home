@@ -1,6 +1,5 @@
 import pygame
 
-
 class PacSpriteSheet():
 
     CELL = 47
@@ -19,7 +18,6 @@ class PacSpriteSheet():
         w = w or self.SPRITE_W
         h = h or self.SPRITE_H
         return self.get_sprite(col * self.CELL, row * self.CELL, w, h)
-
 
 class Pacwoman:
     def __init__(self, x, y, sprite_sheet, screen_w, screen_y):
@@ -77,6 +75,12 @@ class Pacwoman:
         cell = mazegen.maze[row][col]
         wall_bit = {(0, -1): 1, (1, 0): 2, (0, 1): 4, (-1, 0): 8}[self.direction]
 
+        offset = (MAZE_CELL - PacSpriteSheet.SPRITE_W) // 2
+        if dx != 0:
+            self.y = row * MAZE_CELL + offset
+        elif dy != 0:
+            self.x = col * MAZE_CELL + offset
+
         new_x = self.x + dx * self.move_speed
         new_y = self.y + dy * self.move_speed
 
@@ -90,15 +94,6 @@ class Pacwoman:
             elif dy == -1:
                 new_y = max(new_y, row * MAZE_CELL)
 
-        offset = (MAZE_CELL - PacSpriteSheet.SPRITE_W) // 2
-        if dx != 0:
-            self.y = row * MAZE_CELL + offset
-        elif dy != 0:
-            self.x = col * MAZE_CELL + offset
-
-
-        maze_pixel_w = maze_width * MAZE_CELL
-        maze_pixel_h = maze_height * MAZE_CELL
         clamped_x = max(0, min(self.screen_w - PacSpriteSheet.SPRITE_W, new_x))
         clamped_y = max(0, min(self.screen_y - PacSpriteSheet.SPRITE_H, new_y))
 
@@ -106,6 +101,7 @@ class Pacwoman:
             self.state = "idle"
         else:
             self.x, self.y = clamped_x, clamped_y
+
 
     def update(self):
         if self.state == "moving":

@@ -49,7 +49,7 @@ class GameController(object):
         pacman.update()
         # blinky.input(keys)
         blinky.blinky_move(mazegen)
-        # blinky.update()
+        blinky.update()
         all_sprites_list.update()
         # move ghosts
 
@@ -75,10 +75,10 @@ class GameController(object):
         # draw gums
         self.add_gums(mazegen)
         # draw sprites
-        all_sprites_list.draw(self.screen)
-        # updates the screen with everything just drawn
+        # all_sprites_list.draw(self.screen)
         pacman.draw(self.screen)
-        # blinky.draw(self.screen)
+        blinky.draw(self.screen)
+        # updates the screen with everything just drawn
         pygame.display.flip()
 
     def add_gums(self, mazegen) -> None:

@@ -9,7 +9,7 @@ class Ghosts:
         self.y = y
         self.screen_w = screen_w
         self.screen_y = screen_y
-        self.direction = (0, 0)
+        self.direction = (1, 0)
         self.move_speed = 3
         self.animation_speed = 3.5
         self.move_timer = 0
@@ -37,7 +37,8 @@ class Ghosts:
                 sprite_sheet.get_sprite_at(7, 0)
                 ]
         }
-        # self.current_frame = self.frame_sets[self.direction][0]
+        self.current_frame = self.frame_sets[self.direction][0]
+        # used in update() to "animate" sprite
 
     def blinky_move(self, mazegen) -> None:
         MAZE_CELL = 50
@@ -47,112 +48,67 @@ class Ghosts:
                  "S": (0, 1),
                  "W": (-1, 0)}
 
-        maze_height = len(mazegen.maze)
-        maze_width = len(mazegen.maze[0])
+        # maze_height = len(mazegen.maze)
+        # maze_width = len(mazegen.maze[0])
 
         center_x = self.x + PacSpriteSheet.SPRITE_W // 2
         center_y = self.y + PacSpriteSheet.SPRITE_H // 2
         col = center_x // MAZE_CELL
         row = center_y // MAZE_CELL
 
+        # move to random direction
         dx, dy = self.direction
-
         rx, ry = random.choice(list(direc.values()))
-
+        print(f"random == {rx, ry}")
+        print(f"Dire before === {dx, dy}")
         dx, dy = (dx + rx), (dy + ry)
-        print(f"DIRECTION === {dx, dy}")
+        print(f"DIRECTION AFTER === {dx, dy}")
 
-        # cell = mazegen.maze[row][col]
-        # wall_bit = {(0, -1): 1, (1, 0): 2, (0, 1): 4, (-1, 0): 8}[
-        #     self.direction]
+        cell = mazegen.maze[row][col]
+        wall_bit = {(0, -1): 1, (1, 0): 2, (0, 1): 4, (-1, 0): 8}[
+            self.direction]
 
-        # new_x = self.x + dx * self.move_speed
-        # new_y = self.y + dy * self.move_speed
+        offset = (MAZE_CELL - PacSpriteSheet.SPRITE_W) // 2
+        if dx != 0:
+            self.y = row * MAZE_CELL + offset
+        elif dy != 0:
+            self.x = col * MAZE_CELL + offset
 
-        # if cell & wall_bit:
-        #     if dx == 1:
-        #         new_x = min(new_x, col * MAZE_CELL + (
-        #             MAZE_CELL - PacSpriteSheet.SPRITE_W))
-        #     elif dx == -1:
-        #         new_x = max(new_x, col * MAZE_CELL)
-        #     elif dy == 1:
-        #         new_y = min(new_y, row * MAZE_CELL + (
-        #             MAZE_CELL - PacSpriteSheet.SPRITE_H))
-        #     elif dy == -1:
-        #         new_y = max(new_y, row * MAZE_CELL)
+        new_x = self.x + dx * self.move_speed
+        new_y = self.y + dy * self.move_speed
 
-        # offset = (MAZE_CELL - PacSpriteSheet.SPRITE_W) // 2
-        # if dx != 0:
-        #     self.y = row * MAZE_CELL + offset
-        # elif dy != 0:
-        #     self.x = col * MAZE_CELL + offset
+        if cell & wall_bit:
+            if dx == 1:
+                new_x = min(new_x, col * MAZE_CELL + (
+                    MAZE_CELL - PacSpriteSheet.SPRITE_W))
+            elif dx == -1:
+                new_x = max(new_x, col * MAZE_CELL)
+            elif dy == 1:
+                new_y = min(new_y, row * MAZE_CELL + (
+                    MAZE_CELL - PacSpriteSheet.SPRITE_H))
+            elif dy == -1:
+                new_y = max(new_y, row * MAZE_CELL)
 
+        clamped_x = max(
+            0, min(self.screen_w - PacSpriteSheet.SPRITE_W, new_x))
+        clamped_y = max(
+            0, min(self.screen_y - PacSpriteSheet.SPRITE_H, new_y))
 
-    # def move(self, mazegen):
-    #     if self.state != "moving":
-    #         return
+        if clamped_x == self.x and clamped_y == self.y:
+            self.blinky_move(mazegen)
+        else:
+            self.x, self.y = clamped_x, clamped_y
 
-    #     MAZE_CELL = 50
-    #     dx, dy = self.direction
+    def update(self):
+        self.move_timer += 1
+        if self.move_timer >= self.animation_speed:
+            self.move_timer = 0
+            self.frame_index = (self.frame_index + 1) % 2
+        self.current_frame = self.frame_sets[
+          self.direction][self.frame_index]
 
-    #     maze_height = len(mazegen.maze)
-    #     maze_width = len(mazegen.maze[0])
-
-    #     center_x = self.x + PacSpriteSheet.SPRITE_W // 2
-    #     center_y = self.y + PacSpriteSheet.SPRITE_H // 2
-    #     col = center_x // MAZE_CELL
-    #     row = center_y // MAZE_CELL
-
-    #     if not (0 <= row < maze_height and 0 <= col <= maze_width):
-    #         self.state = "idle"
-    #         return
-
-    #     cell = mazegen.maze[row][col]
-    #     wall_bit = {(0, -1): 1, (1, 0): 2, (0, 1): 4, (-1, 0): 8}[
-    #         self.direction]
-
-    #     new_x = self.x + dx * self.move_speed
-    #     new_y = self.y + dy * self.move_speed
-
-    #     if cell & wall_bit:
-    #         if dx == 1:
-    #             new_x = min(new_x, col * MAZE_CELL + (
-    #                 MAZE_CELL - PacSpriteSheet.SPRITE_W))
-    #         elif dx == -1:
-    #             new_x = max(new_x, col * MAZE_CELL)
-    #         elif dy == 1:
-    #             new_y = min(new_y, row * MAZE_CELL + (
-    #                 MAZE_CELL - PacSpriteSheet.SPRITE_H))
-    #         elif dy == -1:
-    #             new_y = max(new_y, row * MAZE_CELL)
-
-    #     offset = (MAZE_CELL - PacSpriteSheet.SPRITE_W) // 2
-    #     if dx != 0:
-    #         self.y = row * MAZE_CELL + offset
-    #     elif dy != 0:
-    #         self.x = col * MAZE_CELL + offset
-
-        # maze_pixel_w = maze_width * MAZE_CELL
-        # maze_pixel_h = maze_height * MAZE_CELL
-        # clamped_x = max(0, min(self.screen_w - PacSpriteSheet.SPRITE_W, new_x))
-        # clamped_y = max(0, min(self.screen_y - PacSpriteSheet.SPRITE_H, new_y))
-
-        # if clamped_x == self.x and clamped_y == self.y:
-        #     self.state = "idle"
-        # else:
-        #     self.x, self.y = clamped_x, clamped_y
-
-    # def update(self):
-    #     if self.state == "moving":
-    #         self.move_timer += 1
-    #         if self.move_timer >= self.animation_speed:
-    #             self.move_timer = 0
-    #             self.frame_index = (self.frame_index + 1) % 2
-    #         self.current_frame = self.frame_sets[
-    #           self.direction][self.frame_index]
-
-    # def draw(self, surface):
-    #     surface.blit(self.current_frame, (self.x, self.y))
+    def draw(self, surface):
+        surface.blit(self.current_frame, (self.x, self.y))
 
 
 
@@ -162,7 +118,7 @@ class Ghosts:
 
 
 
-    # Algo solver anazeing --------------------------------------------------
+    # Algo solver amazeing --------------------------------------------------
     # def algo(self) -> None:
     #     """Solve a perfect or imperfect maze using BFS algorithm and return
     #     a list of the cells that are part of the solution path
