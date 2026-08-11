@@ -143,7 +143,7 @@ class GameController(object):
             # print(self.time)
             self.render(self.mazegen)
             # game ends after 90 seconds and goes back to menu
-            if self.time == 90.00:
+            if self.time == 120:
                 self.running = False
         self.running = True
 
