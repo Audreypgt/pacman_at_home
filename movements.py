@@ -37,28 +37,6 @@ class Pacwoman:
             (0, 1): [sprite_sheet.get_sprite_at(3, 17), sprite_sheet.get_sprite_at(4, 17), sprite_sheet.get_sprite_at(5, 17)],
             (0, -1): [sprite_sheet.get_sprite_at(9, 17), sprite_sheet.get_sprite_at(10,17), sprite_sheet.get_sprite_at(11, 17)]
         }
-        # self.frame_sets = {
-        #     # West
-        #     (-1, 0): [
-        #         sprite_sheet.get_sprite_at(4, 0),
-        #         sprite_sheet.get_sprite_at(5, 0)
-        #         ],
-        #     # East
-        #     (1, 0): [
-        #         sprite_sheet.get_sprite_at(0, 0),
-        #         sprite_sheet.get_sprite_at(1, 0),
-        #         ],
-        #     # South
-        #     (0, 1): [
-        #         sprite_sheet.get_sprite_at(2, 0),
-        #         sprite_sheet.get_sprite_at(3, 0),
-        #         ],
-        #     # North
-        #     (0, -1): [
-        #         sprite_sheet.get_sprite_at(6, 0),
-        #         sprite_sheet.get_sprite_at(7, 0)
-        #         ]
-        # }
         self.current_frame = self.frame_sets[self.direction][0]
 
     def input(self, keys):
@@ -97,6 +75,12 @@ class Pacwoman:
         cell = mazegen.maze[row][col]
         wall_bit = {(0, -1): 1, (1, 0): 2, (0, 1): 4, (-1, 0): 8}[self.direction]
 
+        offset = (MAZE_CELL - PacSpriteSheet.SPRITE_W) // 2
+        if dx != 0:
+            self.y = row * MAZE_CELL + offset
+        elif dy != 0:
+            self.x = col * MAZE_CELL + offset
+
         new_x = self.x + dx * self.move_speed
         new_y = self.y + dy * self.move_speed
 
@@ -110,15 +94,6 @@ class Pacwoman:
             elif dy == -1:
                 new_y = max(new_y, row * MAZE_CELL)
 
-        offset = (MAZE_CELL - PacSpriteSheet.SPRITE_W) // 2
-        if dx != 0:
-            self.y = row * MAZE_CELL + offset
-        elif dy != 0:
-            self.x = col * MAZE_CELL + offset
-
-
-        maze_pixel_w = maze_width * MAZE_CELL
-        maze_pixel_h = maze_height * MAZE_CELL
         clamped_x = max(0, min(self.screen_w - PacSpriteSheet.SPRITE_W, new_x))
         clamped_y = max(0, min(self.screen_y - PacSpriteSheet.SPRITE_H, new_y))
 
@@ -133,7 +108,7 @@ class Pacwoman:
             self.move_timer += 1
             if self.move_timer >= self.animation_speed:
                 self.move_timer = 0
-                self.frame_index = (self.frame_index + 1) % 2
+                self.frame_index = (self.frame_index + 1) % 3
             self.current_frame = self.frame_sets[self.direction][self.frame_index]
 
     def draw(self, surface):
