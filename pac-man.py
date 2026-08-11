@@ -33,7 +33,7 @@ class GameController(object):
         self.screen = pygame.display.set_mode(SCREENSIZE, 0, 32)
         self.background = None
         self.running = True
-        #self.pacgums = Pacgums()
+        self.pacgums = Pacgums()
 
     def set_background(self) -> None:
         self.background = pygame.Surface(SCREENSIZE).convert()
@@ -49,6 +49,7 @@ class GameController(object):
         pacman.input(keys)
         pacman.move(self.mazegen)
         pacman.update()
+        self.pacgums.eat(pacman)
         all_sprites_list.update()
         # move ghosts
 
@@ -72,7 +73,7 @@ class GameController(object):
         # draw maze
         self.draw_maze(mazegen)
         # draw gums
-        #self.pacgums.draw(self.screen)
+        self.pacgums.draw(self.screen)
         # draw sprites
         all_sprites_list.draw(self.screen)
         # updates the screen with everything just drawn
@@ -145,6 +146,7 @@ if __name__ == "__main__":
     game = GameController()
     game.set_background()
     game.mazegen = mazegenerator.MazeGenerator()
+    game.pacgums.init_gums(game.mazegen)
 
     all_sprites_list: pygame.sprite.Group = pygame.sprite.Group()
 
