@@ -47,10 +47,10 @@ class GameController(object):
         """
         self.check_events()
         keys = pygame.key.get_pressed()
-        self.pacman.input(keys)
-        self.pacman.move(self.mazegen)
-        self.pacman.update()
-        self.pacgums.eat(self.pacman)
+        self.pacwoman.input(keys)
+        self.pacwoman.move(self.mazegen)
+        self.pacwoman.update()
+        self.pacgums.eat(self.pacwoman)
         # all_sprites_list.update(pacman)
         # move ghosts
 
@@ -79,7 +79,7 @@ class GameController(object):
         # draw sprites
         # all_sprites_list.draw(self.screen)
         # updates the screen with everything just drawn
-        self.pacman.draw(self.screen)
+        self.pacwoman.draw(self.screen)
         pygame.display.flip()
 
     def draw_maze(self, mazegen) -> None:
@@ -119,11 +119,22 @@ class GameController(object):
         self.time = 0.0
         self.running = True
         pac_sheet = PacSpriteSheet("sprites/pac_sheet.png")
+
+        # Pacwoman
         entry_x, entry_y = self.mazegen.maze_entry
         spawn_x = entry_x * 50 + (50 - PacSpriteSheet.SPRITE_W) // 2
         spawn_y = entry_y * 50 + (50 - PacSpriteSheet.SPRITE_H) // 2
-        self.pacman = Pacwoman(spawn_x, spawn_y, pac_sheet, SCREENWIDTH, SCREENHEIGHT)
+        self.pacwoman = Pacwoman(
+            spawn_x, spawn_y, pac_sheet, SCREENWIDTH, SCREENHEIGHT)
+
+        # Pacgums
         self.pacgums.init_gums(game.mazegen)
+
+        # Blinky
+        spawn_x_blky = len(game.mazegen.maze[0]) - 1
+        spawn_y_blky = len(game.mazegen.maze) - 1
+        self.blinky = Ghosts(
+            spawn_x_blky, spawn_y_blky, pac_sheet, SCREENWIDTH, SCREENHEIGHT)
         self.start_game()
 
     def start_game(self) -> None:
