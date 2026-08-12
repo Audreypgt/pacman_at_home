@@ -38,7 +38,6 @@ class Pacwoman:
             (0, -1): [sprite_sheet.get_sprite_at(9, 17), sprite_sheet.get_sprite_at(10,17), sprite_sheet.get_sprite_at(11, 17)]
         }
         self.current_frame = self.frame_sets[self.direction][0]
-        self.pac_current_pos = (x, y)
 
     def input(self, keys):
         if keys[pygame.K_LEFT] or keys[pygame.K_a]:
