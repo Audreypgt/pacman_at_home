@@ -65,6 +65,8 @@ class GameController(object):
         self.inky.move_random(self.mazegen)
         self.inky.update()
 
+        self.check_collisions()
+
     def check_events(self) -> None:
         """check user inputs, which keys are pressed"""
         for event in pygame.event.get():
@@ -155,9 +157,12 @@ class GameController(object):
         pac_sheet = PacSpriteSheet("sprites/pac_sheet.png")
 
         # Pacwoman
-        entry_x, entry_y = self.mazegen.maze_entry
-        spawn_x = entry_x * 50 + (50 - PacSpriteSheet.SPRITE_W) // 2
-        spawn_y = entry_y * 50 + (50 - PacSpriteSheet.SPRITE_H) // 2
+        maze_width = len(self.mazegen.maze[0])
+        maze_height = len(self.mazegen.maze)
+        center_col = maze_width // 2
+        center_row = maze_height // 2
+        spawn_x = center_col * 50 + (50 - PacSpriteSheet.SPRITE_W) // 2
+        spawn_y = center_row * 50 + (50 - PacSpriteSheet.SPRITE_H) // 2
         self.pacwoman = Pacwoman(
             spawn_x, spawn_y, pac_sheet, SCREENWIDTH, SCREENHEIGHT)
 
@@ -240,6 +245,19 @@ class GameController(object):
                 f"{self.looser.get_value()}: {self.pacgums.score}\n")
         self.sort_score_file()
         pygame.quit()
+
+    def check_collisions(self):
+        pac_rect = pygame.Rect(self.pacwoman.x, self.pacwoman.y, PacSpriteSheet.SPRITE_W, PacSpriteSheet.SPRITE_H)
+
+        for ghost in (self.blinky, self.pinky, self.clyde, self.inky):
+            ghost_rect =pygame.Rect(ghost.x, ghost.y, PacSpriteSheet.SPRITE_W, PacSpriteSheet.SPRITE_H)
+            if pac_rect.colliderect(ghost_rect):
+                self.pacwoman_died()
+                return
+
+    def pacwoman_died(self):
+        self.running = False
+        self.menus.over_menu()
 
 
 if __name__ == "__main__":
