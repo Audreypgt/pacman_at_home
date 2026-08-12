@@ -1,6 +1,6 @@
 NAME = pacman
 
-P3 = python3.11
+P3 = python3
 
 run:
 	@source pacman_venv/bin/activate \
