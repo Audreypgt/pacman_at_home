@@ -1,7 +1,5 @@
 import pygame
 # import random
-import pygame_menu
-from pygame_menu import themes
 import mazegenerator  # type: ignore
 from parsing import parse
 from pacwoman import PacSpriteSheet, Pacwoman
@@ -247,10 +245,13 @@ class GameController(object):
         pygame.quit()
 
     def check_collisions(self):
-        pac_rect = pygame.Rect(self.pacwoman.x, self.pacwoman.y, PacSpriteSheet.SPRITE_W, PacSpriteSheet.SPRITE_H)
+        pac_rect = pygame.Rect(self.pacwoman.x, self.pacwoman.y,
+                               PacSpriteSheet.SPRITE_W,
+                               PacSpriteSheet.SPRITE_H)
 
         for ghost in (self.blinky, self.pinky, self.clyde, self.inky):
-            ghost_rect =pygame.Rect(ghost.x, ghost.y, PacSpriteSheet.SPRITE_W, PacSpriteSheet.SPRITE_H)
+            ghost_rect = pygame.Rect(ghost.x, ghost.y, PacSpriteSheet.SPRITE_W,
+                                     PacSpriteSheet.SPRITE_H)
             if pac_rect.colliderect(ghost_rect):
                 self.pacwoman_died()
                 return

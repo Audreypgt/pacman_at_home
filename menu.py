@@ -1,10 +1,10 @@
 import pygame_menu
 from pygame_menu import themes
 
+
 class Gamemenus:
     def __init__(self, game):
         self.game = game
-
 
     def start_menu(self):
         main_menu = pygame_menu.Menu(
