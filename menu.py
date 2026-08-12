@@ -1,109 +1,50 @@
-import pygame
+import pygame_menu
+from pygame_menu import themes
+
+class Gamemenus:
+    def __init__(self, game):
+        self.game = game
 
 
-class MainMenu:
-    def handle_events(self, events):
-        for event in events:
-            if event.type == pygame.K_ENTER:
-                return "game"
-        return "main_menu"
+    def start_menu(self):
+        main_menu = pygame_menu.Menu(
+            "PacWOman", 600, 400, theme=themes.THEME_SOLARIZED)
+        main_menu.add.button("Play", self.game.set_up_game)
+        # main_menu.add.button("Select level", select_level(main_menu))
+        main_menu.add.button("Select level")
+        # main_menu.add.button("Select difficulty??", game.set_difficulty)
+        # select difficulty could send you to a menu page with only the
+        # difficulty and a button like <hard> and when you press -> key it
+        # changes the difficulty, then you press enter and you go back to
+        # the main menu
+        main_menu.add.button("Quit", pygame_menu.events.EXIT)
+        main_menu.mainloop(self.game.screen)
 
-    def update(self):
-        pass
+    def pause_menu(self):
+        main_menu = pygame_menu.Menu(
+            "PacWOman", 600, 400, theme=themes.THEME_SOLARIZED)
+        main_menu.add.button("Restart", self.game.set_up_game)
+        main_menu.add.button("Resume", self.game.start_game)
+        main_menu.add.button("Quit", pygame_menu.events.EXIT)
+        main_menu.mainloop(self.game.screen)
 
-    def draw(self, screen):
-        screen.fill((0,0,0))
-        draw_text("MAIN MENU", 100)
-        draw_text("Press ENTER to Start", 200)
+    def over_menu(self):
+        self.game.over = True
+        main_menu = pygame_menu.Menu(
+            "PacWOman", 600, 400, theme=themes.THEME_SOLARIZED)
+        self.game.looser = main_menu.add.text_input("Name: ", default="LOOSER")
+        main_menu.add.button("Restart", self.game.set_up_game)
+        main_menu.add.button(
+            "Give up like you did with your dreams", self.game.quit_game_over)
+        # ERROR ================= pygame.error: video system not initialized
+        main_menu.mainloop(self.game.screen)
 
-class GameScene:
-    def handle_events(self, events):
-        pass
+    # def set_difficulty(self, difficulty) -> None:
+    #     """select difficulty level from menu"""
+    #     pass
 
-    def update(self):
-        pass
-
-    def draw(self, screen):
-        pass
-
-
-class GameOver:
-    def handle_events(self, events):
-        pass
-
-    def update(self):
-        pass
-
-    def draw(self, screen):
-        pass
-
-
-class PauseScene:
-    def handle_events(self, events):
-        pass
-
-    def update(self):
-        pass
-
-    def draw(self, screen):
-        pass
-
-def main_menu():
-    #for all the menu background, titles, button
-    pass
-
-def game_loop(self) -> None:
-    """create maze, check user inputs and render new elements"""
-    self.clock = pygame.time.Clock()
-    self.time = 0.0
-    print(self.clock)
-    while self.running:
-        self.screen.fill("black")
-        self.update()
-        self.time += self.clock.tick(60) / 1000
-        self.time = round(self.time, 2)
-        print(self.time)
-        self.render(self.mazegen)
-        if self.time == 90.00:
-            self.running = False
-    self.running = True
-
-def pause_menu():
-    pass
-
-def game_over_screen():
-    #final score, name input, restart/quit
-    pass
-
-# def set_difficulty(self, difficulty) -> None:
-#     """select difficulty level from menu"""
-#     pass
-
-# def select_level(main_menu):
-#     main_menu._open(level)
-# call check events ? to check which choice the user makes
-# for ex we have 10 buttons, so in check events, if button #10
-# is pressed, then call function for level 10
-
-scenes = {
-    "main_menu": MainMenu(),
-    "game": GameScene(),
-    "game_over": GameOver()
-}
-
-current_scene = "main_menu"
-
-while True:
-    events = pygame.event.get()
-    if any(event.type == pygame.QUIT for event in events):
-        pygame.quit()
-        sys.exit()
-
-    next_scene = scenes[current_scene].handle_events(events)
-    current_scene = next_scene
-
-    scenes[current_scene].update()
-    scenes[current_scene].draw(screen)
-
-    pygame.display.flip()
-    clock.tick(60)
+    # def select_level(main_menu):
+    #     main_menu._open(level)
+    # call check events ? to check which choice the user makes
+    # for ex we have 10 buttons, so in check events, if button #10
+    # is pressed, then call function for level 10
