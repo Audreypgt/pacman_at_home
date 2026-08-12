@@ -65,6 +65,8 @@ class GameController(object):
         self.inky.move_random(self.mazegen)
         self.inky.update()
 
+        self.check_collisions()
+
     def check_events(self) -> None:
         """check user inputs, which keys are pressed"""
         for event in pygame.event.get():
@@ -155,9 +157,12 @@ class GameController(object):
         pac_sheet = PacSpriteSheet("sprites/pac_sheet.png")
 
         # Pacwoman
-        entry_x, entry_y = self.mazegen.maze_entry
-        spawn_x = entry_x * 50 + (50 - PacSpriteSheet.SPRITE_W) // 2
-        spawn_y = entry_y * 50 + (50 - PacSpriteSheet.SPRITE_H) // 2
+        maze_width = len(self.mazegen.maze[0])
+        maze_height = len(self.mazegen.maze)
+        center_col = maze_width // 2
+        center_row = maze_height // 2
+        spawn_x = center_col * 50 + (50 - PacSpriteSheet.SPRITE_W) // 2
+        spawn_y = center_row * 50 + (50 - PacSpriteSheet.SPRITE_H) // 2
         self.pacwoman = Pacwoman(
             spawn_x, spawn_y, pac_sheet, SCREENWIDTH, SCREENHEIGHT)
 
@@ -241,48 +246,18 @@ class GameController(object):
         self.sort_score_file()
         pygame.quit()
 
-    # def start_menu(self):
-    #     main_menu = pygame_menu.Menu(
-    #         "PacWOman", 600, 400, theme=themes.THEME_SOLARIZED)
-    #     main_menu.add.button("Play", self.set_up_game)
-    #     # main_menu.add.button("Select level", select_level(main_menu))
-    #     main_menu.add.button("Select level")
-    #     # main_menu.add.button("Select difficulty??", game.set_difficulty)
-    #     # select difficulty could send you to a menu page with only the
-    #     # difficulty and a button like <hard> and when you press -> key it
-    #     # changes the difficulty, then you press enter and you go back to
-    #     # the main menu
-    #     main_menu.add.button("Quit", pygame_menu.events.EXIT)
-    #     main_menu.mainloop(self.screen)
+    def check_collisions(self):
+        pac_rect = pygame.Rect(self.pacwoman.x, self.pacwoman.y, PacSpriteSheet.SPRITE_W, PacSpriteSheet.SPRITE_H)
 
-    # def pause_menu(self):
-    #     main_menu = pygame_menu.Menu(
-    #         "PacWOman", 600, 400, theme=themes.THEME_SOLARIZED)
-    #     main_menu.add.button("Restart", self.set_up_game)
-    #     main_menu.add.button("Resume", self.start_game)
-    #     main_menu.add.button("Quit", pygame_menu.events.EXIT)
-    #     main_menu.mainloop(self.screen)
+        for ghost in (self.blinky, self.pinky, self.clyde, self.inky):
+            ghost_rect =pygame.Rect(ghost.x, ghost.y, PacSpriteSheet.SPRITE_W, PacSpriteSheet.SPRITE_H)
+            if pac_rect.colliderect(ghost_rect):
+                self.pacwoman_died()
+                return
 
-    # def over_menu(self):
-    #     self.over = True
-    #     main_menu = pygame_menu.Menu(
-    #         "PacWOman", 600, 400, theme=themes.THEME_SOLARIZED)
-    #     self.looser = main_menu.add.text_input("Name: ", default="LOOSER")
-    #     main_menu.add.button("Restart", self.set_up_game)
-    #     main_menu.add.button(
-    #         "Give up like you did with your dreams", self.quit_game_over)
-    #     # ERROR ================= pygame.error: video system not initialized
-    #     main_menu.mainloop(game.screen)
-
-    # def set_difficulty(self, difficulty) -> None:
-    #     """select difficulty level from menu"""
-    #     pass
-
-    # def select_level(main_menu):
-    #     main_menu._open(level)
-    # call check events ? to check which choice the user makes
-    # for ex we have 10 buttons, so in check events, if button #10
-    # is pressed, then call function for level 10
+    def pacwoman_died(self):
+        self.running = False
+        self.menus.over_menu()
 
 
 if __name__ == "__main__":
