@@ -145,6 +145,7 @@ class Ghosts(Pacwoman):
         self.direction = (1, 0)
         self.state = "moving"
         self.frame_sets = {}
+        self.ghost_current_pos = (x, y)
 
     def choose_random_direction(self, mazegen):
         MAZE_CELL = 50
