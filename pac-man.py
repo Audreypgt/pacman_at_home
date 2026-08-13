@@ -53,9 +53,7 @@ class GameController(object):
         self.pacwoman.move(mazegen)
         self.pacwoman.update()
         self.pacgums.eat(self.pacwoman)
-        # all_sprites_list.update(pacman)
-        # move ghosts
-        self.blinky.move_random(mazegen)
+        self.blinky.bfs_move(mazegen, self.pacwoman)
         self.blinky.update()
         self.pinky.move_random(mazegen)
         self.pinky.update()
@@ -73,17 +71,16 @@ class GameController(object):
                 pygame.quit()
                 quit()
             if event.type == pygame.KEYDOWN:
-                # find a way to resume game after, instead of starting again
                 if event.key == pygame.K_ESCAPE:
                     self.menus.pause_menu()
                     self.paused = True
-                    # self.running = False
 
     def render(self, mazegen) -> None:
         """draw images to the screen"""
         # draw background
         self.set_background()
         # draw interface (score, lives, etc)
+
         # draw maze
         self.draw_maze(mazegen)
         # draw gums
@@ -203,15 +200,12 @@ class GameController(object):
 
     def start_game(self) -> None:
         """create maze, check user inputs and render new elements"""
-        # if not self.paused:
-        # print(self.clock)
         self.paused = False
         while self.running:
             self.screen.fill("black")
             self.update()
             self.time += self.clock.tick(60) / 1000
             self.time = round(self.time, 2)
-            # print(self.time)
             self.render(mazegen)
             # game ends after 90 seconds and goes back to menu
             if self.time >= 120:
@@ -233,7 +227,6 @@ class GameController(object):
         scores_dict = dict(
             sorted(scores_dict.items(),
                    key=lambda item: item[1], reverse=True))
-        print(scores_dict)
         with open(configuration.highscore_filename, 'w') as f:
             for name, score in scores_dict.items():
                 f.write(

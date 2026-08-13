@@ -125,6 +125,11 @@ class Pacwoman:
             self.state = "idle"
         else:
             self.x, self.y = clamped_x, clamped_y
+        
+        # print("Move")
+        # print(f"new_x new_y = {((new_x + PacSpriteSheet.SPRITE_W // 2) // 50), ((new_y+ PacSpriteSheet.SPRITE_H // 2) // 50)}")
+        # print(f"x y = {((self.x + PacSpriteSheet.SPRITE_W // 2) // 50), ((self.y + PacSpriteSheet.SPRITE_H // 2) // 50)}")
+        # print()
 
     def update(self) -> None:
         if self.state == "moving":
@@ -141,11 +146,17 @@ class Pacwoman:
 
 
 class Ghosts(Pacwoman):
-    def __init__(self, x, y, sprite_sheet, screen_w, screen_y):
+    def __init__(self, x, y, sprite_sheet, screen_w, screen_y) -> None:
         super().__init__(x, y, sprite_sheet, screen_w, screen_y)
-        self.direction = (1, 0)
-        self.state = "moving"
-        self.frame_sets = {}
+        self.direction: tuple[int, int] = (1, 0)
+        self.state: str = "moving"
+        self.frame_sets: dict[tuple[int, int], pygame.Surface] = {}
+        # changing speed otherwise blinky catches up to pacwoman too quickly
+        self.move_speed = 2
+        self.animation_speed = 2.5
+        self.coord_x = (self.x + PacSpriteSheet.SPRITE_W // 2) // 50
+        self.coord_y = (self.y + PacSpriteSheet.SPRITE_H // 2) // 50
+        self.curr_cell: tuple[int, int] = (self.coord_x, self.coord_y)
 
     def choose_random_direction(self, mazegen) -> None:
         MAZE_CELL = 50
@@ -223,65 +234,96 @@ class Blinky(Ghosts):
                 ]
         }
 
-    def choose_bfs_direction(self, mazegen, pacwoman) -> None:
-        self.neighbors: list[tuple[str, int, int]] = []
+    def adjacentEdges(self, mazegen, x, y) -> list[tuple[int, int]]:
+        neighbors: list[str] = []
+        # North
+        if not (mazegen.maze[y][x] & 1):
+            neighbors.append((0, -1))
+        # East
+        if not (mazegen.maze[y][x] & 2):
+            neighbors.append((1, 0))
+        # South
+        if not (mazegen.maze[y][x] & 4):
+            neighbors.append((0, 1))
+        # West
+        if not (mazegen.maze[y][x] & 8):
+            neighbors.append((-1, 0))
 
-        for row in range(len(mazegen.maze)):
-            for col in range(len(mazegen.maze[row])):
-                cell = mazegen.maze[row][col]
-                # North
-                if not (cell & 1):
-                    self.neighbors.append(("N", row, col))
-                # East
-                if not (cell & 2):
-                    self.neighbors.append(("E", row, col))
-                # South
-                if not (cell & 4):
-                    self.neighbors.append(("S", row, col))
-                # West
-                if not (cell & 8):
-                    self.neighbors.append(("W", row, col))
+        return neighbors
+
+    def choose_bfs_direction(self, mazegen, pacwoman) -> None:
+        # coords are received as nb of pixels so we convert to
+        # (x, y) coordinates
+        self.coord_x = (self.x + PacSpriteSheet.SPRITE_W // 2) // 50
+        self.coord_y = (self.y + PacSpriteSheet.SPRITE_H // 2) // 50
+        pw_x = (pacwoman.x + PacSpriteSheet.SPRITE_W // 2) // 50
+        pw_y = (pacwoman.y + PacSpriteSheet.SPRITE_H // 2) // 50
 
         path: list[tuple[int, int]] = []
-        pacwoman_loc = pacwoman.x, pacwoman.y
+        pacwoman_loc = pw_x, pw_y
         queue: deque[tuple[int, int]] = deque()
-        # curr_x, curr_y = self.x, self.y
-        # queue.append((curr_y, curr_x))
-        queue.append((self.x, self.y))
+        visited: set[tuple[int, int]] = set()
+        visited.add((self.coord_x, self.coord_y))
+        queue.append((self.coord_x, self.coord_y))
         parent: dict[tuple[int, int], tuple[int, int] | None] = {
-            (self.x, self.y): None}
-        visited: dict[tuple[int, int], str] = {}
+            (self.coord_x, self.coord_y): None}
+        parent.update({(self.coord_x, self.coord_y): None})
 
+        # BFS algorithm to find shortest path to pacman
         while queue:
-            print(f"path is {path}")
-            curr_cell: list[tuple[int, int]] = []
-            curr_cell.append(queue.popleft())
-            visited.update({curr_cell[-1]: "visited"})
-
-            print(f"curr_cell is {curr_cell[-1]}")
-            if curr_cell[-1] == pacwoman_loc:
-                for cell in curr_cell:
-                    path.append(cell)
-                    cell = parent[cell]
-                path = path[::-1]
+            v_x, v_y = queue.popleft()
+            if (v_x, v_y) == pacwoman_loc:
                 break
+            for edges in self.adjacentEdges(mazegen, v_x, v_y):
+                dir_x, dir_y = edges
+                new_x, new_y = v_x + dir_x, v_y + dir_y
+                if (0 <= new_x < len(mazegen.maze[0])) \
+                    and (0 <= new_y < len(mazegen.maze)) \
+                   and ((new_x), (new_y)) not in visited:
+                    visited.add((new_x, new_y))
+                    parent.update({((new_x), (new_y)): (v_x, v_y)})
+                    queue.append(((new_x), (new_y)))
 
-            for _, row, col in self.neighbors:
-                if not visited.get((row, col)):
-                    parent.update({(row, col): (curr_cell[-1])})
-                    queue.append((row, col))
+        path: list[tuple[int, int]] = [pacwoman_loc]
+        while parent.get(path[-1]) is not None:
+            path.append(parent[path[-1]])
+        path = path[::-1]
 
-        next_x, next_y = path[-1]
-        self.direction = (self.x + next_x), (self.y + next_y)
+        # Condition in case anything goes wrong and no path is found
+        # even though it shouldn't happen
+        if len(path) >= 2:
+            # next step for ghost is second to last coordinates, since last
+            # one is the current location
+            next_x, next_y = path[1]
+            self.direction = (next_x - self.coord_x), (next_y - self.coord_y)
+            self.state = "moving"
+            # print(f"curr=({self.coord_x},{self.coord_y}) target={pacwoman_loc}"
+            #       f" path={path}")
+            return
+        else:
+            self.choose_random_direction(mazegen)
+            return
 
     def bfs_move(self, mazegen, pacwoman) -> None:
+        # curr_x = (self.x + PacSpriteSheet.SPRITE_W // 2) // 50
+        # curr_y = (self.y + PacSpriteSheet.SPRITE_H // 2) // 50
+        # print(f"first loc {curr_x, curr_y}")
+        # print(f"curr_cell before {self.curr_cell}")
+
         if self.state != "moving":
             self.choose_bfs_direction(mazegen, pacwoman)
-
         super().move(mazegen)
 
-        if self.state == "idle":
+        curr_x = (self.x + PacSpriteSheet.SPRITE_W // 2) // 50
+        curr_y = (self.y + PacSpriteSheet.SPRITE_H // 2) // 50
+
+        # print(f"next loc {curr_x, curr_y}")
+        if (curr_x, curr_y) != self.curr_cell and self.state == "moving":
             self.choose_bfs_direction(mazegen, pacwoman)
+
+        self.curr_cell = (curr_x, curr_y)
+        # print(f"curr_cell after {self.curr_cell}")
+        # print()
 
 
 class Pinky(Ghosts):

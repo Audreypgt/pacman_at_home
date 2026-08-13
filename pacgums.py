@@ -27,7 +27,7 @@ class Pacgums:
         if (row, col) in self.gums:
             self.gums.discard((row, col))
             self.score += 10
-            print(self.score)
+            # print(self.score)
 
     def draw(self, screen):
         for row, col in self.gums:
