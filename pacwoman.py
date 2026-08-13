@@ -7,22 +7,22 @@ class PacSpriteSheet():
     SPRITE_W = 42
     SPRITE_H = 42
 
-    def __init__(self, filename):
+    def __init__(self, filename: str) -> None:
         self.sheet = pygame.image.load(filename).convert_alpha()
 
-    def get_sprite(self, x, y, w, h):
+    def get_sprite(self, x: int, y: int, w: int, h: int) -> pygame.Surface:
         sprite = pygame.Surface((w, h), pygame.SRCALPHA)
         sprite.blit(self.sheet, (0, 0), (x, y, w, h))
         return sprite
 
-    def get_sprite_at(self, row, col, w=None, h=None):
+    def get_sprite_at(self, row, col, w=None, h=None) -> pygame.Surface:
         w = w or self.SPRITE_W
         h = h or self.SPRITE_H
         return self.get_sprite(col * self.CELL, row * self.CELL, w, h)
 
 
 class Pacwoman:
-    def __init__(self, x, y, sprite_sheet, screen_w, screen_y):
+    def __init__(self, x, y, sprite_sheet, screen_w, screen_y) -> None:
         self.x = x
         self.y = y
         self.screen_w = screen_w
@@ -49,7 +49,7 @@ class Pacwoman:
         }
         self.current_frame = self.frame_sets[self.direction][0]
 
-    def input(self, keys):
+    def input(self, keys) -> None:
         if keys[pygame.K_LEFT] or keys[pygame.K_a]:
             self.direction = (-1, 0)
             self.state = "moving"
@@ -63,7 +63,7 @@ class Pacwoman:
             self.direction = (0, 1)
             self.state = "moving"
 
-    def move(self, mazegen):
+    def move(self, mazegen) -> None:
         if self.state != "moving":
             return
 
@@ -117,7 +117,7 @@ class Pacwoman:
         else:
             self.x, self.y = clamped_x, clamped_y
 
-    def update(self):
+    def update(self) -> None:
         if self.state == "moving":
             self.move_timer += 1
             if self.move_timer >= self.animation_speed:
@@ -127,5 +127,5 @@ class Pacwoman:
                                                  self.direction][
                                                  self.frame_index]
 
-    def draw(self, surface):
+    def draw(self, surface) -> None:
         surface.blit(self.current_frame, (self.x, self.y))
