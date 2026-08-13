@@ -1,26 +1,28 @@
 import pygame
 
+
 class PacSpriteSheet():
 
     CELL = 47
     SPRITE_W = 42
     SPRITE_H = 42
 
-    def __init__(self, filename):
+    def __init__(self, filename: str) -> None:
         self.sheet = pygame.image.load(filename).convert_alpha()
 
-    def get_sprite(self, x, y, w, h):
+    def get_sprite(self, x: int, y: int, w: int, h: int) -> pygame.Surface:
         sprite = pygame.Surface((w, h), pygame.SRCALPHA)
         sprite.blit(self.sheet, (0, 0), (x, y, w, h))
         return sprite
 
-    def get_sprite_at(self, row, col, w=None, h=None):
+    def get_sprite_at(self, row, col, w=None, h=None) -> pygame.Surface:
         w = w or self.SPRITE_W
         h = h or self.SPRITE_H
         return self.get_sprite(col * self.CELL, row * self.CELL, w, h)
 
+
 class Pacwoman:
-    def __init__(self, x, y, sprite_sheet, screen_w, screen_y):
+    def __init__(self, x, y, sprite_sheet, screen_w, screen_y) -> None:
         self.x = x
         self.y = y
         self.screen_w = screen_w
@@ -32,15 +34,22 @@ class Pacwoman:
         self.frame_index = 0
         self.state = "idle"
         self.frame_sets = {
-            (-1, 0): [sprite_sheet.get_sprite_at(8, 17) ,sprite_sheet.get_sprite_at(7, 17), sprite_sheet.get_sprite_at(6, 17)],
-            (1, 0): [sprite_sheet.get_sprite_at(0, 17) ,sprite_sheet.get_sprite_at(1, 17), sprite_sheet.get_sprite_at(2, 17)],
-            (0, 1): [sprite_sheet.get_sprite_at(3, 17), sprite_sheet.get_sprite_at(4, 17), sprite_sheet.get_sprite_at(5, 17)],
-            (0, -1): [sprite_sheet.get_sprite_at(9, 17), sprite_sheet.get_sprite_at(10,17), sprite_sheet.get_sprite_at(11, 17)]
+            (-1, 0): [sprite_sheet.get_sprite_at(8, 17),
+                      sprite_sheet.get_sprite_at(7, 17),
+                      sprite_sheet.get_sprite_at(6, 17)],
+            (1, 0): [sprite_sheet.get_sprite_at(0, 17),
+                     sprite_sheet.get_sprite_at(1, 17),
+                     sprite_sheet.get_sprite_at(2, 17)],
+            (0, 1): [sprite_sheet.get_sprite_at(3, 17),
+                     sprite_sheet.get_sprite_at(4, 17),
+                     sprite_sheet.get_sprite_at(5, 17)],
+            (0, -1): [sprite_sheet.get_sprite_at(9, 17),
+                      sprite_sheet.get_sprite_at(10, 17),
+                      sprite_sheet.get_sprite_at(11, 17)]
         }
         self.current_frame = self.frame_sets[self.direction][0]
-        self.pac_current_pos = (x, y)
 
-    def input(self, keys):
+    def input(self, keys) -> None:
         if keys[pygame.K_LEFT] or keys[pygame.K_a]:
             self.direction = (-1, 0)
             self.state = "moving"
@@ -54,7 +63,7 @@ class Pacwoman:
             self.direction = (0, 1)
             self.state = "moving"
 
-    def move(self, mazegen):
+    def move(self, mazegen) -> None:
         if self.state != "moving":
             return
 
@@ -74,7 +83,10 @@ class Pacwoman:
             return
 
         cell = mazegen.maze[row][col]
-        wall_bit = {(0, -1): 1, (1, 0): 2, (0, 1): 4, (-1, 0): 8}[self.direction]
+        wall_bit = {(0, -1): 1,
+                    (1, 0): 2,
+                    (0, 1): 4,
+                    (-1, 0): 8}[self.direction]
 
         offset = (MAZE_CELL - PacSpriteSheet.SPRITE_W) // 2
         if dx != 0:
@@ -87,11 +99,13 @@ class Pacwoman:
 
         if cell & wall_bit:
             if dx == 1:
-                new_x = min(new_x, col * MAZE_CELL + (MAZE_CELL - PacSpriteSheet.SPRITE_W))
+                new_x = min(new_x, col * MAZE_CELL +
+                            (MAZE_CELL - PacSpriteSheet.SPRITE_W))
             elif dx == -1:
                 new_x = max(new_x, col * MAZE_CELL)
             elif dy == 1:
-                new_y = min(new_y, row * MAZE_CELL + (MAZE_CELL - PacSpriteSheet.SPRITE_H))
+                new_y = min(new_y, row * MAZE_CELL +
+                            (MAZE_CELL - PacSpriteSheet.SPRITE_H))
             elif dy == -1:
                 new_y = max(new_y, row * MAZE_CELL)
 
@@ -103,14 +117,15 @@ class Pacwoman:
         else:
             self.x, self.y = clamped_x, clamped_y
 
-
-    def update(self):
+    def update(self) -> None:
         if self.state == "moving":
             self.move_timer += 1
             if self.move_timer >= self.animation_speed:
                 self.move_timer = 0
                 self.frame_index = (self.frame_index + 1) % 3
-            self.current_frame = self.frame_sets[self.direction][self.frame_index]
+            self.current_frame = self.frame_sets[
+                                                 self.direction][
+                                                 self.frame_index]
 
-    def draw(self, surface):
+    def draw(self, surface) -> None:
         surface.blit(self.current_frame, (self.x, self.y))
