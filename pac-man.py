@@ -55,7 +55,7 @@ class GameController(object):
         self.pacgums.eat(self.pacwoman)
         # all_sprites_list.update(pacman)
         # move ghosts
-        self.blinky.bfs_move(mazegen, self.pacwoman)
+        self.blinky.move_random(mazegen)
         self.blinky.update()
         self.pinky.move_random(mazegen)
         self.pinky.update()
