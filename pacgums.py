@@ -3,11 +3,13 @@ from pacwoman import PacSpriteSheet
 
 MAZE_CELL = 50
 
+
 class Pacgums:
     def __init__(self, image_path: set = "sprites/pretzel.png"):
         self.gums = set()
         self.score = 0
-        self.image = pygame.transform.scale(pygame.image.load(image_path).convert_alpha(), (16, 15))
+        self.image = pygame.transform.scale(
+            pygame.image.load(image_path).convert_alpha(), (16, 15))
 
     def init_gums(self, mazegen):
         self.gums = set()

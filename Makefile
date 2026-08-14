@@ -1,6 +1,6 @@
 NAME = pacman
 
-P3 = python3.11
+P3 = python3
 
 run:
 	@source pacman_venv/bin/activate \
@@ -38,16 +38,16 @@ clean:
 fclean: clean venv-clean
 
 lint: install
-# 	@source pacman_venv/bin/activate \
-# 	&& flake8 parsing.py menu.py pac-man.py mazegen/maze.py mazegen/__init__.py setup.py \
-# 	&& mypy parsing.py menu.py pac-man.py mazegen/maze.py mazegen/__init__.py setup.py \
-# 	--warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs \
-# 	--check-untyped-defs
+	@source pacman_venv/bin/activate \
+	&& flake8 parsing.py menu.py pac-man.py ghosts.py pacgums.py pacwoman.py \
+	&& mypy parsing.py menu.py pac-man.py ghosts.py pacgums.py pacwoman.py \
+	--warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs \
+	--check-untyped-defs
 
 lint-strict: install
-# 	@source pacman_venv/bin/activate \
-# 	&& flake8 parsing.py menu.py pac-man.py mazegen/maze.py mazegen/__init__.py setup.py \
-# 	&& mypy parsing.py menu.py pac-man.py mazegen/maze.py mazegen/__init__.py setup.py --strict
+	@source pacman_venv/bin/activate \
+	&& flake8 parsing.py menu.py pac-man.py ghosts.py pacgums.py pacwoman.py \
+	&& mypy parsing.py menu.py pac-man.py ghosts.py pacgums.py pacwoman.py --strict
 
 # build:
 # 	python -m build

@@ -1,5 +1,6 @@
 import pygame
 import random
+from collections import deque
 
 
 class PacSpriteSheet():
@@ -7,22 +8,22 @@ class PacSpriteSheet():
     SPRITE_W = 42
     SPRITE_H = 42
 
-    def __init__(self, filename):
+    def __init__(self, filename) -> None:
         self.sheet = pygame.image.load(filename).convert_alpha()
 
-    def get_sprite(self, x, y, w, h):
+    def get_sprite(self, x, y, w, h) -> pygame.Surface:
         sprite = pygame.Surface((w, h), pygame.SRCALPHA)
         sprite.blit(self.sheet, (0, 0), (x, y, w, h))
         return sprite
 
-    def get_sprite_at(self, row, col, w=None, h=None):
+    def get_sprite_at(self, row, col, w=None, h=None) -> pygame.Surface:
         w = w or self.SPRITE_W
         h = h or self.SPRITE_H
         return self.get_sprite(col * self.CELL, row * self.CELL, w, h)
 
 
 class Pacwoman:
-    def __init__(self, x, y, sprite_sheet, screen_w, screen_y):
+    def __init__(self, x, y, sprite_sheet, screen_w, screen_y) -> None:
         self.x = x
         self.y = y
         self.screen_w = screen_w
@@ -53,7 +54,7 @@ class Pacwoman:
         }
         self.current_frame = self.frame_sets[self.direction][0]
 
-    def input(self, keys):
+    def input(self, keys) -> None:
         if keys[pygame.K_LEFT] or keys[pygame.K_a]:
             self.direction = (-1, 0)
             self.state = "moving"
@@ -67,7 +68,7 @@ class Pacwoman:
             self.direction = (0, 1)
             self.state = "moving"
 
-    def move(self, mazegen):
+    def move(self, mazegen) -> None:
         if self.state != "moving":
             return
 
@@ -125,7 +126,7 @@ class Pacwoman:
         else:
             self.x, self.y = clamped_x, clamped_y
 
-    def update(self):
+    def update(self) -> None:
         if self.state == "moving":
             self.move_timer += 1
             if self.move_timer >= self.animation_speed:
@@ -135,7 +136,7 @@ class Pacwoman:
             self.current_frame = self.frame_sets[self.direction][
                 self.frame_index]
 
-    def draw(self, surface):
+    def draw(self, surface) -> None:
         surface.blit(self.current_frame, (self.x, self.y))
 
 
@@ -146,7 +147,7 @@ class Ghosts(Pacwoman):
         self.state = "moving"
         self.frame_sets = {}
 
-    def choose_random_direction(self, mazegen):
+    def choose_random_direction(self, mazegen) -> None:
         MAZE_CELL = 50
 
         directions = {
@@ -185,7 +186,7 @@ class Ghosts(Pacwoman):
             self.direction = random.choice(possible_directions)
             self.state = "moving"
 
-    def move_random(self, mazegen):
+    def move_random(self, mazegen) -> None:
         if self.state != "moving":
             self.choose_random_direction(mazegen)
 
@@ -196,7 +197,7 @@ class Ghosts(Pacwoman):
 
 
 class Blinky(Ghosts):
-    def __init__(self, x, y, sprite_sheet, screen_w, screen_y):
+    def __init__(self, x, y, sprite_sheet, screen_w, screen_y) -> None:
         super().__init__(x, y, sprite_sheet, screen_w, screen_y)
 
         self.frame_sets = {
@@ -222,9 +223,69 @@ class Blinky(Ghosts):
                 ]
         }
 
+    def choose_bfs_direction(self, mazegen, pacwoman) -> None:
+        self.neighbors: list[tuple[str, int, int]] = []
+
+        for row in range(len(mazegen.maze)):
+            for col in range(len(mazegen.maze[row])):
+                cell = mazegen.maze[row][col]
+                # North
+                if not (cell & 1):
+                    self.neighbors.append(("N", row, col))
+                # East
+                if not (cell & 2):
+                    self.neighbors.append(("E", row, col))
+                # South
+                if not (cell & 4):
+                    self.neighbors.append(("S", row, col))
+                # West
+                if not (cell & 8):
+                    self.neighbors.append(("W", row, col))
+
+        path: list[tuple[int, int]] = []
+        pacwoman_loc = pacwoman.x, pacwoman.y
+        queue: deque[tuple[int, int]] = deque()
+        # curr_x, curr_y = self.x, self.y
+        # queue.append((curr_y, curr_x))
+        queue.append((self.x, self.y))
+        parent: dict[tuple[int, int], tuple[int, int] | None] = {
+            (self.x, self.y): None}
+        visited: dict[tuple[int, int], str] = {}
+
+        while queue:
+            print(f"path is {path}")
+            curr_cell: list[tuple[int, int]] = []
+            curr_cell.append(queue.popleft())
+            visited.update({curr_cell[-1]: "visited"})
+
+            print(f"curr_cell is {curr_cell[-1]}")
+            if curr_cell[-1] == pacwoman_loc:
+                for cell in curr_cell:
+                    path.append(cell)
+                    cell = parent[cell]
+                path = path[::-1]
+                break
+
+            for _, row, col in self.neighbors:
+                if not visited.get((row, col)):
+                    parent.update({(row, col): (curr_cell[-1])})
+                    queue.append((row, col))
+
+        next_x, next_y = path[-1]
+        self.direction = (self.x + next_x), (self.y + next_y)
+
+    def bfs_move(self, mazegen, pacwoman) -> None:
+        if self.state != "moving":
+            self.choose_bfs_direction(mazegen, pacwoman)
+
+        super().move(mazegen)
+
+        if self.state == "idle":
+            self.choose_bfs_direction(mazegen, pacwoman)
+
 
 class Pinky(Ghosts):
-    def __init__(self, x, y, sprite_sheet, screen_w, screen_y):
+    def __init__(self, x, y, sprite_sheet, screen_w, screen_y) -> None:
         super().__init__(x, y, sprite_sheet, screen_w, screen_y)
 
         self.frame_sets = {
@@ -252,7 +313,7 @@ class Pinky(Ghosts):
 
 
 class Clyde(Ghosts):
-    def __init__(self, x, y, sprite_sheet, screen_w, screen_y):
+    def __init__(self, x, y, sprite_sheet, screen_w, screen_y) -> None:
         super().__init__(x, y, sprite_sheet, screen_w, screen_y)
 
         self.frame_sets = {
@@ -280,7 +341,7 @@ class Clyde(Ghosts):
 
 
 class Inky(Ghosts):
-    def __init__(self, x, y, sprite_sheet, screen_w, screen_y):
+    def __init__(self, x, y, sprite_sheet, screen_w, screen_y) -> None:
         super().__init__(x, y, sprite_sheet, screen_w, screen_y)
 
         self.frame_sets = {
