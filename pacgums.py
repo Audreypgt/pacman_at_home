@@ -1,44 +1,51 @@
 import pygame
 from pacwoman import PacSpriteSheet
-from random import choice
 
 MAZE_CELL = 50
 
 
 class Pacgums:
-    def __init__(self, gum_path: set = "sprites/pretzel.png",
-                 sp_gum_path: set = "sprites/test_gum.png"):
+    def __init__(self, sprite_sheet: PacSpriteSheet, gum_row: int, gum_col: int,
+    sp_gum_row: int, sp_gum_col: int, scared_duration: float = 8.0):
         self.gums = set()
         self.score = 0
         self.eat_ghosts: bool = False
+        self.scared_duration = scared_duration
+        self.scared_timer = 0.0
+
         self.pacgum_img = pygame.transform.scale(
-            pygame.image.load(gum_path).convert_alpha(), (16, 15))
+            sprite_sheet.get_sprite_at(gum_row, gum_col), (25, 25))
         self.sp_pacgum_img = pygame.transform.scale(
-            pygame.image.load(sp_gum_path).convert_alpha(), (16, 15))
+            sprite_sheet.get_sprite_at(sp_gum_row, sp_gum_col), (30, 30))
 
     def init_gums(self, mazegen, pacwoman):
         self.gums = set()
         self.super_gum = set()
-        center_x = pacwoman.x + PacSpriteSheet.SPRITE_W // 2
-        center_y = pacwoman.y + PacSpriteSheet.SPRITE_H // 2
+        self.eat_ghosts = False
+        self.scared_timer = 0.0
+
+        pac_col = (pacwoman.x + PacSpriteSheet.SPRITE_W // 2) // MAZE_CELL
+        pac_row = (pacwoman.y + PacSpriteSheet.SPRITE_H // 2) // MAZE_CELL
 
         for row, lines in enumerate(mazegen.maze):
             for col, cell in enumerate(lines):
                 if cell != 15:
                     self.gums.add((row, col))
 
-        rand_row = choice([i for i in range(0, len(mazegen.maze) - 1)
-                           if i not in [center_x]])
-        rand_col = choice([i for i in range(0, len(mazegen.maze[0]) - 1)
-                           if i not in [center_y]])
-        if mazegen.maze[rand_row][rand_col] == 15:
-            while mazegen.maze[rand_row][rand_col] == 15:
-                rand_row = choice([i for i in range(0, len(mazegen.maze) - 1)
-                                   if i not in [center_x]])
-                rand_col = choice([i for i in range(0, len(
-                            mazegen.maze[0]) - 1) if i not in [center_y]])
-        self.gums.discard((rand_row, rand_col))
-        self.super_gum.add((rand_row, rand_col))
+        self.gums.discard((pac_row, pac_col))
+
+        maze_height = len(mazegen.maze)
+        maze_width = len(mazegen.maze[0])
+        corners = [
+            (0, 0),
+            (0, maze_width - 1),
+            (maze_height - 1, 0),
+            (maze_height - 1, maze_width - 1)
+        ]
+
+        for row, col in corners:
+            self.gums.discard((row, col))
+            self.super_gum.add((row, col))
 
         self.score = 0
 
@@ -47,24 +54,29 @@ class Pacgums:
         center_y = pacwoman.y + PacSpriteSheet.SPRITE_H // 2
         col = center_x // MAZE_CELL
         row = center_y // MAZE_CELL
+
         if (row, col) in self.gums:
             self.gums.discard((row, col))
             self.score += 10
         elif (row, col) in self.super_gum:
             self.super_gum.discard((row, col))
             self.score += 50
-            # maybe get time here and wait like 20 sec (here or in file
-            # pac-man ?) before turning bool back to false
-            # add this part to pac-man file to allow pacwoman to eat ghosts
             self.eat_ghosts = True
+            self.scared_timer = self.scared_duration
 
-            # print(self.score)
+    def update(self, dt: float):
+        if self.eat_ghosts:
+            self.scared_timer -= dt
+        if self.scared_timer <= 0:
+            self.eat_ghosts = False
+            self.scared_timer = 0.0
 
     def draw(self, screen):
         for row, col in self.gums:
             cx = col * MAZE_CELL
             cy = row * MAZE_CELL
             screen.blit(self.pacgum_img, (cx + 15.5, cy + 16.5))
+
         for row, col in self.super_gum:
             cx = col * MAZE_CELL
             cy = row * MAZE_CELL

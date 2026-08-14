@@ -33,9 +33,10 @@ class GameController(object):
         self.background = None
         self.running = False
         self.over = False
-        self.pacgums = Pacgums()
+        self.pac_sheet = PacSpriteSheet("sprites/pac_sheet.png")
+        self.pacgums = Pacgums(self.pac_sheet, gum_row=5, gum_col=8,
+                               sp_gum_row=9, sp_gum_col=8)
         self.menus = Gamemenus(self)
-        self.lives = 5
         self.looser = ""
 
     def set_background(self) -> None:
@@ -53,6 +54,7 @@ class GameController(object):
         self.pacwoman.move(mazegen)
         self.pacwoman.update()
         self.pacgums.eat(self.pacwoman)
+        self.pacgums.update(self.clock.get_time() / 1000)
         # if self.time >= 3:
         #     spawn_x = (self.spawn_x_blky + PacSpriteSheet.SPRITE_W // 2) // 50
         #     spawn_y = (self.spawn_x_blky + PacSpriteSheet.SPRITE_W // 2) // 50
@@ -102,19 +104,19 @@ class GameController(object):
         # updates the screen with everything just drawn
         pygame.display.flip()
 
-    def add_gums(self, mazegen) -> None:
-        gum = pygame.transform.scale(
-            pygame.image.load('sprites/pretzel.png').convert(), (16, 15))
-        cx: float = 0
-        cy: float = 0
+    # def add_gums(self, mazegen) -> None:
+    #     gum = pygame.transform.scale(
+    #         pygame.image.load('sprites/pretzel.png').convert(), (16, 15))
+    #     cx: float = 0
+    #     cy: float = 0
 
-        for line in mazegen.maze:
-            for cell in line:
-                if cell != 15:
-                    self.screen.blit(gum, (cx + 15.5, cy + 16.5))
-                cx += 50
-            cx = 0
-            cy += 50
+    #     for line in mazegen.maze:
+    #         for cell in line:
+    #             if cell != 15:
+    #                 self.screen.blit(gum, (cx + 15.5, cy + 16.5))
+    #             cx += 50
+    #         cx = 0
+    #         cy += 50
 
     def draw_maze(self, mazegen) -> None:
         cy = 0
@@ -160,7 +162,7 @@ class GameController(object):
         self.running = True
         self.lives = 3
         self.invulnerable_timer = 0
-        pac_sheet = PacSpriteSheet("sprites/pac_sheet.png")
+        pac_sheet = self.pac_sheet
 
         # Pacwoman
         maze_width = len(mazegen.maze[0])
@@ -263,12 +265,23 @@ class GameController(object):
                                PacSpriteSheet.SPRITE_W,
                                PacSpriteSheet.SPRITE_H)
 
-        for ghost in (self.blinky, self.pinky, self.clyde, self.inky):
+        ghosts = {
+            "blinky": (self.blinky, self.blinky_spawn),
+            "inky": (self.inky, self.inky_spawn),
+            "pinky": (self.pinky, self.pinky_spawn),
+            "clyde": (self.clyde, self.clyde_spawn)
+        }
+
+        for name, (ghost, spawn) in ghosts.items():
             ghost_rect = pygame.Rect(ghost.x, ghost.y, PacSpriteSheet.SPRITE_W,
                                      PacSpriteSheet.SPRITE_H)
             if pac_rect.colliderect(ghost_rect):
-                self.pacwoman_hit()
-                return
+                if self.pacgums.eat_ghosts:
+                    ghost.x, ghost.y = spawn
+                    self.pacgums.score += 200
+                else:
+                    self.pacwoman_hit()
+                    return
 
     def pacwoman_hit(self):
         self.lives -= 1

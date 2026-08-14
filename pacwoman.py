@@ -28,11 +28,14 @@ class Pacwoman:
         self.screen_w = screen_w
         self.screen_y = screen_y
         self.direction = (1, 0)
+        self.next_direction = (1, 0)
         self.move_speed = 3
         self.animation_speed = 3.5
         self.move_timer = 0
         self.frame_index = 0
         self.state = "idle"
+        self.direction_delay = 2
+        self.direction_timer = 0
         self.frame_sets = {
             (-1, 0): [sprite_sheet.get_sprite_at(8, 17),
                       sprite_sheet.get_sprite_at(7, 17),
@@ -50,6 +53,7 @@ class Pacwoman:
         self.current_frame = self.frame_sets[self.direction][0]
 
     def input(self, keys) -> None:
+        requested = None
         if keys[pygame.K_LEFT] or keys[pygame.K_a]:
             self.direction = (-1, 0)
             self.state = "moving"
@@ -63,11 +67,25 @@ class Pacwoman:
             self.direction = (0, 1)
             self.state = "moving"
 
+        if requested is None:
+            return
+
+        if requested != self.next_direction:
+            self.next_direction = requested
+            self.direction_timer = self.direction_delay
+
+        self.state = "moving"
+
     def move(self, mazegen) -> None:
         if self.state != "moving":
             return
 
         MAZE_CELL = 50
+        if self.direction_timer > 0:
+            self.direction_timer -= 1
+        if self.direction_timer == 0 and self.next_direction != self.direction:
+            self.direction = self.next_direction
+
         dx, dy = self.direction
 
         maze_height = len(mazegen.maze)
