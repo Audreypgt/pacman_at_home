@@ -17,6 +17,20 @@ class Ghosts(Pacwoman):
         self.coord_y = (self.y + PacSpriteSheet.SPRITE_H // 2) // 50
         self.curr_cell: tuple[int, int] = (self.coord_x, self.coord_y)
 
+    def adjacentEdges(self, mazegen, x, y) -> list[tuple[int, int]]:
+        neighbors: list[tuple[int, int]] = []
+
+        if not (mazegen.maze[y][x] & 1):
+            neighbors.append((0, -1))
+        if not (mazegen.maze[y][x] & 2):
+            neighbors.append((1, 0))
+        if not (mazegen.maze[y][x] & 4):
+            neighbors.append((0, 1))
+        if not (mazegen.maze[y][x] & 8):
+            neighbors.append((-1, 0))
+
+        return neighbors
+
     def choose_random_direction(self, mazegen) -> None:
         MAZE_CELL = 50
 
@@ -39,16 +53,13 @@ class Ghosts(Pacwoman):
             return
 
         cell = mazegen.maze[row][col]
-        wall_bit = {
+        possible_directions = []
+        for direction, wall_bit in {
             (0, -1): 1,
             (1, 0): 2,
             (0, 1): 4,
             (-1, 0): 8
-            }[self.direction]
-
-        possible_directions = []
-
-        for direction, wall_bit in directions.items():
+        }.items():
             if not (cell & wall_bit):
                 possible_directions.append(direction)
 
@@ -151,23 +162,6 @@ class Blinky(Ghosts):
                 sprite_sheet.get_sprite_at(7, 0)
                 ]
         }
-
-    def adjacentEdges(self, mazegen, x, y) -> list[tuple[int, int]]:
-        neighbors: list[str] = []
-        # North
-        if not (mazegen.maze[y][x] & 1):
-            neighbors.append((0, -1))
-        # East
-        if not (mazegen.maze[y][x] & 2):
-            neighbors.append((1, 0))
-        # South
-        if not (mazegen.maze[y][x] & 4):
-            neighbors.append((0, 1))
-        # West
-        if not (mazegen.maze[y][x] & 8):
-            neighbors.append((-1, 0))
-
-        return neighbors
 
     def choose_bfs_direction(self, mazegen, pacwoman) -> None:
         # coords are received as nb of pixels so we convert to
