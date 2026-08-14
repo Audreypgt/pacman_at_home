@@ -58,7 +58,6 @@ class Pacgums:
             # add this part to pac-man file to allow pacwoman to eat ghosts
             self.eat_ghosts = True
 
-            # code possibility to eat the fxcking ghosts then
             # print(self.score)
 
     def draw(self, screen):
