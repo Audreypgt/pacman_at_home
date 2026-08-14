@@ -122,7 +122,8 @@ class Pacwoman:
             self.move_timer += 1
             if self.move_timer >= self.animation_speed:
                 self.move_timer = 0
-                self.frame_index = (self.frame_index + 1) % 3
+                self.frame_index = (self.frame_index + 1) % len(
+                    self.frame_sets[self.direction])
             self.current_frame = self.frame_sets[
                                                  self.direction][
                                                  self.frame_index]

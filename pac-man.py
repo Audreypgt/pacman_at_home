@@ -53,9 +53,15 @@ class GameController(object):
         self.pacwoman.move(mazegen)
         self.pacwoman.update()
         self.pacgums.eat(self.pacwoman)
-        # all_sprites_list.update(pacman)
-        # move ghosts
-        self.blinky.move_random(mazegen)
+        # if self.time >= 3:
+        #     spawn_x = (self.spawn_x_blky + PacSpriteSheet.SPRITE_W // 2) // 50
+        #     spawn_y = (self.spawn_x_blky + PacSpriteSheet.SPRITE_W // 2) // 50
+        #     while self.blinky.coord_x != spawn_x and self.blinky.coord_y != spawn_y:
+        #         self.blinky.scatter_move(
+        #             mazegen, self.spawn_x_blky, self.spawn_y_blky)
+        #         self.blinky.draw(self.screen)
+        #         self.blinky.update()
+        self.blinky.bfs_move(mazegen, self.pacwoman)
         self.blinky.update()
         self.pinky.move_random(mazegen)
         self.pinky.update()
@@ -73,17 +79,16 @@ class GameController(object):
                 pygame.quit()
                 quit()
             if event.type == pygame.KEYDOWN:
-                # find a way to resume game after, instead of starting again
                 if event.key == pygame.K_ESCAPE:
                     self.menus.pause_menu()
                     self.paused = True
-                    # self.running = False
 
     def render(self, mazegen) -> None:
         """draw images to the screen"""
         # draw background
         self.set_background()
         # draw interface (score, lives, etc)
+
         # draw maze
         self.draw_maze(mazegen)
         # draw gums
@@ -153,6 +158,8 @@ class GameController(object):
         self.clock = pygame.time.Clock()
         self.time = 0.0
         self.running = True
+        self.lives = 3
+        self.invulnerable_timer = 0
         pac_sheet = PacSpriteSheet("sprites/pac_sheet.png")
 
         # Pacwoman
@@ -162,11 +169,12 @@ class GameController(object):
         center_row = maze_height // 2
         spawn_x = center_col * 50 + (50 - PacSpriteSheet.SPRITE_W) // 2
         spawn_y = center_row * 50 + (50 - PacSpriteSheet.SPRITE_H) // 2
+        self.pacwoman_spawn = (spawn_x, spawn_y)
         self.pacwoman = Pacwoman(
             spawn_x, spawn_y, pac_sheet, SCREENWIDTH, SCREENHEIGHT)
 
         # Pacgums
-        self.pacgums.init_gums(mazegen)
+        self.pacgums.init_gums(mazegen, self.pacwoman)
 
         # Blinky
         spawn_x_blky = (
@@ -175,27 +183,30 @@ class GameController(object):
         spawn_y_blky = (
             len(mazegen.maze) - 1) * 50 + (
                 50 - PacSpriteSheet.SPRITE_H) // 2
+        self.blinky_spawn = (spawn_x_blky, spawn_y_blky)
         self.blinky = Blinky(
-            spawn_x_blky, spawn_y_blky, pac_sheet, SCREENWIDTH, SCREENHEIGHT)
+            spawn_x_blky, spawn_y_blky, pac_sheet,
+            SCREENWIDTH, SCREENHEIGHT)
 
         # Pinky
         spawn_x_pky = (50 - PacSpriteSheet.SPRITE_W) // 2
         spawn_y_pky = (
             len(mazegen.maze) - 1) * 50 + (
                 50 - PacSpriteSheet.SPRITE_H) // 2
+        self.pinky_spawn = (spawn_x_pky, spawn_y_pky)
         self.pinky = Pinky(
             spawn_x_pky, spawn_y_pky, pac_sheet, SCREENWIDTH, SCREENHEIGHT)
 
         # Clyde
-        spawn_x_clyde = 0
-        spawn_y_clyde = 0
+        self.clyde_spawn = (0, 0)
         self.clyde = Clyde(
-            spawn_x_clyde, spawn_y_clyde, pac_sheet, SCREENWIDTH, SCREENHEIGHT)
+            0, 0, pac_sheet, SCREENWIDTH, SCREENHEIGHT)
 
         # Inky
         spawn_x_inky = (len(mazegen.maze[0]) - 1) * 50 + (
                 50 - PacSpriteSheet.SPRITE_W) // 2
         spawn_y_inky = (50 - PacSpriteSheet.SPRITE_H) // 2
+        self.inky_spawn = (spawn_x_inky, spawn_y_inky)
         self.inky = Inky(
             spawn_x_inky, spawn_y_inky, pac_sheet, SCREENWIDTH, SCREENHEIGHT)
 
@@ -203,15 +214,12 @@ class GameController(object):
 
     def start_game(self) -> None:
         """create maze, check user inputs and render new elements"""
-        # if not self.paused:
-        # print(self.clock)
         self.paused = False
         while self.running:
             self.screen.fill("black")
             self.update()
             self.time += self.clock.tick(60) / 1000
             self.time = round(self.time, 2)
-            # print(self.time)
             self.render(mazegen)
             # game ends after 90 seconds and goes back to menu
             if self.time >= 120:
@@ -233,7 +241,6 @@ class GameController(object):
         scores_dict = dict(
             sorted(scores_dict.items(),
                    key=lambda item: item[1], reverse=True))
-        print(scores_dict)
         with open(configuration.highscore_filename, 'w') as f:
             for name, score in scores_dict.items():
                 f.write(
@@ -248,6 +255,10 @@ class GameController(object):
         quit()
 
     def check_collisions(self) -> None:
+        if self.invulnerable_timer > 0:
+            self.invulnerable_timer -= 1
+            return
+
         pac_rect = pygame.Rect(self.pacwoman.x, self.pacwoman.y,
                                PacSpriteSheet.SPRITE_W,
                                PacSpriteSheet.SPRITE_H)
@@ -256,12 +267,28 @@ class GameController(object):
             ghost_rect = pygame.Rect(ghost.x, ghost.y, PacSpriteSheet.SPRITE_W,
                                      PacSpriteSheet.SPRITE_H)
             if pac_rect.colliderect(ghost_rect):
-                self.pacwoman_died()
+                self.pacwoman_hit()
                 return
 
-    def pacwoman_died(self) -> None:
-        self.running = False
-        self.menus.over_menu()
+    def pacwoman_hit(self):
+        self.lives -= 1
+        if self.lives <= 0:
+            self.running = False
+            self.menus.over_menu()
+        else:
+            self.respawn_all()
+
+    def respawn_all(self):
+        self.pacwoman.x, self.pacwoman.y = self.pacwoman_spawn
+        self.pacwoman.state = "idle"
+
+        self.blinky.x, self.blinky.y = self.blinky_spawn
+        self.pinky.x, self.pinky.y = self.pinky_spawn
+        self.clyde.x, self.clyde.y = self.clyde_spawn
+        self.inky.x, self.inky.y = self.inky_spawn
+
+
+        self.invulnerable_timer = 90
 
 
 if __name__ == "__main__":

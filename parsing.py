@@ -186,7 +186,7 @@ def parse() -> Configuration:
 
 if __name__ == "__main__":
     config = parse()
-    print(config)
+    # print(config)
 
 
 # example of dict unpacking:
