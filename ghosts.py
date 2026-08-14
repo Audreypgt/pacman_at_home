@@ -125,7 +125,7 @@ class Pacwoman:
             self.state = "idle"
         else:
             self.x, self.y = clamped_x, clamped_y
-        
+
         # print("Move")
         # print(f"new_x new_y = {((new_x + PacSpriteSheet.SPRITE_W // 2) // 50), ((new_y+ PacSpriteSheet.SPRITE_H // 2) // 50)}")
         # print(f"x y = {((self.x + PacSpriteSheet.SPRITE_W // 2) // 50), ((self.y + PacSpriteSheet.SPRITE_H // 2) // 50)}")
@@ -152,8 +152,8 @@ class Ghosts(Pacwoman):
         self.state: str = "moving"
         self.frame_sets: dict[tuple[int, int], pygame.Surface] = {}
         # changing speed otherwise blinky catches up to pacwoman too quickly
-        self.move_speed = 2
-        self.animation_speed = 2.5
+        self.move_speed = 1
+        self.animation_speed = 1.5
         self.coord_x = (self.x + PacSpriteSheet.SPRITE_W // 2) // 50
         self.coord_y = (self.y + PacSpriteSheet.SPRITE_H // 2) // 50
         self.curr_cell: tuple[int, int] = (self.coord_x, self.coord_y)
@@ -205,6 +205,65 @@ class Ghosts(Pacwoman):
 
         if self.state == "idle":
             self.choose_random_direction(mazegen)
+
+    def scatter_mode(self, mazegen, spawn_x, spawn_y) -> None:
+        self.coord_x = (self.x + PacSpriteSheet.SPRITE_W // 2) // 50
+        self.coord_y = (self.y + PacSpriteSheet.SPRITE_H // 2) // 50
+        spawn_x = (spawn_x + PacSpriteSheet.SPRITE_W // 2) // 50
+        spawn_y = (spawn_y + PacSpriteSheet.SPRITE_W // 2) // 50
+
+        path: list[tuple[int, int]] = []
+        spawn_loc = spawn_x, spawn_y
+        queue: deque[tuple[int, int]] = deque()
+        visited: set[tuple[int, int]] = set()
+        visited.add((self.coord_x, self.coord_y))
+        queue.append((self.coord_x, self.coord_y))
+        parent: dict[tuple[int, int], tuple[int, int] | None] = {
+            (self.coord_x, self.coord_y): None}
+        parent.update({(self.coord_x, self.coord_y): None})
+
+        # BFS algorithm to find shortest path to pacman
+        while queue:
+            v_x, v_y = queue.popleft()
+            if (v_x, v_y) == spawn_loc:
+                break
+            for edges in self.adjacentEdges(mazegen, v_x, v_y):
+                dir_x, dir_y = edges
+                new_x, new_y = v_x + dir_x, v_y + dir_y
+                if (0 <= new_x < len(mazegen.maze[0])) \
+                    and (0 <= new_y < len(mazegen.maze)) \
+                   and ((new_x), (new_y)) not in visited:
+                    visited.add((new_x, new_y))
+                    parent.update({((new_x), (new_y)): (v_x, v_y)})
+                    queue.append(((new_x), (new_y)))
+
+        path: list[tuple[int, int]] = [spawn_loc]
+        while parent.get(path[-1]) is not None:
+            path.append(parent[path[-1]])
+        path = path[::-1]
+
+        if len(path) >= 2:
+            next_x, next_y = path[1]
+            self.direction = (next_x - self.coord_x), (next_y - self.coord_y)
+            self.state = "moving"
+            return
+        else:
+            self.choose_random_direction(mazegen)
+            return
+
+    def scatter_move(self, mazegen, spawn_x, spawn_y) -> None:
+        if self.state != "moving":
+            self.scatter_mode(mazegen, spawn_x, spawn_y)
+
+        super().move(mazegen)
+
+        curr_x = (self.x + PacSpriteSheet.SPRITE_W // 2) // 50
+        curr_y = (self.y + PacSpriteSheet.SPRITE_H // 2) // 50
+
+        if (curr_x, curr_y) != self.curr_cell and self.state == "moving":
+            self.scatter_mode(mazegen, spawn_x, spawn_y)
+
+        self.curr_cell = (curr_x, curr_y)
 
 
 class Blinky(Ghosts):

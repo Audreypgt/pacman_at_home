@@ -53,6 +53,14 @@ class GameController(object):
         self.pacwoman.move(mazegen)
         self.pacwoman.update()
         self.pacgums.eat(self.pacwoman)
+        # if self.time >= 3:
+        #     spawn_x = (self.spawn_x_blky + PacSpriteSheet.SPRITE_W // 2) // 50
+        #     spawn_y = (self.spawn_x_blky + PacSpriteSheet.SPRITE_W // 2) // 50
+        #     while self.blinky.coord_x != spawn_x and self.blinky.coord_y != spawn_y:
+        #         self.blinky.scatter_move(
+        #             mazegen, self.spawn_x_blky, self.spawn_y_blky)
+        #         self.blinky.draw(self.screen)
+        #         self.blinky.update()
         self.blinky.bfs_move(mazegen, self.pacwoman)
         self.blinky.update()
         self.pinky.move_random(mazegen)
@@ -163,17 +171,18 @@ class GameController(object):
             spawn_x, spawn_y, pac_sheet, SCREENWIDTH, SCREENHEIGHT)
 
         # Pacgums
-        self.pacgums.init_gums(mazegen)
+        self.pacgums.init_gums(mazegen, self.pacwoman)
 
         # Blinky
-        spawn_x_blky = (
+        self.spawn_x_blky = (
             len(mazegen.maze[0]) - 1) * 50 + (
                 50 - PacSpriteSheet.SPRITE_W) // 2
-        spawn_y_blky = (
+        self.spawn_y_blky = (
             len(mazegen.maze) - 1) * 50 + (
                 50 - PacSpriteSheet.SPRITE_H) // 2
         self.blinky = Blinky(
-            spawn_x_blky, spawn_y_blky, pac_sheet, SCREENWIDTH, SCREENHEIGHT)
+            self.spawn_x_blky, self.spawn_y_blky, pac_sheet,
+            SCREENWIDTH, SCREENHEIGHT)
 
         # Pinky
         spawn_x_pky = (50 - PacSpriteSheet.SPRITE_W) // 2
