@@ -158,6 +158,8 @@ class GameController(object):
         self.clock = pygame.time.Clock()
         self.time = 0.0
         self.running = True
+        self.lives = 3
+        self.invulnerable_timer = 0
         pac_sheet = PacSpriteSheet("sprites/pac_sheet.png")
 
         # Pacwoman
@@ -167,6 +169,7 @@ class GameController(object):
         center_row = maze_height // 2
         spawn_x = center_col * 50 + (50 - PacSpriteSheet.SPRITE_W) // 2
         spawn_y = center_row * 50 + (50 - PacSpriteSheet.SPRITE_H) // 2
+        self.pacwoman_spawn = (spawn_x, spawn_y)
         self.pacwoman = Pacwoman(
             spawn_x, spawn_y, pac_sheet, SCREENWIDTH, SCREENHEIGHT)
 
@@ -174,14 +177,15 @@ class GameController(object):
         self.pacgums.init_gums(mazegen, self.pacwoman)
 
         # Blinky
-        self.spawn_x_blky = (
+        spawn_x_blky = (
             len(mazegen.maze[0]) - 1) * 50 + (
                 50 - PacSpriteSheet.SPRITE_W) // 2
-        self.spawn_y_blky = (
+        spawn_y_blky = (
             len(mazegen.maze) - 1) * 50 + (
                 50 - PacSpriteSheet.SPRITE_H) // 2
+        self.blinky_spawn = (spawn_x_blky, spawn_y_blky)
         self.blinky = Blinky(
-            self.spawn_x_blky, self.spawn_y_blky, pac_sheet,
+            spawn_x_blky, spawn_y_blky, pac_sheet,
             SCREENWIDTH, SCREENHEIGHT)
 
         # Pinky
@@ -189,19 +193,20 @@ class GameController(object):
         spawn_y_pky = (
             len(mazegen.maze) - 1) * 50 + (
                 50 - PacSpriteSheet.SPRITE_H) // 2
+        self.pinky_spawn = (spawn_x_pky, spawn_y_pky)
         self.pinky = Pinky(
             spawn_x_pky, spawn_y_pky, pac_sheet, SCREENWIDTH, SCREENHEIGHT)
 
         # Clyde
-        spawn_x_clyde = 0
-        spawn_y_clyde = 0
+        self.clyde_spawn = (0, 0)
         self.clyde = Clyde(
-            spawn_x_clyde, spawn_y_clyde, pac_sheet, SCREENWIDTH, SCREENHEIGHT)
+            0, 0, pac_sheet, SCREENWIDTH, SCREENHEIGHT)
 
         # Inky
         spawn_x_inky = (len(mazegen.maze[0]) - 1) * 50 + (
                 50 - PacSpriteSheet.SPRITE_W) // 2
         spawn_y_inky = (50 - PacSpriteSheet.SPRITE_H) // 2
+        self.inky_spawn = (spawn_x_inky, spawn_y_inky)
         self.inky = Inky(
             spawn_x_inky, spawn_y_inky, pac_sheet, SCREENWIDTH, SCREENHEIGHT)
 
@@ -250,6 +255,10 @@ class GameController(object):
         quit()
 
     def check_collisions(self) -> None:
+        if self.invulnerable_timer > 0:
+            self.invulnerable_timer -= 1
+            return
+
         pac_rect = pygame.Rect(self.pacwoman.x, self.pacwoman.y,
                                PacSpriteSheet.SPRITE_W,
                                PacSpriteSheet.SPRITE_H)
@@ -258,12 +267,28 @@ class GameController(object):
             ghost_rect = pygame.Rect(ghost.x, ghost.y, PacSpriteSheet.SPRITE_W,
                                      PacSpriteSheet.SPRITE_H)
             if pac_rect.colliderect(ghost_rect):
-                self.pacwoman_died()
+                self.pacwoman_hit()
                 return
 
-    def pacwoman_died(self) -> None:
-        self.running = False
-        self.menus.over_menu()
+    def pacwoman_hit(self):
+        self.lives -= 1
+        if self.lives <= 0:
+            self.running = False
+            self.menus.over_menu()
+        else:
+            self.respawn_all()
+
+    def respawn_all(self):
+        self.pacwoman.x, self.pacwoman.y = self.pacwoman_spawn
+        self.pacwoman.state = "idle"
+
+        self.blinky.x, self.blinky.y = self.blinky_spawn
+        self.pinky.x, self.pinky.y = self.pinky_spawn
+        self.clyde.x, self.clyde.y = self.clyde_spawn
+        self.inky.x, self.inky.y = self.inky_spawn
+
+
+        self.invulnerable_timer = 90
 
 
 if __name__ == "__main__":
