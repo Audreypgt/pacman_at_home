@@ -9,8 +9,10 @@ from menu import Gamemenus
 
 
 MAZE_CELL = 50
+# change cols and rows with data from config file
 MAZE_COLS = 15
 MAZE_ROWS = 15
+# change sizes to percentage to fit every screens
 GUI_HEIGHT = 80
 
 GAME_WIDTH = MAZE_COLS * MAZE_CELL + 1
