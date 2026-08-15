@@ -193,6 +193,12 @@ class Ghosts(Pacwoman):
 
         self.curr_cell = (curr_x, curr_y)
 
+    def is_centered(self) -> bool:
+        MAZE_CELL = 50
+        offset = (MAZE_CELL - PacSpriteSheet.SPRITE_W) // 2
+        return (self.x -offset) % MAZE_CELL == 0 and \
+            (self.y - offset) % MAZE_CELL == 0
+
 
 class Blinky(Ghosts):
     def __init__(self, x, y, sprite_sheet, screen_w, screen_y) -> None:
@@ -285,13 +291,11 @@ class Blinky(Ghosts):
             self.choose_bfs_direction(mazegen, pacwoman)
         super().move(mazegen)
 
-        curr_x = (self.x + PacSpriteSheet.SPRITE_W // 2) // 50
-        curr_y = (self.y + PacSpriteSheet.SPRITE_H // 2) // 50
-
-        # print(f"next loc {curr_x, curr_y}")
-        if (curr_x, curr_y) != self.curr_cell and self.state == "moving":
+        if self.is_centered() and self.state == "moving":
             self.choose_bfs_direction(mazegen, pacwoman)
 
+        curr_x = (self.x + PacSpriteSheet.SPRITE_W // 2) // 50
+        curr_y = (self.y + PacSpriteSheet.SPRITE_H // 2) // 50
         self.curr_cell = (curr_x, curr_y)
         # print(f"curr_cell after {self.curr_cell}")
         # print()
