@@ -250,9 +250,13 @@ class GameController(object):
             self.invulnerable_timer -= 1
             return
 
-        pac_rect = pygame.Rect(self.pacwoman.x, self.pacwoman.y,
-                               PacSpriteSheet.SPRITE_W,
-                               PacSpriteSheet.SPRITE_H)
+        HIT_MARGIN = 12
+        hit_w = PacSpriteSheet.SPRITE_W - HIT_MARGIN * 2
+        hit_h = PacSpriteSheet.SPRITE_H - HIT_MARGIN * 2
+
+        pac_rect = pygame.Rect(self.pacwoman.x + HIT_MARGIN,
+                               self.pacwoman.y + HIT_MARGIN,
+                               hit_w, hit_h)
 
         ghosts = {
             "blinky": (self.blinky, self.blinky_spawn),
@@ -262,8 +266,9 @@ class GameController(object):
         }
 
         for name, (ghost, spawn) in ghosts.items():
-            ghost_rect = pygame.Rect(ghost.x, ghost.y, PacSpriteSheet.SPRITE_W,
-                                     PacSpriteSheet.SPRITE_H)
+            ghost_rect = pygame.Rect(
+                                     ghost.x + HIT_MARGIN, ghost.y + HIT_MARGIN,
+                                     hit_w, hit_h)
             if pac_rect.colliderect(ghost_rect):
                 if self.pacgums.eat_ghosts:
                     ghost.x, ghost.y = spawn
