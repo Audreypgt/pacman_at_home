@@ -146,7 +146,7 @@ class GameController(object):
             self.sort_score_file()
             self.over = False
         self.clock = pygame.time.Clock()
-        self.time = 0.0
+        self.time = 120.0
         self.running = True
         self.lives = 3
         self.invulnerable_timer = 0
@@ -209,10 +209,11 @@ class GameController(object):
         self.paused = False
         while self.running:
             self.update()
-            self.time += self.clock.tick(60) / 1000
+            self.time -= self.clock.tick(60) / 1000
             self.time = round(self.time, 2)
             self.render(mazegen)
-            if self.time >= 120:
+            if self.time <= 0:
+                self.time = 0
                 self.running = False
                 self.menus.over_menu()
 
