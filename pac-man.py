@@ -8,34 +8,33 @@ from pacgums import Pacgums
 from menu import Gamemenus
 
 
-TILEWIDTH = 16
-TILEHEIGHT = 16
-NROWS = 60
-NCOLS = 100
-SCREENWIDTH = NCOLS * TILEWIDTH
-SCREENHEIGHT = NROWS * TILEHEIGHT
+MAZE_CELL = 50
+MAZE_COLS = 15
+MAZE_ROWS = 15
+GUI_HEIGHT = 80
+
+GAME_WIDTH = MAZE_COLS * MAZE_CELL + 1
+GAME_HEIGHT = MAZE_ROWS * MAZE_CELL + 1
+SCREENWIDTH = GAME_WIDTH
+SCREENHEIGHT = GUI_HEIGHT + GAME_HEIGHT
 SCREENSIZE = (SCREENWIDTH, SCREENHEIGHT)
+
 BLACK = (0, 0, 0)
 PINK = (255, 209, 220)
-BLINKY = (255, 0, 0)
-INKY = (161, 255, 254)
-PINKY = (255, 192, 203)
-CLYDE = (255, 165, 0)
-
-# create surface for the game to be a square and change values
-# like for draw maze to percentage of the screen
 
 
 class GameController(object):
     def __init__(self):
         pygame.init()
         self.screen = pygame.display.set_mode(SCREENSIZE, 0, 32)
+        self.game_surface = self.screen.subsurface(
+            pygame.Rect(0, GUI_HEIGHT, GAME_WIDTH, GAME_HEIGHT))
         self.background = None
         self.running = False
         self.over = False
         self.pac_sheet = PacSpriteSheet("sprites/pac_sheet.png")
         self.pacgums = Pacgums(self.pac_sheet, gum_row=5, gum_col=8,
-                               sp_gum_row=9, sp_gum_col=8)
+                               sp_gum_row=6, sp_gum_col=8)
         self.menus = Gamemenus(self)
         self.looser = ""
 
@@ -88,35 +87,25 @@ class GameController(object):
     def render(self, mazegen) -> None:
         """draw images to the screen"""
         # draw background
-        self.set_background()
+        self.screen.fill(BLACK, pygame.Rect(0, 0, SCREENWIDTH, GUI_HEIGHT))
+        self.game_surface.fill(BLACK)
         # draw interface (score, lives, etc)
 
         # draw maze
         self.draw_maze(mazegen)
         # draw gums
-        self.pacgums.draw(self.screen)
+        self.pacgums.draw(self.game_surface)
         # draw sprites
-        self.pacwoman.draw(self.screen)
-        self.blinky.draw(self.screen)
-        self.pinky.draw(self.screen)
-        self.clyde.draw(self.screen)
-        self.inky.draw(self.screen)
-        # updates the screen with everything just drawn
+        self.pacwoman.draw(self.game_surface)
+        self.blinky.draw(self.game_surface)
+        self.pinky.draw(self.game_surface)
+        self.clyde.draw(self.game_surface)
+        self.inky.draw(self.game_surface)
+
+        score_text = self.score_font.render(
+            f'Score: {self.pacgums.score}', True, (255, 255, 255))
+        self.screen.blit(score_text, (10, 10))
         pygame.display.flip()
-
-    # def add_gums(self, mazegen) -> None:
-    #     gum = pygame.transform.scale(
-    #         pygame.image.load('sprites/pretzel.png').convert(), (16, 15))
-    #     cx: float = 0
-    #     cy: float = 0
-
-    #     for line in mazegen.maze:
-    #         for cell in line:
-    #             if cell != 15:
-    #                 self.screen.blit(gum, (cx + 15.5, cy + 16.5))
-    #             cx += 50
-    #         cx = 0
-    #         cy += 50
 
     def draw_maze(self, mazegen) -> None:
         cy = 0
@@ -126,19 +115,19 @@ class GameController(object):
                 # North
                 if cell & 1:
                     pygame.draw.line(
-                        game.screen, PINK, (cx, cy), (cx + 50, cy))
+                        self.game_surface, PINK, (cx, cy), (cx + 50, cy))
                 # East
                 if cell & 2:
                     pygame.draw.line(
-                        game.screen, PINK, (cx + 50, cy), (cx + 50, cy + 50))
+                        self.game_surface, PINK, (cx + 50, cy), (cx + 50, cy + 50))
                 # South
                 if cell & 4:
                     pygame.draw.line(
-                        game.screen, PINK, (cx, cy + 50), (cx + 50, cy + 50))
+                        self.game_surface, PINK, (cx, cy + 50), (cx + 50, cy + 50))
                 # West
                 if cell & 8:
                     pygame.draw.line(
-                        game.screen, PINK, (cx, cy), (cx, cy + 50))
+                        self.game_surface, PINK, (cx, cy), (cx, cy + 50))
                 cx += 50
             cy += 50
             cx = 0
@@ -162,6 +151,7 @@ class GameController(object):
         self.running = True
         self.lives = 3
         self.invulnerable_timer = 0
+        self.score_font = pygame.font.Font(None, 36)
         pac_sheet = self.pac_sheet
 
         # Pacwoman
@@ -173,7 +163,7 @@ class GameController(object):
         spawn_y = center_row * 50 + (50 - PacSpriteSheet.SPRITE_H) // 2
         self.pacwoman_spawn = (spawn_x, spawn_y)
         self.pacwoman = Pacwoman(
-            spawn_x, spawn_y, pac_sheet, SCREENWIDTH, SCREENHEIGHT)
+            spawn_x, spawn_y, pac_sheet, GAME_WIDTH, GAME_HEIGHT)
 
         # Pacgums
         self.pacgums.init_gums(mazegen, self.pacwoman)
@@ -188,7 +178,7 @@ class GameController(object):
         self.blinky_spawn = (spawn_x_blky, spawn_y_blky)
         self.blinky = Blinky(
             spawn_x_blky, spawn_y_blky, pac_sheet,
-            SCREENWIDTH, SCREENHEIGHT)
+            GAME_WIDTH, GAME_HEIGHT)
 
         # Pinky
         spawn_x_pky = (50 - PacSpriteSheet.SPRITE_W) // 2
@@ -197,12 +187,12 @@ class GameController(object):
                 50 - PacSpriteSheet.SPRITE_H) // 2
         self.pinky_spawn = (spawn_x_pky, spawn_y_pky)
         self.pinky = Pinky(
-            spawn_x_pky, spawn_y_pky, pac_sheet, SCREENWIDTH, SCREENHEIGHT)
+            spawn_x_pky, spawn_y_pky, pac_sheet, GAME_WIDTH, GAME_HEIGHT)
 
         # Clyde
         self.clyde_spawn = (0, 0)
         self.clyde = Clyde(
-            0, 0, pac_sheet, SCREENWIDTH, SCREENHEIGHT)
+            0, 0, pac_sheet, GAME_WIDTH, GAME_HEIGHT)
 
         # Inky
         spawn_x_inky = (len(mazegen.maze[0]) - 1) * 50 + (
@@ -210,7 +200,7 @@ class GameController(object):
         spawn_y_inky = (50 - PacSpriteSheet.SPRITE_H) // 2
         self.inky_spawn = (spawn_x_inky, spawn_y_inky)
         self.inky = Inky(
-            spawn_x_inky, spawn_y_inky, pac_sheet, SCREENWIDTH, SCREENHEIGHT)
+            spawn_x_inky, spawn_y_inky, pac_sheet, GAME_WIDTH, GAME_HEIGHT)
 
         self.start_game()
 
@@ -218,12 +208,10 @@ class GameController(object):
         """create maze, check user inputs and render new elements"""
         self.paused = False
         while self.running:
-            self.screen.fill("black")
             self.update()
             self.time += self.clock.tick(60) / 1000
             self.time = round(self.time, 2)
             self.render(mazegen)
-            # game ends after 90 seconds and goes back to menu
             if self.time >= 120:
                 self.running = False
                 self.menus.over_menu()

@@ -1,1 +1,2 @@
-LOOSER: 11770
+jauline: 2260
+LOOSER: 2230

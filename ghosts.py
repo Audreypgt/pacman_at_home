@@ -65,6 +65,7 @@ class Ghosts(Pacwoman):
 
         if possible_directions:
             self.direction = random.choice(possible_directions)
+            self.next_direction = self.direction
             self.state = "moving"
 
     def move_random(self, mazegen) -> None:
@@ -115,6 +116,7 @@ class Ghosts(Pacwoman):
         if len(path) >= 2:
             next_x, next_y = path[1]
             self.direction = (next_x - self.coord_x), (next_y - self.coord_y)
+            self.next_direction = self.direction
             self.state = "moving"
             return
         else:
@@ -208,6 +210,7 @@ class Blinky(Ghosts):
             # one is the current location
             next_x, next_y = path[1]
             self.direction = (next_x - self.coord_x), (next_y - self.coord_y)
+            self.next_direction = self.direction
             self.state = "moving"
             # print(f"curr=({self.coord_x},{self.coord_y}) target={pacwoman_loc}"
             #       f" path={path}")
