@@ -54,14 +54,11 @@ class GameController(object):
         self.pacwoman.update()
         self.pacgums.eat(self.pacwoman)
         self.pacgums.update(self.clock.get_time() / 1000)
-        # if self.time >= 3:
-        #     spawn_x = (self.spawn_x_blky + PacSpriteSheet.SPRITE_W // 2) // 50
-        #     spawn_y = (self.spawn_x_blky + PacSpriteSheet.SPRITE_W // 2) // 50
-        #     while self.blinky.coord_x != spawn_x and self.blinky.coord_y != spawn_y:
-        #         self.blinky.scatter_move(
-        #             mazegen, self.spawn_x_blky, self.spawn_y_blky)
-        #         self.blinky.draw(self.screen)
-        #         self.blinky.update()
+        
+        for ghost in (self.blinky, self.inky, self.pinky, self.clyde):
+            ghost.scared = self.pacgums.eat_ghosts
+            ghost.warning = self.pacgums.eat_ghosts and self.pacgums.scared_timer <= 4
+
         self.blinky.bfs_move(mazegen, self.pacwoman)
         self.blinky.update()
         self.pinky.move_random(mazegen)
@@ -101,10 +98,12 @@ class GameController(object):
         self.pinky.draw(self.game_surface)
         self.clyde.draw(self.game_surface)
         self.inky.draw(self.game_surface)
-
         score_text = self.score_font.render(
             f'Score: {self.pacgums.score}', True, (255, 255, 255))
         self.screen.blit(score_text, (10, 10))
+        timer_text = self.timer_font.render(
+            f'Time: {int(self.time)}', True, (255, 255, 255))
+        self.screen.blit(timer_text, (10, 50))
         pygame.display.flip()
 
     def draw_maze(self, mazegen) -> None:
@@ -152,6 +151,7 @@ class GameController(object):
         self.lives = 3
         self.invulnerable_timer = 0
         self.score_font = pygame.font.Font(None, 36)
+        self.timer_font = pygame.font.Font(None, 36)
         pac_sheet = self.pac_sheet
 
         # Pacwoman

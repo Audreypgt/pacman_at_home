@@ -10,12 +10,68 @@ class Ghosts(Pacwoman):
         self.direction: tuple[int, int] = (1, 0)
         self.state: str = "moving"
         self.frame_sets: dict[tuple[int, int], pygame.Surface] = {}
+        self.scared: bool = False
+        self.warning: bool = False
+        self.scared_frame_sets = {
+            (-1, 0): [
+                sprite_sheet.get_sprite_at(15, 0),
+                sprite_sheet.get_sprite_at(16, 0)
+                ],
+            (1, 0): [
+                sprite_sheet.get_sprite_at(11, 0),
+                sprite_sheet.get_sprite_at(12, 0)
+                ],
+            (0, 1): [
+                sprite_sheet.get_sprite_at(13, 0),
+                sprite_sheet.get_sprite_at(14, 0)
+                ],
+            (0, -1): [
+                sprite_sheet.get_sprite_at(17, 0),
+                sprite_sheet.get_sprite_at(18, 0)
+                ]
+        }
+        self.flash_frame_sets = {
+            (-1, 0): [
+                sprite_sheet.get_sprite_at(15, 0),
+                sprite_sheet.get_sprite_at(16, 1)
+                ],
+            (1, 0): [
+                sprite_sheet.get_sprite_at(11, 0),
+                sprite_sheet.get_sprite_at(12, 1)
+                ],
+            (0, 1): [
+                sprite_sheet.get_sprite_at(13, 0),
+                sprite_sheet.get_sprite_at(14, 1)
+                ],
+            (0, -1): [
+                sprite_sheet.get_sprite_at(17, 0),
+                sprite_sheet.get_sprite_at(18, 1)
+                ]
+        }
         # changing speed otherwise blinky catches up to pacwoman too quickly
         self.move_speed = 1
         self.animation_speed = 1.5
+        self.flash_animation_speed = 8
         self.coord_x = (self.x + PacSpriteSheet.SPRITE_W // 2) // 50
         self.coord_y = (self.y + PacSpriteSheet.SPRITE_H // 2) // 50
         self.curr_cell: tuple[int, int] = (self.coord_x, self.coord_y)
+
+    def update(self) -> None:
+        if self.scared and self.warning:
+            flash_on = (pygame.time.get_ticks() // 200) % 2 == 0
+            active_frames = self.flash_frame_sets if flash_on else self.scared_frame_sets
+        elif self.scared:
+            active_frames = self.scared_frame_sets
+        else:
+            active_frames = self.frame_sets
+
+        if self.state == "moving":
+            self.move_timer += 1
+            if self.move_timer >= self.flash_animation_speed:
+                self.move_timer = 0
+                self.frame_index = (self.frame_index + 1) % len(
+                    active_frames[self.direction])
+        self.current_frame = active_frames[self.direction][self.frame_index]
 
     def adjacentEdges(self, mazegen, x, y) -> list[tuple[int, int]]:
         neighbors: list[tuple[int, int]] = []
