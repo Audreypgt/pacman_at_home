@@ -8,19 +8,6 @@ from pacgums import Pacgums
 from menu import Gamemenus
 
 
-MAZE_CELL = 50
-# change cols and rows with data from config file
-MAZE_COLS = 15
-MAZE_ROWS = 15
-# change sizes to percentage to fit every screens
-GUI_HEIGHT = 80
-
-GAME_WIDTH = MAZE_COLS * MAZE_CELL + 1
-GAME_HEIGHT = MAZE_ROWS * MAZE_CELL + 1
-SCREENWIDTH = GAME_WIDTH
-SCREENHEIGHT = GUI_HEIGHT + GAME_HEIGHT
-SCREENSIZE = (SCREENWIDTH, SCREENHEIGHT)
-
 BLACK = (0, 0, 0)
 PINK = (255, 209, 220)
 
@@ -28,9 +15,24 @@ PINK = (255, 209, 220)
 class GameController(object):
     def __init__(self):
         pygame.init()
-        self.screen = pygame.display.set_mode(SCREENSIZE, 0, 32)
+        self.configuration = parse()
+        self.desktop_size = pygame.display.get_desktop_sizes()
+        self.desktop_width, self.desktop_height = self.desktop_size[0]
+        self.maze_cell = (self.desktop_width + self.desktop_height) * 0.021
+        self.maze_cols = self.configuration.levels["level0"].width_lvl
+        self.maze_rows = self.configuration.levels["level0"].height_lvl
+
+        self.game_width = self.maze_cols * self.maze_cell + 1
+        self.game_height = self.maze_rows * self.maze_cell + 1
+        self.gui_height = self.desktop_height * 0.09
+
+        self.screen_width = self.game_width
+        self.screen_height = self.gui_height + self.game_height
+        self.screen_size = (self.screen_width, self.screen_height)
+
+        self.screen = pygame.display.set_mode(self.screen_size, 0, 32)
         self.game_surface = self.screen.subsurface(
-            pygame.Rect(0, GUI_HEIGHT, GAME_WIDTH, GAME_HEIGHT))
+            pygame.Rect(0, self.gui_height, self.game_width, self.game_height))
         self.background = None
         self.running = False
         self.over = False
@@ -41,7 +43,7 @@ class GameController(object):
         self.looser = ""
 
     def set_background(self) -> None:
-        self.background = pygame.Surface(SCREENSIZE).convert()
+        self.background = pygame.Surface(self.screen_size).convert()
         self.background.fill(BLACK)
 
     def update(self) -> None:
@@ -56,7 +58,7 @@ class GameController(object):
         self.pacwoman.update()
         self.pacgums.eat(self.pacwoman)
         self.pacgums.update(self.clock.get_time() / 1000)
-        
+
         for ghost in (self.blinky, self.inky, self.pinky, self.clyde):
             ghost.scared = self.pacgums.eat_ghosts
             ghost.warning = self.pacgums.eat_ghosts and self.pacgums.scared_timer <= 4
@@ -86,7 +88,7 @@ class GameController(object):
     def render(self, mazegen) -> None:
         """draw images to the screen"""
         # draw background
-        self.screen.fill(BLACK, pygame.Rect(0, 0, SCREENWIDTH, GUI_HEIGHT))
+        self.screen.fill(BLACK, pygame.Rect(0, 0, self.screen_width, self.gui_height))
         self.game_surface.fill(BLACK)
         # draw interface (score, lives, etc)
 
@@ -116,21 +118,25 @@ class GameController(object):
                 # North
                 if cell & 1:
                     pygame.draw.line(
-                        self.game_surface, PINK, (cx, cy), (cx + 50, cy))
+                        self.game_surface, PINK, (cx, cy), (
+                            cx + self.maze_cell, cy))
                 # East
                 if cell & 2:
                     pygame.draw.line(
-                        self.game_surface, PINK, (cx + 50, cy), (cx + 50, cy + 50))
+                        self.game_surface, PINK, (cx + self.maze_cell, cy), (
+                            cx + self.maze_cell, cy + self.maze_cell))
                 # South
                 if cell & 4:
                     pygame.draw.line(
-                        self.game_surface, PINK, (cx, cy + 50), (cx + 50, cy + 50))
+                        self.game_surface, PINK, (cx, cy + self.maze_cell), (
+                            cx + self.maze_cell, cy + self.maze_cell))
                 # West
                 if cell & 8:
                     pygame.draw.line(
-                        self.game_surface, PINK, (cx, cy), (cx, cy + 50))
-                cx += 50
-            cy += 50
+                        self.game_surface, PINK, (cx, cy), (
+                            cx, cy + self.maze_cell))
+                cx += self.maze_cell
+            cy += self.maze_cell
             cx = 0
 
         # 1 = 0001 Nord
@@ -161,48 +167,52 @@ class GameController(object):
         maze_height = len(mazegen.maze)
         center_col = maze_width // 2
         center_row = maze_height // 2
-        spawn_x = center_col * 50 + (50 - PacSpriteSheet.SPRITE_W) // 2
-        spawn_y = center_row * 50 + (50 - PacSpriteSheet.SPRITE_H) // 2
+        spawn_x = center_col * self.maze_cell + (
+            self.maze_cell - PacSpriteSheet.SPRITE_W) // 2
+        spawn_y = center_row * self.maze_cell + (
+            self.maze_cell - PacSpriteSheet.SPRITE_H) // 2
         self.pacwoman_spawn = (spawn_x, spawn_y)
         self.pacwoman = Pacwoman(
-            spawn_x, spawn_y, pac_sheet, GAME_WIDTH, GAME_HEIGHT)
+            spawn_x, spawn_y, pac_sheet, self.game_width, self.game_height)
 
         # Pacgums
         self.pacgums.init_gums(mazegen, self.pacwoman)
 
         # Blinky
         spawn_x_blky = (
-            len(mazegen.maze[0]) - 1) * 50 + (
-                50 - PacSpriteSheet.SPRITE_W) // 2
+            len(mazegen.maze[0]) - 1) * self.maze_cell + (
+                self.maze_cell - PacSpriteSheet.SPRITE_W) // 2
         spawn_y_blky = (
-            len(mazegen.maze) - 1) * 50 + (
-                50 - PacSpriteSheet.SPRITE_H) // 2
+            len(mazegen.maze) - 1) * self.maze_cell + (
+                self.maze_cell - PacSpriteSheet.SPRITE_H) // 2
         self.blinky_spawn = (spawn_x_blky, spawn_y_blky)
         self.blinky = Blinky(
             spawn_x_blky, spawn_y_blky, pac_sheet,
-            GAME_WIDTH, GAME_HEIGHT)
+            self.game_width, self.game_height)
 
         # Pinky
-        spawn_x_pky = (50 - PacSpriteSheet.SPRITE_W) // 2
+        spawn_x_pky = (self.maze_cell - PacSpriteSheet.SPRITE_W) // 2
         spawn_y_pky = (
-            len(mazegen.maze) - 1) * 50 + (
-                50 - PacSpriteSheet.SPRITE_H) // 2
+            len(mazegen.maze) - 1) * self.maze_cell + (
+                self.maze_cell - PacSpriteSheet.SPRITE_H) // 2
         self.pinky_spawn = (spawn_x_pky, spawn_y_pky)
         self.pinky = Pinky(
-            spawn_x_pky, spawn_y_pky, pac_sheet, GAME_WIDTH, GAME_HEIGHT)
+            spawn_x_pky, spawn_y_pky, pac_sheet, self.game_width,
+            self.game_height)
 
         # Clyde
         self.clyde_spawn = (0, 0)
         self.clyde = Clyde(
-            0, 0, pac_sheet, GAME_WIDTH, GAME_HEIGHT)
+            0, 0, pac_sheet, self.game_width, self.game_height)
 
         # Inky
-        spawn_x_inky = (len(mazegen.maze[0]) - 1) * 50 + (
-                50 - PacSpriteSheet.SPRITE_W) // 2
-        spawn_y_inky = (50 - PacSpriteSheet.SPRITE_H) // 2
+        spawn_x_inky = (len(mazegen.maze[0]) - 1) * self.maze_cell + (
+                self.maze_cell - PacSpriteSheet.SPRITE_W) // 2
+        spawn_y_inky = (self.maze_cell - PacSpriteSheet.SPRITE_H) // 2
         self.inky_spawn = (spawn_x_inky, spawn_y_inky)
         self.inky = Inky(
-            spawn_x_inky, spawn_y_inky, pac_sheet, GAME_WIDTH, GAME_HEIGHT)
+            spawn_x_inky, spawn_y_inky, pac_sheet, self.game_width,
+            self.game_height)
 
         self.start_game()
 
@@ -269,8 +279,8 @@ class GameController(object):
 
         for name, (ghost, spawn) in ghosts.items():
             ghost_rect = pygame.Rect(
-                                     ghost.x + HIT_MARGIN, ghost.y + HIT_MARGIN,
-                                     hit_w, hit_h)
+                                     ghost.x + HIT_MARGIN, ghost.y
+                                     + HIT_MARGIN, hit_w, hit_h)
             if pac_rect.colliderect(ghost_rect):
                 if self.pacgums.eat_ghosts:
                     ghost.x, ghost.y = spawn
@@ -295,7 +305,6 @@ class GameController(object):
         self.pinky.x, self.pinky.y = self.pinky_spawn
         self.clyde.x, self.clyde.y = self.clyde_spawn
         self.inky.x, self.inky.y = self.inky_spawn
-
 
         self.invulnerable_timer = 90
 

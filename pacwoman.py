@@ -76,8 +76,8 @@ class Pacwoman:
 
         center_x = self.x + PacSpriteSheet.SPRITE_W // 2
         center_y = self.y + PacSpriteSheet.SPRITE_H // 2
-        col = center_x // MAZE_CELL
-        row = center_y // MAZE_CELL
+        col = int(center_x // MAZE_CELL)
+        row = int(center_y // MAZE_CELL)
 
         if not (0 <= row < maze_height and 0 <= col < maze_width):
             self.state = "idle"
