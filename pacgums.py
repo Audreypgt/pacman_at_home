@@ -5,8 +5,9 @@ MAZE_CELL = 50
 
 
 class Pacgums:
-    def __init__(self, sprite_sheet: PacSpriteSheet, gum_row: int, gum_col: int,
-    sp_gum_row: int, sp_gum_col: int, scared_duration: float = 8.0):
+    def __init__(self, sprite_sheet: PacSpriteSheet, gum_row: int,
+                 gum_col: int, sp_gum_row: int, sp_gum_col: int,
+                 scared_duration: float = 8.0):
         self.gums = set()
         self.score = 0
         self.eat_ghosts: bool = False

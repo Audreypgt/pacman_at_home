@@ -54,10 +54,11 @@ class GameController(object):
         self.pacwoman.update()
         self.pacgums.eat(self.pacwoman)
         self.pacgums.update(self.clock.get_time() / 1000)
-        
+
         for ghost in (self.blinky, self.inky, self.pinky, self.clyde):
             ghost.scared = self.pacgums.eat_ghosts
-            ghost.warning = self.pacgums.eat_ghosts and self.pacgums.scared_timer <= 4
+            ghost.warning = (self.pacgums.eat_ghosts and
+                             self.pacgums.scared_timer <= 4)
 
         self.blinky.bfs_move(mazegen, self.pacwoman)
         self.blinky.update()
@@ -118,11 +119,13 @@ class GameController(object):
                 # East
                 if cell & 2:
                     pygame.draw.line(
-                        self.game_surface, PINK, (cx + 50, cy), (cx + 50, cy + 50))
+                        self.game_surface, PINK, (cx + 50, cy), (
+                            cx + 50, cy + 50))
                 # South
                 if cell & 4:
                     pygame.draw.line(
-                        self.game_surface, PINK, (cx, cy + 50), (cx + 50, cy + 50))
+                        self.game_surface, PINK, (cx, cy + 50), (
+                            cx + 50, cy + 50))
                 # West
                 if cell & 8:
                     pygame.draw.line(
@@ -267,8 +270,8 @@ class GameController(object):
 
         for name, (ghost, spawn) in ghosts.items():
             ghost_rect = pygame.Rect(
-                                     ghost.x + HIT_MARGIN, ghost.y + HIT_MARGIN,
-                                     hit_w, hit_h)
+                                     ghost.x + HIT_MARGIN, ghost.y +
+                                     HIT_MARGIN, hit_w, hit_h)
             if pac_rect.colliderect(ghost_rect):
                 if self.pacgums.eat_ghosts:
                     ghost.x, ghost.y = spawn
@@ -293,7 +296,6 @@ class GameController(object):
         self.pinky.x, self.pinky.y = self.pinky_spawn
         self.clyde.x, self.clyde.y = self.clyde_spawn
         self.inky.x, self.inky.y = self.inky_spawn
-
 
         self.invulnerable_timer = 90
 

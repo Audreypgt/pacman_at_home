@@ -59,7 +59,8 @@ class Ghosts(Pacwoman):
     def update(self) -> None:
         if self.scared and self.warning:
             flash_on = (pygame.time.get_ticks() // 200) % 2 == 0
-            active_frames = self.flash_frame_sets if flash_on else self.scared_frame_sets
+            active_frames = (self.flash_frame_sets if flash_on else
+                             self.scared_frame_sets)
         elif self.scared:
             active_frames = self.scared_frame_sets
         else:
@@ -73,7 +74,7 @@ class Ghosts(Pacwoman):
                     active_frames[self.direction])
         self.current_frame = active_frames[self.direction][self.frame_index]
 
-    def adjacentEdges(self, mazegen, x, y) -> list[tuple[int, int]]:
+    def find_neighbors(self, mazegen, x, y) -> list[tuple[int, int]]:
         neighbors: list[tuple[int, int]] = []
 
         if not (mazegen.maze[y][x] & 1):
@@ -90,11 +91,11 @@ class Ghosts(Pacwoman):
     def choose_random_direction(self, mazegen) -> None:
         MAZE_CELL = 50
 
-        directions = {
-            (0, -1): 1,
-            (1, 0): 2,
-            (0, 1): 4,
-            (-1, 0): 8}
+        # directions = {
+        #     (0, -1): 1,
+        #     (1, 0): 2,
+        #     (0, 1): 4,
+        #     (-1, 0): 8}
 
         maze_height = len(mazegen.maze)
         maze_width = len(mazegen.maze[0])
@@ -154,7 +155,7 @@ class Ghosts(Pacwoman):
             v_x, v_y = queue.popleft()
             if (v_x, v_y) == spawn_loc:
                 break
-            for edges in self.adjacentEdges(mazegen, v_x, v_y):
+            for edges in self.find_neighbors(mazegen, v_x, v_y):
                 dir_x, dir_y = edges
                 new_x, new_y = v_x + dir_x, v_y + dir_y
                 if (0 <= new_x < len(mazegen.maze[0])) \
@@ -196,7 +197,7 @@ class Ghosts(Pacwoman):
     def is_centered(self) -> bool:
         MAZE_CELL = 50
         offset = (MAZE_CELL - PacSpriteSheet.SPRITE_W) // 2
-        return (self.x -offset) % MAZE_CELL == 0 and \
+        return (self.x - offset) % MAZE_CELL == 0 and \
             (self.y - offset) % MAZE_CELL == 0
 
 
@@ -250,7 +251,7 @@ class Blinky(Ghosts):
             v_x, v_y = queue.popleft()
             if (v_x, v_y) == pacwoman_loc:
                 break
-            for edges in self.adjacentEdges(mazegen, v_x, v_y):
+            for edges in self.find_neighbors(mazegen, v_x, v_y):
                 dir_x, dir_y = edges
                 new_x, new_y = v_x + dir_x, v_y + dir_y
                 if (0 <= new_x < len(mazegen.maze[0])) \
@@ -274,7 +275,8 @@ class Blinky(Ghosts):
             self.direction = (next_x - self.coord_x), (next_y - self.coord_y)
             self.next_direction = self.direction
             self.state = "moving"
-            # print(f"curr=({self.coord_x},{self.coord_y}) target={pacwoman_loc}"
+            # print(f"curr=({self.coord_x},{self.coord_y})
+            #       target={pacwoman_loc}"
             #       f" path={path}")
             return
         else:
