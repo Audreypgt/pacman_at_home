@@ -150,7 +150,7 @@ class Ghosts(Pacwoman):
             (self.coord_x, self.coord_y): None}
         parent.update({(self.coord_x, self.coord_y): None})
 
-        # BFS algorithm to find shortest path to pacman
+        # BFS algorithm to find shortest path to spawn_loc
         while queue:
             v_x, v_y = queue.popleft()
             if (v_x, v_y) == spawn_loc:
