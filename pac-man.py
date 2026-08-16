@@ -7,6 +7,7 @@ from ghosts import Blinky, Pinky, Clyde, Inky
 from pacgums import Pacgums
 from menu import Gamemenus
 from typing import Callable
+from functools import partial
 
 
 MAZE_CELL = 50
@@ -66,38 +67,49 @@ class GameController(object):
         else:
             self.ghost_state = "normal"
 
-        self.blinky_move = {
-            "normal": self.blinky.bfs_move(mazegen, self.pacwoman),
-            "scatter": self.blinky.scatter_move(
-                mazegen, self.blinky_spawn[0], self.blinky_spawn[1])
-            # "scared": self.blinky.scared_move(mazegen, self.pacwoman),
+        self.blinky_move: dict[str, Callable] = {
+            "normal": partial(
+                self.blinky.bfs_move, mazegen, self.pacwoman),
+            "scatter": partial(
+                self.blinky.scatter_move, mazegen, self.blinky_spawn[0],
+                self.blinky_spawn[1]),
+            # "scared": partial(
+            #   self.blinky.scared_move, mazegen, self.pacwoman)
             }
-        self.blinky_move[self.ghost_state]
-        # self.blinky.bfs_move(mazegen, self.pacwoman)
+        self.blinky_move[self.ghost_state]()
         self.blinky.update()
 
-        self.pinky_move = {"normal": self.pinky.move_random(mazegen),
-            "scatter": self.pinky.scatter_move(
-                mazegen, self.pinky_spawn[0], self.pinky_spawn[1])}
-            # "scared": self.pinky.scared_move(mazegen, self.pacwoman),
-        self.pinky_move[self.ghost_state]
-        # self.pinky.move_random(mazegen)
+        self.pinky_move: dict[str, Callable] = {
+            "normal": partial(self.pinky.move_random, mazegen),
+            "scatter": partial(
+                self.pinky.scatter_move, mazegen, self.pinky_spawn[0],
+                self.pinky_spawn[1]),
+            # "scared": partial(
+            #     self.pinky.scared_move, mazegen, self.pacwoman)
+            }
+        self.pinky_move[self.ghost_state]()
         self.pinky.update()
 
-        self.clyde_move = {"normal": self.clyde.move_random(mazegen),
-            "scatter": self.clyde.scatter_move(
-                mazegen, self.clyde_spawn[0], self.clyde_spawn[1])}
-            # "scared": self.clyde.scared_move(mazegen, self.pacwoman),
-        self.clyde_move[self.ghost_state]
-        # self.clyde.move_random(mazegen)
+        self.clyde_move: dict[str, Callable] = {
+            "normal": partial(self.clyde.move_random, mazegen),
+            "scatter": partial(
+                self.clyde.scatter_move, mazegen, self.clyde_spawn[0],
+                self.clyde_spawn[1]),
+            # "scared": partial(
+            #     self.clyde.scared_move, mazegen, self.pacwoman)
+            }
+        self.clyde_move[self.ghost_state]()
         self.clyde.update()
 
-        self.inky_move = {"normal": self.inky.move_random(mazegen),
-            "scatter": self.inky.scatter_move(
-                mazegen, self.inky_spawn[0], self.inky_spawn[1])}
-            # "scared": self.inky.scared_move(mazegen, self.pacwoman),
-        self.inky_move[self.ghost_state]
-        # self.inky.move_random(mazegen)
+        self.inky_move: dict[str, Callable] = {
+            "normal": partial(self.inky.move_random, mazegen),
+            "scatter": partial(
+                self.inky.scatter_move, mazegen, self.inky_spawn[0],
+                self.inky_spawn[1]),
+            # "scared": partial(
+            #     self.inky.scared_move, mazegen, self.pacwoman)
+            }
+        self.inky_move[self.ghost_state]()
         self.inky.update()
 
         self.check_collisions()
