@@ -28,6 +28,7 @@ class Pacwoman:
         self.screen_w = screen_w
         self.screen_y = screen_y
         self.direction = (1, 0)
+        self.next_direction = (1, 0)
         self.move_speed = 3
         self.animation_speed = 3.5
         self.move_timer = 0
@@ -50,26 +51,26 @@ class Pacwoman:
         self.current_frame = self.frame_sets[self.direction][0]
 
     def input(self, keys) -> None:
+        requested = None
         if keys[pygame.K_LEFT] or keys[pygame.K_a]:
-            self.direction = (-1, 0)
-            self.state = "moving"
+            requested = (-1, 0)
         elif keys[pygame.K_RIGHT] or keys[pygame.K_d]:
-            self.direction = (1, 0)
-            self.state = "moving"
+            requested = (1, 0)
         elif keys[pygame.K_UP] or keys[pygame.K_w]:
-            self.direction = (0, -1)
-            self.state = "moving"
+            requested = (0, -1)
         elif keys[pygame.K_DOWN] or keys[pygame.K_s]:
-            self.direction = (0, 1)
-            self.state = "moving"
+            requested = (0, 1)
+
+        if requested is not None:
+            self.next_direction = requested
+
+        self.state = "moving"
 
     def move(self, mazegen) -> None:
         if self.state != "moving":
             return
 
         MAZE_CELL = 50
-        dx, dy = self.direction
-
         maze_height = len(mazegen.maze)
         maze_width = len(mazegen.maze[0])
 
@@ -86,7 +87,13 @@ class Pacwoman:
         wall_bit = {(0, -1): 1,
                     (1, 0): 2,
                     (0, 1): 4,
-                    (-1, 0): 8}[self.direction]
+                    (-1, 0): 8}
+
+        if self.next_direction != self.direction:
+            if not (cell & wall_bit[self.next_direction]):
+                self.direction = self.next_direction
+
+        dx, dy = self.direction
 
         offset = (MAZE_CELL - PacSpriteSheet.SPRITE_W) // 2
         if dx != 0:
@@ -97,7 +104,7 @@ class Pacwoman:
         new_x = self.x + dx * self.move_speed
         new_y = self.y + dy * self.move_speed
 
-        if cell & wall_bit:
+        if cell & wall_bit[self.direction]:
             if dx == 1:
                 new_x = min(new_x, col * MAZE_CELL +
                             (MAZE_CELL - PacSpriteSheet.SPRITE_W))
@@ -122,7 +129,8 @@ class Pacwoman:
             self.move_timer += 1
             if self.move_timer >= self.animation_speed:
                 self.move_timer = 0
-                self.frame_index = (self.frame_index + 1) % 3
+                self.frame_index = (self.frame_index + 1) % len(
+                    self.frame_sets[self.direction])
             self.current_frame = self.frame_sets[
                                                  self.direction][
                                                  self.frame_index]

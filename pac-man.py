@@ -6,37 +6,46 @@ from pacwoman import PacSpriteSheet, Pacwoman
 from ghosts import Blinky, Pinky, Clyde, Inky
 from pacgums import Pacgums
 from menu import Gamemenus
+from typing import Callable
+from functools import partial
 
 
-TILEWIDTH = 16
-TILEHEIGHT = 16
-NROWS = 60
-NCOLS = 100
-SCREENWIDTH = NCOLS * TILEWIDTH
-SCREENHEIGHT = NROWS * TILEHEIGHT
+MAZE_CELL = 50
+MAZE_COLS = 15
+MAZE_ROWS = 15
+GUI_HEIGHT = 80
+
+GAME_WIDTH = MAZE_COLS * MAZE_CELL + 1
+GAME_HEIGHT = MAZE_ROWS * MAZE_CELL + 1
+SCREENWIDTH = GAME_WIDTH
+SCREENHEIGHT = GUI_HEIGHT + GAME_HEIGHT
 SCREENSIZE = (SCREENWIDTH, SCREENHEIGHT)
+
 BLACK = (0, 0, 0)
 PINK = (255, 209, 220)
-BLINKY = (255, 0, 0)
-INKY = (161, 255, 254)
-PINKY = (255, 192, 203)
-CLYDE = (255, 165, 0)
-
-# create surface for the game to be a square and change values
-# like for draw maze to percentage of the screen
 
 
 class GameController(object):
     def __init__(self):
         pygame.init()
         self.screen = pygame.display.set_mode(SCREENSIZE, 0, 32)
+        self.game_surface = self.screen.subsurface(
+            pygame.Rect(0, GUI_HEIGHT, GAME_WIDTH, GAME_HEIGHT))
         self.background = None
         self.running = False
+        self.ghost_state = "normal"
         self.over = False
-        self.pacgums = Pacgums()
+        self.pac_sheet = PacSpriteSheet("sprites/pac_sheet.png")
+        self.pacgums = Pacgums(self.pac_sheet, gum_row=5, gum_col=8,
+                               sp_gum_row=6, sp_gum_col=8)
         self.menus = Gamemenus(self)
-        self.lives = 5
         self.looser = ""
+        self.scatter_duration: float = 6.0
+        self.scatter_timer: float = 0.0
+        self.time_interval_scatter = 40000  # 40 seconds (keeps running during
+        # the 6 seconds of scatter mode so actually 34 seconds)
+        self.scatter_event = pygame.USEREVENT+1
+        pygame.time.set_timer(self.scatter_event, self.time_interval_scatter)
 
     def set_background(self) -> None:
         self.background = pygame.Surface(SCREENSIZE).convert()
@@ -47,21 +56,80 @@ class GameController(object):
         call the function that checks the user inputs, and makes the ghosts
         move
         """
+        # print(f"ghost state in update {self.ghost_state}")
         self.check_events()
         keys = pygame.key.get_pressed()
+        dt: float = self.clock.get_time() / 1000
         self.pacwoman.input(keys)
         self.pacwoman.move(mazegen)
         self.pacwoman.update()
         self.pacgums.eat(self.pacwoman)
-        # all_sprites_list.update(pacman)
-        # move ghosts
-        self.blinky.move_random(mazegen)
+        self.pacgums.update(dt)
+
+        for ghost in (self.blinky, self.inky, self.pinky, self.clyde):
+            ghost.scared = self.pacgums.eat_ghosts
+            if self.ghost_state != "scared" and ghost.scared:
+                self.ghost_state = "scared"
+            ghost.warning = (self.pacgums.eat_ghosts and
+                             self.pacgums.scared_timer <= 4)
+
+        if not self.pacgums.eat_ghosts and self.ghost_state == "scared":
+            self.ghost_state = "normal"
+
+        if self.ghost_state == "scatter":
+            self.scatter_timer -= dt
+            if self.scatter_timer <= 0:
+                self.ghost_state = "normal"
+                self.scatter_timer = 0.0
+
+        self.blinky_move: dict[str, Callable] = {
+            "normal": partial(
+                self.blinky.bfs_move, mazegen, self.pacwoman),
+            "scatter": partial(
+                self.blinky.scatter_move, mazegen, self.blinky_spawn[0],
+                self.blinky_spawn[1]),
+            "scared": partial(
+                self.blinky.bfs_move, mazegen, self.pacwoman),
+            # "scared": partial(
+            #   self.blinky.scared_move, mazegen, self.pacwoman)
+            }
+        self.blinky_move[self.ghost_state]()
         self.blinky.update()
-        self.pinky.move_random(mazegen)
+
+        self.pinky_move: dict[str, Callable] = {
+            "normal": partial(self.pinky.move_random, mazegen),
+            "scatter": partial(
+                self.pinky.scatter_move, mazegen, self.pinky_spawn[0],
+                self.pinky_spawn[1]),
+            "scared": partial(self.pinky.move_random, mazegen),
+            # "scared": partial(
+            #     self.pinky.scared_move, mazegen, self.pacwoman)
+            }
+        self.pinky_move[self.ghost_state]()
         self.pinky.update()
-        self.clyde.move_random(mazegen)
+
+        self.clyde_move: dict[str, Callable] = {
+            "normal": partial(self.clyde.move_random, mazegen),
+            "scatter": partial(
+                self.clyde.scatter_move, mazegen, self.clyde_spawn[0],
+                self.clyde_spawn[1]),
+            "scared": partial(self.clyde.move_random, mazegen),
+            # "scared": partial(
+            #     self.clyde.scared_move, mazegen, self.pacwoman)
+            }
+        self.clyde_move[self.ghost_state]()
         self.clyde.update()
-        self.inky.move_random(mazegen)
+
+        self.inky_move: dict[str, Callable] = {
+            "normal": partial(self.inky.move_random, mazegen),
+            "scatter": partial(
+                self.inky.scatter_move, mazegen, self.inky_spawn[0],
+                self.inky_spawn[1]),
+            "scared": partial(self.inky.move_random, mazegen),
+            # "scared": partial(
+            #     self.inky.scared_move, mazegen, self.pacwoman)
+            }
+        self.inky_move[self.ghost_state]()
         self.inky.update()
 
         self.check_collisions()
@@ -73,43 +141,40 @@ class GameController(object):
                 pygame.quit()
                 quit()
             if event.type == pygame.KEYDOWN:
-                # find a way to resume game after, instead of starting again
                 if event.key == pygame.K_ESCAPE:
                     self.menus.pause_menu()
                     self.paused = True
-                    # self.running = False
+            # print(f"ghost state in check events: {self.ghost_state}")
+            if (event.type == self.scatter_event
+               and self.ghost_state == "normal"):
+                # print(f"scatter mode activate at {pygame.time.get_ticks()}")
+                self.ghost_state = "scatter"
+                self.scatter_timer = self.scatter_duration
 
     def render(self, mazegen) -> None:
         """draw images to the screen"""
         # draw background
-        self.set_background()
+        self.screen.fill(BLACK, pygame.Rect(0, 0, SCREENWIDTH, GUI_HEIGHT))
+        self.game_surface.fill(BLACK)
         # draw interface (score, lives, etc)
+        score_text = self.score_font.render(
+            f'Score: {self.pacgums.score}', True, (255, 255, 255))
+        self.screen.blit(score_text, (10, 10))
+        timer_text = self.timer_font.render(
+            f'Time: {int(self.time)}', True, (255, 255, 255))
+        self.screen.blit(timer_text, (10, 50))
         # draw maze
         self.draw_maze(mazegen)
         # draw gums
-        self.pacgums.draw(self.screen)
+        self.pacgums.draw(self.game_surface)
         # draw sprites
-        self.pacwoman.draw(self.screen)
-        self.blinky.draw(self.screen)
-        self.pinky.draw(self.screen)
-        self.clyde.draw(self.screen)
-        self.inky.draw(self.screen)
-        # updates the screen with everything just drawn
+        self.pacwoman.draw(self.game_surface)
+        self.blinky.draw(self.game_surface)
+        self.pinky.draw(self.game_surface)
+        self.clyde.draw(self.game_surface)
+        self.inky.draw(self.game_surface)
+        # update display with changes
         pygame.display.flip()
-
-    def add_gums(self, mazegen) -> None:
-        gum = pygame.transform.scale(
-            pygame.image.load('sprites/pretzel.png').convert(), (16, 15))
-        cx: float = 0
-        cy: float = 0
-
-        for line in mazegen.maze:
-            for cell in line:
-                if cell != 15:
-                    self.screen.blit(gum, (cx + 15.5, cy + 16.5))
-                cx += 50
-            cx = 0
-            cy += 50
 
     def draw_maze(self, mazegen) -> None:
         cy = 0
@@ -119,19 +184,21 @@ class GameController(object):
                 # North
                 if cell & 1:
                     pygame.draw.line(
-                        game.screen, PINK, (cx, cy), (cx + 50, cy))
+                        self.game_surface, PINK, (cx, cy), (cx + 50, cy))
                 # East
                 if cell & 2:
                     pygame.draw.line(
-                        game.screen, PINK, (cx + 50, cy), (cx + 50, cy + 50))
+                        self.game_surface, PINK, (cx + 50, cy), (
+                            cx + 50, cy + 50))
                 # South
                 if cell & 4:
                     pygame.draw.line(
-                        game.screen, PINK, (cx, cy + 50), (cx + 50, cy + 50))
+                        self.game_surface, PINK, (cx, cy + 50), (
+                            cx + 50, cy + 50))
                 # West
                 if cell & 8:
                     pygame.draw.line(
-                        game.screen, PINK, (cx, cy), (cx, cy + 50))
+                        self.game_surface, PINK, (cx, cy), (cx, cy + 50))
                 cx += 50
             cy += 50
             cx = 0
@@ -151,9 +218,14 @@ class GameController(object):
             self.sort_score_file()
             self.over = False
         self.clock = pygame.time.Clock()
-        self.time = 0.0
+        self.time = 120.0
         self.running = True
-        pac_sheet = PacSpriteSheet("sprites/pac_sheet.png")
+        self.lives = 3
+        self.ghost_state = "normal"
+        self.invulnerable_timer = 0
+        self.score_font = pygame.font.Font(None, 36)
+        self.timer_font = pygame.font.Font(None, 36)
+        pac_sheet = self.pac_sheet
 
         # Pacwoman
         maze_width = len(mazegen.maze[0])
@@ -162,11 +234,12 @@ class GameController(object):
         center_row = maze_height // 2
         spawn_x = center_col * 50 + (50 - PacSpriteSheet.SPRITE_W) // 2
         spawn_y = center_row * 50 + (50 - PacSpriteSheet.SPRITE_H) // 2
+        self.pacwoman_spawn = (spawn_x, spawn_y)
         self.pacwoman = Pacwoman(
-            spawn_x, spawn_y, pac_sheet, SCREENWIDTH, SCREENHEIGHT)
+            spawn_x, spawn_y, pac_sheet, GAME_WIDTH, GAME_HEIGHT)
 
         # Pacgums
-        self.pacgums.init_gums(mazegen)
+        self.pacgums.init_gums(mazegen, self.pacwoman)
 
         # Blinky
         spawn_x_blky = (
@@ -175,46 +248,45 @@ class GameController(object):
         spawn_y_blky = (
             len(mazegen.maze) - 1) * 50 + (
                 50 - PacSpriteSheet.SPRITE_H) // 2
+        self.blinky_spawn = (spawn_x_blky, spawn_y_blky)
         self.blinky = Blinky(
-            spawn_x_blky, spawn_y_blky, pac_sheet, SCREENWIDTH, SCREENHEIGHT)
+            spawn_x_blky, spawn_y_blky, pac_sheet,
+            GAME_WIDTH, GAME_HEIGHT)
 
         # Pinky
         spawn_x_pky = (50 - PacSpriteSheet.SPRITE_W) // 2
         spawn_y_pky = (
             len(mazegen.maze) - 1) * 50 + (
                 50 - PacSpriteSheet.SPRITE_H) // 2
+        self.pinky_spawn = (spawn_x_pky, spawn_y_pky)
         self.pinky = Pinky(
-            spawn_x_pky, spawn_y_pky, pac_sheet, SCREENWIDTH, SCREENHEIGHT)
+            spawn_x_pky, spawn_y_pky, pac_sheet, GAME_WIDTH, GAME_HEIGHT)
 
         # Clyde
-        spawn_x_clyde = 0
-        spawn_y_clyde = 0
+        self.clyde_spawn = (0, 0)
         self.clyde = Clyde(
-            spawn_x_clyde, spawn_y_clyde, pac_sheet, SCREENWIDTH, SCREENHEIGHT)
+            0, 0, pac_sheet, GAME_WIDTH, GAME_HEIGHT)
 
         # Inky
         spawn_x_inky = (len(mazegen.maze[0]) - 1) * 50 + (
                 50 - PacSpriteSheet.SPRITE_W) // 2
         spawn_y_inky = (50 - PacSpriteSheet.SPRITE_H) // 2
+        self.inky_spawn = (spawn_x_inky, spawn_y_inky)
         self.inky = Inky(
-            spawn_x_inky, spawn_y_inky, pac_sheet, SCREENWIDTH, SCREENHEIGHT)
+            spawn_x_inky, spawn_y_inky, pac_sheet, GAME_WIDTH, GAME_HEIGHT)
 
         self.start_game()
 
     def start_game(self) -> None:
         """create maze, check user inputs and render new elements"""
-        # if not self.paused:
-        # print(self.clock)
         self.paused = False
         while self.running:
-            self.screen.fill("black")
             self.update()
-            self.time += self.clock.tick(60) / 1000
+            self.time -= self.clock.tick(60) / 1000
             self.time = round(self.time, 2)
-            # print(self.time)
             self.render(mazegen)
-            # game ends after 90 seconds and goes back to menu
-            if self.time >= 120:
+            if self.time <= 0:
+                self.time = 0
                 self.running = False
                 self.menus.over_menu()
 
@@ -233,7 +305,6 @@ class GameController(object):
         scores_dict = dict(
             sorted(scores_dict.items(),
                    key=lambda item: item[1], reverse=True))
-        print(scores_dict)
         with open(configuration.highscore_filename, 'w') as f:
             for name, score in scores_dict.items():
                 f.write(
@@ -248,20 +319,55 @@ class GameController(object):
         quit()
 
     def check_collisions(self) -> None:
-        pac_rect = pygame.Rect(self.pacwoman.x, self.pacwoman.y,
-                               PacSpriteSheet.SPRITE_W,
-                               PacSpriteSheet.SPRITE_H)
+        if self.invulnerable_timer > 0:
+            self.invulnerable_timer -= 1
+            return
 
-        for ghost in (self.blinky, self.pinky, self.clyde, self.inky):
-            ghost_rect = pygame.Rect(ghost.x, ghost.y, PacSpriteSheet.SPRITE_W,
-                                     PacSpriteSheet.SPRITE_H)
+        HIT_MARGIN = 12
+        hit_w = PacSpriteSheet.SPRITE_W - HIT_MARGIN * 2
+        hit_h = PacSpriteSheet.SPRITE_H - HIT_MARGIN * 2
+
+        pac_rect = pygame.Rect(self.pacwoman.x + HIT_MARGIN,
+                               self.pacwoman.y + HIT_MARGIN,
+                               hit_w, hit_h)
+
+        self.all_ghosts = {
+            "blinky": (self.blinky, self.blinky_spawn),
+            "inky": (self.inky, self.inky_spawn),
+            "pinky": (self.pinky, self.pinky_spawn),
+            "clyde": (self.clyde, self.clyde_spawn)
+        }
+
+        for name, (ghost, spawn) in self.all_ghosts.items():
+            ghost_rect = pygame.Rect(
+                                     ghost.x + HIT_MARGIN, ghost.y +
+                                     HIT_MARGIN, hit_w, hit_h)
             if pac_rect.colliderect(ghost_rect):
-                self.pacwoman_died()
-                return
+                if self.pacgums.eat_ghosts:
+                    ghost.x, ghost.y = spawn
+                    self.pacgums.score += 200
+                else:
+                    self.pacwoman_hit()
+                    return
 
-    def pacwoman_died(self) -> None:
-        self.running = False
-        self.menus.over_menu()
+    def pacwoman_hit(self):
+        self.lives -= 1
+        if self.lives <= 0:
+            self.running = False
+            self.menus.over_menu()
+        else:
+            self.respawn_all()
+
+    def respawn_all(self):
+        self.pacwoman.x, self.pacwoman.y = self.pacwoman_spawn
+        self.pacwoman.state = "idle"
+
+        self.blinky.x, self.blinky.y = self.blinky_spawn
+        self.pinky.x, self.pinky.y = self.pinky_spawn
+        self.clyde.x, self.clyde.y = self.clyde_spawn
+        self.inky.x, self.inky.y = self.inky_spawn
+
+        self.invulnerable_timer = 90
 
 
 if __name__ == "__main__":
