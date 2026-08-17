@@ -14,7 +14,6 @@ class Ghosts(Pacwoman):
         self.scared: bool = False
         self.warning: bool = False
         self.on_spawn = False
-        self.dead: bool = False
         self.scared_frame_sets: dict([tuple[int, int], pygame.Surface]) = {
             (-1, 0): [
                 sprite_sheet.get_sprite_at(15, 0),
@@ -33,7 +32,7 @@ class Ghosts(Pacwoman):
                 sprite_sheet.get_sprite_at(18, 0)
                 ]
         }
-        self.flash_frame_sets: dict([tuple[int, int], pygame.Surface]) = {
+        self.flash_frame_sets = {
             (-1, 0): [
                 sprite_sheet.get_sprite_at(15, 0),
                 sprite_sheet.get_sprite_at(16, 1)
@@ -51,13 +50,6 @@ class Ghosts(Pacwoman):
                 sprite_sheet.get_sprite_at(18, 1)
                 ]
         }
-        self.dead_frame_sets: dict([tuple[int, int], pygame.Surface]) = {
-            (-1, 0): [sprite_sheet.get_sprite_at(5, 6)],
-            (1, 0): [sprite_sheet.get_sprite_at(7, 6)],
-            (0, 1): [sprite_sheet.get_sprite_at(6, 6)],
-            (0, -1): [sprite_sheet.get_sprite_at(8, 6)]
-        }
-
         # changing speed otherwise blinky catches up to pacwoman too quickly
         self.move_speed = 1
         self.animation_speed = 1.5
@@ -73,8 +65,6 @@ class Ghosts(Pacwoman):
                              self.scared_frame_sets)
         elif self.scared:
             active_frames = self.scared_frame_sets
-        elif self.dead:
-            active_frames = self.dead_frame_sets
         else:
             active_frames = self.frame_sets
 
@@ -198,11 +188,6 @@ class Ghosts(Pacwoman):
         return False
 
     def scatter_move(self, mazegen, spawn_x, spawn_y) -> None:
-        if self.dead:
-            self.dead = False
-            while not self.on_spawn:
-                self.scatter_mode(mazegen, spawn_x, spawn_y)
-
         if self.state != "moving":
             self.on_spawn = self.scatter_mode(mazegen, spawn_x, spawn_y)
 
@@ -307,6 +292,8 @@ class Blinky(Ghosts):
             return
 
     def bfs_move(self, mazegen, pacwoman) -> None:
+        # curr_x = (self.x + PacSpriteSheet.SPRITE_W // 2) // 50
+        # curr_y = (self.y + PacSpriteSheet.SPRITE_H // 2) // 50
         # print(f"first loc {curr_x, curr_y}")
         # print(f"curr_cell before {self.curr_cell}")
 

@@ -82,22 +82,18 @@ class GameController(object):
                 self.ghost_state = "normal"
                 self.scatter_timer = 0.0
 
-        if self.blinky.dead:
-            self.blinky.scatter_move(
-                mazegen, self.blinky_spawn[0], self.blinky_spawn[1])
-        else:
-            self.blinky_move: dict[str, Callable] = {
-                "normal": partial(
-                    self.blinky.bfs_move, mazegen, self.pacwoman),
-                "scatter": partial(
-                    self.blinky.scatter_move, mazegen, self.blinky_spawn[0],
-                    self.blinky_spawn[1]),
-                "scared": partial(
-                    self.blinky.bfs_move, mazegen, self.pacwoman),
-                # "scared": partial(
-                #   self.blinky.scared_move, mazegen, self.pacwoman)
-                }
-            self.blinky_move[self.ghost_state]()
+        self.blinky_move: dict[str, Callable] = {
+            "normal": partial(
+                self.blinky.bfs_move, mazegen, self.pacwoman),
+            "scatter": partial(
+                self.blinky.scatter_move, mazegen, self.blinky_spawn[0],
+                self.blinky_spawn[1]),
+            "scared": partial(
+                self.blinky.bfs_move, mazegen, self.pacwoman),
+            # "scared": partial(
+            #   self.blinky.scared_move, mazegen, self.pacwoman)
+            }
+        self.blinky_move[self.ghost_state]()
         self.blinky.update()
 
         self.pinky_move: dict[str, Callable] = {
@@ -335,21 +331,20 @@ class GameController(object):
                                self.pacwoman.y + HIT_MARGIN,
                                hit_w, hit_h)
 
-        self.ghosts = {
+        self.all_ghosts = {
             "blinky": (self.blinky, self.blinky_spawn),
             "inky": (self.inky, self.inky_spawn),
             "pinky": (self.pinky, self.pinky_spawn),
             "clyde": (self.clyde, self.clyde_spawn)
         }
 
-        for name, (ghost, spawn) in self.ghosts.items():
+        for name, (ghost, spawn) in self.all_ghosts.items():
             ghost_rect = pygame.Rect(
                                      ghost.x + HIT_MARGIN, ghost.y +
                                      HIT_MARGIN, hit_w, hit_h)
             if pac_rect.colliderect(ghost_rect):
                 if self.pacgums.eat_ghosts:
-                    ghost.dead = True
-                    # ghost.x, ghost.y = spawn
+                    ghost.x, ghost.y = spawn
                     self.pacgums.score += 200
                 else:
                     self.pacwoman_hit()
