@@ -40,6 +40,12 @@ class GameController(object):
                                sp_gum_row=6, sp_gum_col=8)
         self.menus = Gamemenus(self)
         self.looser = ""
+        self.scatter_duration: float = 6.0
+        self.scatter_timer: float = 0.0
+        self.time_interval_scatter = 40000  # 40 seconds (keeps running during
+        # the 6 seconds of scatter mode so actually 34 seconds)
+        self.scatter_event = pygame.USEREVENT+1
+        pygame.time.set_timer(self.scatter_event, self.time_interval_scatter)
 
     def set_background(self) -> None:
         self.background = pygame.Surface(SCREENSIZE).convert()
@@ -50,22 +56,31 @@ class GameController(object):
         call the function that checks the user inputs, and makes the ghosts
         move
         """
+        # print(f"ghost state in update {self.ghost_state}")
         self.check_events()
         keys = pygame.key.get_pressed()
+        dt: float = self.clock.get_time() / 1000
         self.pacwoman.input(keys)
         self.pacwoman.move(mazegen)
         self.pacwoman.update()
         self.pacgums.eat(self.pacwoman)
-        self.pacgums.update(self.clock.get_time() / 1000)
+        self.pacgums.update(dt)
 
         for ghost in (self.blinky, self.inky, self.pinky, self.clyde):
             ghost.scared = self.pacgums.eat_ghosts
+            if self.ghost_state != "scared" and ghost.scared:
+                self.ghost_state = "scared"
             ghost.warning = (self.pacgums.eat_ghosts and
                              self.pacgums.scared_timer <= 4)
-        if ghost.scared:
-            self.ghost_state = "scatter"
-        else:
+
+        if not self.pacgums.eat_ghosts and self.ghost_state == "scared":
             self.ghost_state = "normal"
+
+        if self.ghost_state == "scatter":
+            self.scatter_timer -= dt
+            if self.scatter_timer <= 0:
+                self.ghost_state = "normal"
+                self.scatter_timer = 0.0
 
         self.blinky_move: dict[str, Callable] = {
             "normal": partial(
@@ -73,6 +88,8 @@ class GameController(object):
             "scatter": partial(
                 self.blinky.scatter_move, mazegen, self.blinky_spawn[0],
                 self.blinky_spawn[1]),
+            "scared": partial(
+                self.blinky.bfs_move, mazegen, self.pacwoman),
             # "scared": partial(
             #   self.blinky.scared_move, mazegen, self.pacwoman)
             }
@@ -84,6 +101,7 @@ class GameController(object):
             "scatter": partial(
                 self.pinky.scatter_move, mazegen, self.pinky_spawn[0],
                 self.pinky_spawn[1]),
+            "scared": partial(self.pinky.move_random, mazegen),
             # "scared": partial(
             #     self.pinky.scared_move, mazegen, self.pacwoman)
             }
@@ -95,6 +113,7 @@ class GameController(object):
             "scatter": partial(
                 self.clyde.scatter_move, mazegen, self.clyde_spawn[0],
                 self.clyde_spawn[1]),
+            "scared": partial(self.clyde.move_random, mazegen),
             # "scared": partial(
             #     self.clyde.scared_move, mazegen, self.pacwoman)
             }
@@ -106,6 +125,7 @@ class GameController(object):
             "scatter": partial(
                 self.inky.scatter_move, mazegen, self.inky_spawn[0],
                 self.inky_spawn[1]),
+            "scared": partial(self.inky.move_random, mazegen),
             # "scared": partial(
             #     self.inky.scared_move, mazegen, self.pacwoman)
             }
@@ -124,6 +144,12 @@ class GameController(object):
                 if event.key == pygame.K_ESCAPE:
                     self.menus.pause_menu()
                     self.paused = True
+            # print(f"ghost state in check events: {self.ghost_state}")
+            if (event.type == self.scatter_event
+               and self.ghost_state == "normal"):
+                # print(f"scatter mode activate at {pygame.time.get_ticks()}")
+                self.ghost_state = "scatter"
+                self.scatter_timer = self.scatter_duration
 
     def render(self, mazegen) -> None:
         """draw images to the screen"""
@@ -195,6 +221,7 @@ class GameController(object):
         self.time = 120.0
         self.running = True
         self.lives = 3
+        self.ghost_state = "normal"
         self.invulnerable_timer = 0
         self.score_font = pygame.font.Font(None, 36)
         self.timer_font = pygame.font.Font(None, 36)
@@ -304,14 +331,14 @@ class GameController(object):
                                self.pacwoman.y + HIT_MARGIN,
                                hit_w, hit_h)
 
-        ghosts = {
+        self.all_ghosts = {
             "blinky": (self.blinky, self.blinky_spawn),
             "inky": (self.inky, self.inky_spawn),
             "pinky": (self.pinky, self.pinky_spawn),
             "clyde": (self.clyde, self.clyde_spawn)
         }
 
-        for name, (ghost, spawn) in ghosts.items():
+        for name, (ghost, spawn) in self.all_ghosts.items():
             ghost_rect = pygame.Rect(
                                      ghost.x + HIT_MARGIN, ghost.y +
                                      HIT_MARGIN, hit_w, hit_h)

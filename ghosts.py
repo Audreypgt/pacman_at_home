@@ -10,9 +10,11 @@ class Ghosts(Pacwoman):
         self.direction: tuple[int, int] = (1, 0)
         self.state: str = "moving"
         self.frame_sets: dict[tuple[int, int], pygame.Surface] = {}
+        # maybe replace self.scared with self.ghost_state from pac-man ?
         self.scared: bool = False
         self.warning: bool = False
-        self.scared_frame_sets = {
+        self.on_spawn = False
+        self.scared_frame_sets: dict([tuple[int, int], pygame.Surface]) = {
             (-1, 0): [
                 sprite_sheet.get_sprite_at(15, 0),
                 sprite_sheet.get_sprite_at(16, 0)
@@ -134,11 +136,14 @@ class Ghosts(Pacwoman):
         if self.state == "idle":
             self.choose_random_direction(mazegen)
 
-    def scatter_mode(self, mazegen, spawn_x, spawn_y) -> None:
+    def scatter_mode(self, mazegen, spawn_x, spawn_y) -> bool:
         self.coord_x = (self.x + PacSpriteSheet.SPRITE_W // 2) // 50
         self.coord_y = (self.y + PacSpriteSheet.SPRITE_H // 2) // 50
         spawn_x = (spawn_x + PacSpriteSheet.SPRITE_W // 2) // 50
         spawn_y = (spawn_y + PacSpriteSheet.SPRITE_W // 2) // 50
+
+        if (self.coord_x, self.coord_y) == (spawn_x, spawn_y):
+            return True
 
         path: list[tuple[int, int]] = []
         spawn_loc = spawn_x, spawn_y
@@ -175,22 +180,25 @@ class Ghosts(Pacwoman):
             self.direction = (next_x - self.coord_x), (next_y - self.coord_y)
             self.next_direction = self.direction
             self.state = "moving"
-            return
+            return False
         else:
             self.choose_random_direction(mazegen)
-            return
+            return False
+
+        return False
 
     def scatter_move(self, mazegen, spawn_x, spawn_y) -> None:
         if self.state != "moving":
-            self.scatter_mode(mazegen, spawn_x, spawn_y)
+            self.on_spawn = self.scatter_mode(mazegen, spawn_x, spawn_y)
 
-        super().move(mazegen)
+        if not self.on_spawn:
+            super().move(mazegen)
 
         curr_x = (self.x + PacSpriteSheet.SPRITE_W // 2) // 50
         curr_y = (self.y + PacSpriteSheet.SPRITE_H // 2) // 50
 
         if (curr_x, curr_y) != self.curr_cell and self.state == "moving":
-            self.scatter_mode(mazegen, spawn_x, spawn_y)
+            self.on_spawn = self.scatter_mode(mazegen, spawn_x, spawn_y)
 
         self.curr_cell = (curr_x, curr_y)
 
