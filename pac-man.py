@@ -6,6 +6,8 @@ from pacwoman import PacSpriteSheet, Pacwoman
 from ghosts import Blinky, Pinky, Clyde, Inky
 from pacgums import Pacgums
 from menu import Gamemenus
+from typing import Callable
+from functools import partial
 
 
 MAZE_CELL = 50
@@ -31,12 +33,19 @@ class GameController(object):
             pygame.Rect(0, GUI_HEIGHT, GAME_WIDTH, GAME_HEIGHT))
         self.background = None
         self.running = False
+        self.ghost_state = "normal"
         self.over = False
         self.pac_sheet = PacSpriteSheet("sprites/pac_sheet.png")
         self.pacgums = Pacgums(self.pac_sheet, gum_row=5, gum_col=8,
                                sp_gum_row=6, sp_gum_col=8)
         self.menus = Gamemenus(self)
         self.looser = ""
+        self.scatter_duration: float = 6.0
+        self.scatter_timer: float = 0.0
+        self.time_interval_scatter = 40000  # 40 seconds (keeps running during
+        # the 6 seconds of scatter mode so actually 34 seconds)
+        self.scatter_event = pygame.USEREVENT+1
+        pygame.time.set_timer(self.scatter_event, self.time_interval_scatter)
 
     def set_background(self) -> None:
         self.background = pygame.Surface(SCREENSIZE).convert()
@@ -47,26 +56,80 @@ class GameController(object):
         call the function that checks the user inputs, and makes the ghosts
         move
         """
+        # print(f"ghost state in update {self.ghost_state}")
         self.check_events()
         keys = pygame.key.get_pressed()
+        dt: float = self.clock.get_time() / 1000
         self.pacwoman.input(keys)
         self.pacwoman.move(mazegen)
         self.pacwoman.update()
         self.pacgums.eat(self.pacwoman)
-        self.pacgums.update(self.clock.get_time() / 1000)
+        self.pacgums.update(dt)
 
         for ghost in (self.blinky, self.inky, self.pinky, self.clyde):
             ghost.scared = self.pacgums.eat_ghosts
+            if self.ghost_state != "scared" and ghost.scared:
+                self.ghost_state = "scared"
             ghost.warning = (self.pacgums.eat_ghosts and
                              self.pacgums.scared_timer <= 4)
 
-        self.blinky.bfs_move(mazegen, self.pacwoman)
+        if not self.pacgums.eat_ghosts and self.ghost_state == "scared":
+            self.ghost_state = "normal"
+
+        if self.ghost_state == "scatter":
+            self.scatter_timer -= dt
+            if self.scatter_timer <= 0:
+                self.ghost_state = "normal"
+                self.scatter_timer = 0.0
+
+        self.blinky_move: dict[str, Callable] = {
+            "normal": partial(
+                self.blinky.bfs_move, mazegen, self.pacwoman),
+            "scatter": partial(
+                self.blinky.scatter_move, mazegen, self.blinky_spawn[0],
+                self.blinky_spawn[1]),
+            "scared": partial(
+                self.blinky.bfs_move, mazegen, self.pacwoman),
+            # "scared": partial(
+            #   self.blinky.scared_move, mazegen, self.pacwoman)
+            }
+        self.blinky_move[self.ghost_state]()
         self.blinky.update()
-        self.pinky.move_random(mazegen)
+
+        self.pinky_move: dict[str, Callable] = {
+            "normal": partial(self.pinky.move_random, mazegen),
+            "scatter": partial(
+                self.pinky.scatter_move, mazegen, self.pinky_spawn[0],
+                self.pinky_spawn[1]),
+            "scared": partial(self.pinky.move_random, mazegen),
+            # "scared": partial(
+            #     self.pinky.scared_move, mazegen, self.pacwoman)
+            }
+        self.pinky_move[self.ghost_state]()
         self.pinky.update()
-        self.clyde.move_random(mazegen)
+
+        self.clyde_move: dict[str, Callable] = {
+            "normal": partial(self.clyde.move_random, mazegen),
+            "scatter": partial(
+                self.clyde.scatter_move, mazegen, self.clyde_spawn[0],
+                self.clyde_spawn[1]),
+            "scared": partial(self.clyde.move_random, mazegen),
+            # "scared": partial(
+            #     self.clyde.scared_move, mazegen, self.pacwoman)
+            }
+        self.clyde_move[self.ghost_state]()
         self.clyde.update()
-        self.inky.move_random(mazegen)
+
+        self.inky_move: dict[str, Callable] = {
+            "normal": partial(self.inky.move_random, mazegen),
+            "scatter": partial(
+                self.inky.scatter_move, mazegen, self.inky_spawn[0],
+                self.inky_spawn[1]),
+            "scared": partial(self.inky.move_random, mazegen),
+            # "scared": partial(
+            #     self.inky.scared_move, mazegen, self.pacwoman)
+            }
+        self.inky_move[self.ghost_state]()
         self.inky.update()
 
         self.check_collisions()
@@ -81,6 +144,12 @@ class GameController(object):
                 if event.key == pygame.K_ESCAPE:
                     self.menus.pause_menu()
                     self.paused = True
+            # print(f"ghost state in check events: {self.ghost_state}")
+            if (event.type == self.scatter_event
+               and self.ghost_state == "normal"):
+                # print(f"scatter mode activate at {pygame.time.get_ticks()}")
+                self.ghost_state = "scatter"
+                self.scatter_timer = self.scatter_duration
 
     def render(self, mazegen) -> None:
         """draw images to the screen"""
@@ -88,7 +157,12 @@ class GameController(object):
         self.screen.fill(BLACK, pygame.Rect(0, 0, SCREENWIDTH, GUI_HEIGHT))
         self.game_surface.fill(BLACK)
         # draw interface (score, lives, etc)
-
+        score_text = self.score_font.render(
+            f'Score: {self.pacgums.score}', True, (255, 255, 255))
+        self.screen.blit(score_text, (10, 10))
+        timer_text = self.timer_font.render(
+            f'Time: {int(self.time)}', True, (255, 255, 255))
+        self.screen.blit(timer_text, (10, 50))
         # draw maze
         self.draw_maze(mazegen)
         # draw gums
@@ -99,12 +173,7 @@ class GameController(object):
         self.pinky.draw(self.game_surface)
         self.clyde.draw(self.game_surface)
         self.inky.draw(self.game_surface)
-        score_text = self.score_font.render(
-            f'Score: {self.pacgums.score}', True, (255, 255, 255))
-        self.screen.blit(score_text, (10, 10))
-        timer_text = self.timer_font.render(
-            f'Time: {int(self.time)}', True, (255, 255, 255))
-        self.screen.blit(timer_text, (10, 50))
+        # update display with changes
         pygame.display.flip()
 
     def draw_maze(self, mazegen) -> None:
@@ -152,6 +221,7 @@ class GameController(object):
         self.time = 120.0
         self.running = True
         self.lives = 3
+        self.ghost_state = "normal"
         self.invulnerable_timer = 0
         self.score_font = pygame.font.Font(None, 36)
         self.timer_font = pygame.font.Font(None, 36)
@@ -261,14 +331,14 @@ class GameController(object):
                                self.pacwoman.y + HIT_MARGIN,
                                hit_w, hit_h)
 
-        ghosts = {
+        self.all_ghosts = {
             "blinky": (self.blinky, self.blinky_spawn),
             "inky": (self.inky, self.inky_spawn),
             "pinky": (self.pinky, self.pinky_spawn),
             "clyde": (self.clyde, self.clyde_spawn)
         }
 
-        for name, (ghost, spawn) in ghosts.items():
+        for name, (ghost, spawn) in self.all_ghosts.items():
             ghost_rect = pygame.Rect(
                                      ghost.x + HIT_MARGIN, ghost.y +
                                      HIT_MARGIN, hit_w, hit_h)

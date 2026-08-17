@@ -7,12 +7,12 @@ MAZE_CELL = 50
 class Pacgums:
     def __init__(self, sprite_sheet: PacSpriteSheet, gum_row: int,
                  gum_col: int, sp_gum_row: int, sp_gum_col: int,
-                 scared_duration: float = 8.0):
-        self.gums = set()
-        self.score = 0
+                 scared_duration: float = 10.0):
+        self.gums: set = set()
+        self.score: int = 0
         self.eat_ghosts: bool = False
-        self.scared_duration = scared_duration
-        self.scared_timer = 0.0
+        self.scared_duration: float = scared_duration
+        self.scared_timer: float = 0.0
 
         self.pacgum_img = pygame.transform.scale(
             sprite_sheet.get_sprite_at(gum_row, gum_col), (25, 25))
@@ -20,6 +20,7 @@ class Pacgums:
             sprite_sheet.get_sprite_at(sp_gum_row, sp_gum_col), (30, 30))
 
     def init_gums(self, mazegen, pacwoman):
+        # en double ?
         self.gums = set()
         self.super_gum = set()
         self.eat_ghosts = False
