@@ -56,7 +56,6 @@ class GameController(object):
         call the function that checks the user inputs, and makes the ghosts
         move
         """
-        # print(f"ghost state in update {self.ghost_state}")
         self.check_events()
         keys = pygame.key.get_pressed()
         dt: float = self.clock.get_time() / 1000
@@ -82,20 +81,27 @@ class GameController(object):
                 self.ghost_state = "normal"
                 self.scatter_timer = 0.0
 
-        self.blinky_move: dict[str, Callable] = {
-            "normal": partial(
-                self.blinky.bfs_move, mazegen, self.pacwoman),
-            "scatter": partial(
-                self.blinky.scatter_move, mazegen, self.blinky_spawn[0],
-                self.blinky_spawn[1]),
-            "scared": partial(
-                self.blinky.bfs_move, mazegen, self.pacwoman),
-            # "scared": partial(
-            #   self.blinky.scared_move, mazegen, self.pacwoman)
-            }
-        self.blinky_move[self.ghost_state]()
+        if self.blinky.dead:
+            self.blinky.scatter_move(
+                mazegen, self.blinky_spawn[0], self.blinky_spawn[1])
+        else:
+            self.blinky_move: dict[str, Callable] = {
+                "normal": partial(
+                    self.blinky.bfs_move, mazegen, self.pacwoman),
+                "scatter": partial(
+                    self.blinky.scatter_move, mazegen, self.blinky_spawn[0],
+                    self.blinky_spawn[1]),
+                "scared": partial(
+                    self.blinky.bfs_move, mazegen, self.pacwoman),
+                # "scared": partial(
+                #   self.blinky.scared_move, mazegen, self.pacwoman)
+                }
+            self.blinky_move[self.ghost_state]()
         self.blinky.update()
 
+        if self.pinky.dead:
+            self.pinky.scatter_move(
+                mazegen, self.pinky_spawn[0], self.pinky_spawn[1])
         self.pinky_move: dict[str, Callable] = {
             "normal": partial(self.pinky.move_random, mazegen),
             "scatter": partial(
@@ -108,6 +114,9 @@ class GameController(object):
         self.pinky_move[self.ghost_state]()
         self.pinky.update()
 
+        if self.clyde.dead:
+            self.clyde.scatter_move(
+                mazegen, self.clyde_spawn[0], self.clyde_spawn[1])
         self.clyde_move: dict[str, Callable] = {
             "normal": partial(self.clyde.move_random, mazegen),
             "scatter": partial(
@@ -120,6 +129,9 @@ class GameController(object):
         self.clyde_move[self.ghost_state]()
         self.clyde.update()
 
+        if self.inky.dead:
+            self.inky.scatter_move(
+                mazegen, self.inky_spawn[0], self.inky_spawn[1])
         self.inky_move: dict[str, Callable] = {
             "normal": partial(self.inky.move_random, mazegen),
             "scatter": partial(
@@ -144,10 +156,8 @@ class GameController(object):
                 if event.key == pygame.K_ESCAPE:
                     self.menus.pause_menu()
                     self.paused = True
-            # print(f"ghost state in check events: {self.ghost_state}")
             if (event.type == self.scatter_event
                and self.ghost_state == "normal"):
-                # print(f"scatter mode activate at {pygame.time.get_ticks()}")
                 self.ghost_state = "scatter"
                 self.scatter_timer = self.scatter_duration
 
@@ -327,24 +337,28 @@ class GameController(object):
         hit_w = PacSpriteSheet.SPRITE_W - HIT_MARGIN * 2
         hit_h = PacSpriteSheet.SPRITE_H - HIT_MARGIN * 2
 
-        pac_rect = pygame.Rect(self.pacwoman.x + HIT_MARGIN,
-                               self.pacwoman.y + HIT_MARGIN,
-                               hit_w, hit_h)
+        pac_rect = pygame.Rect(
+            self.pacwoman.x + HIT_MARGIN,
+            self.pacwoman.y + HIT_MARGIN,
+            hit_w, hit_h)
 
-        self.all_ghosts = {
+        self.ghosts = {
             "blinky": (self.blinky, self.blinky_spawn),
             "inky": (self.inky, self.inky_spawn),
             "pinky": (self.pinky, self.pinky_spawn),
             "clyde": (self.clyde, self.clyde_spawn)
         }
 
-        for name, (ghost, spawn) in self.all_ghosts.items():
+        # HEREEEEEEEE
+        for name, (ghost, spawn) in self.ghosts.items():
             ghost_rect = pygame.Rect(
-                                     ghost.x + HIT_MARGIN, ghost.y +
-                                     HIT_MARGIN, hit_w, hit_h)
+                ghost.x + HIT_MARGIN, ghost.y + HIT_MARGIN, hit_w, hit_h)
             if pac_rect.colliderect(ghost_rect):
                 if self.pacgums.eat_ghosts:
-                    ghost.x, ghost.y = spawn
+                    ghost.dead = True
+                    ghost.update()
+                    # ghost.scatter_move(
+                    #     mazegen, self.blinky_spawn[0], self.blinky_spawn[1])
                     self.pacgums.score += 200
                 else:
                     self.pacwoman_hit()
