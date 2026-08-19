@@ -157,11 +157,13 @@ class Configuration(BaseModel):
 
 class JSONWithCommentsDecoder(json.JSONDecoder):
     def init(self, **kw) -> None:
+        print(type(kw))
         super().__init__(**kw)
 
     def decode(self, s: str, _: Callable[..., Any] = lambda: "") -> Any:
-        s = '\n'.join(line if not line.lstrip().startswith(('//', '#'))
-                      else '' for line in s.split('\n'))
+        s = '\n'.join(
+            line if not line.lstrip().startswith(('//', '#'))
+            else '' for line in s.split('\n'))
         return super().decode(s)
 
 
@@ -178,7 +180,6 @@ def parse() -> Configuration:
 
     with open(argv[1], "r") as file:
         parse_file = json.load(file, cls=JSONWithCommentsDecoder)
-        # parse_file = json.load(text)
 
     # return an object made of each value and key of the json file as variables
     return Configuration(**parse_file)

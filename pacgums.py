@@ -1,5 +1,7 @@
-import pygame
+import pygame  # type: ignore
 from pacwoman import PacSpriteSheet
+from mazegenerator import MazeGenerator  # type: ignore
+from pacwoman import Pacwoman
 
 MAZE_CELL = 50
 
@@ -7,8 +9,8 @@ MAZE_CELL = 50
 class Pacgums:
     def __init__(self, sprite_sheet: PacSpriteSheet, gum_row: int,
                  gum_col: int, sp_gum_row: int, sp_gum_col: int,
-                 scared_duration: float = 10.0):
-        self.gums: set = set()
+                 scared_duration: float = 10.0) -> None:
+        self.gums: set[tuple[int, int]] = set()
         self.score: int = 0
         self.eat_ghosts: bool = False
         self.scared_duration: float = scared_duration
@@ -19,7 +21,7 @@ class Pacgums:
         self.sp_pacgum_img = pygame.transform.scale(
             sprite_sheet.get_sprite_at(sp_gum_row, sp_gum_col), (30, 30))
 
-    def init_gums(self, mazegen, pacwoman):
+    def init_gums(self, mazegen: MazeGenerator, pacwoman: Pacwoman) -> None:
         # some variables en double, normal ?
         self.gums = set()
         self.super_gum = set()
@@ -51,7 +53,7 @@ class Pacgums:
 
         self.score = 0
 
-    def eat(self, pacwoman):
+    def eat(self, pacwoman: Pacwoman) -> None:
         center_x = pacwoman.x + PacSpriteSheet.SPRITE_W // 2
         center_y = pacwoman.y + PacSpriteSheet.SPRITE_H // 2
         col = center_x // MAZE_CELL
@@ -66,14 +68,14 @@ class Pacgums:
             self.eat_ghosts = True
             self.scared_timer = self.scared_duration
 
-    def update(self, dt: float):
+    def update(self, dt: float) -> None:
         if self.eat_ghosts:
             self.scared_timer -= dt
         if self.scared_timer <= 0:
             self.eat_ghosts = False
             self.scared_timer = 0.0
 
-    def draw(self, screen):
+    def draw(self, screen: pygame.surface.Surface) -> None:
         for row, col in self.gums:
             cx = col * MAZE_CELL
             cy = row * MAZE_CELL

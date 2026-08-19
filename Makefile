@@ -4,7 +4,7 @@ P3 = python3
 
 run:
 	@source pacman_venv/bin/activate \
-	&& $(P3) pac-man.py config.json
+	&& $(P3) pac_man.py config.json
 
 install:
 	@$(P3) -m venv pacman_venv
@@ -12,9 +12,9 @@ install:
 	&& pip install --upgrade pip \
 	&& pip install -r requirements.txt
 
-debug: install
+debug:
 	@source pacman_venv/bin/activate \
-	&& python -m pdb pac-man.py
+	&& python -m pdb pac_man.py
 
 venv-clean:
 	@if [ -r "pacman_venv" ]; then \
@@ -37,17 +37,17 @@ clean:
 
 fclean: clean venv-clean
 
-lint: install
+lint:
 	@source pacman_venv/bin/activate \
-	&& flake8 parsing.py menu.py pac-man.py ghosts.py pacgums.py pacwoman.py \
-	&& mypy parsing.py menu.py pac-man.py ghosts.py pacgums.py pacwoman.py \
+	&& flake8 parsing.py menu.py pac_man.py ghosts.py pacgums.py pacwoman.py \
+	&& mypy parsing.py menu.py pac_man.py ghosts.py pacgums.py pacwoman.py \
 	--warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs \
 	--check-untyped-defs
 
-lint-strict: install
+lint-strict:
 	@source pacman_venv/bin/activate \
-	&& flake8 parsing.py menu.py pac-man.py ghosts.py pacgums.py pacwoman.py \
-	&& mypy parsing.py menu.py pac-man.py ghosts.py pacgums.py pacwoman.py --strict
+	&& flake8 parsing.py menu.py pac_man.py ghosts.py pacgums.py pacwoman.py \
+	&& mypy parsing.py menu.py pac_man.py ghosts.py pacgums.py pacwoman.py --strict
 
 # build:
 # 	python -m build

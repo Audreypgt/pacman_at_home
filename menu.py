@@ -1,12 +1,14 @@
-import pygame_menu
+import pygame_menu  # type: ignore
 from pygame_menu import themes
+from pac_man import GameController
 
 
 class Gamemenus:
-    def __init__(self, game):
+
+    def __init__(self, game: GameController):
         self.game = game
 
-    def start_menu(self):
+    def start_menu(self) -> None:
         main_menu = pygame_menu.Menu(
             "PacWOman", 600, 400, theme=themes.THEME_SOLARIZED)
         main_menu.add.button("Play", self.game.set_up_game)
@@ -20,7 +22,7 @@ class Gamemenus:
         main_menu.add.button("Quit", pygame_menu.events.EXIT)
         main_menu.mainloop(self.game.screen)
 
-    def pause_menu(self):
+    def pause_menu(self) -> None:
         main_menu = pygame_menu.Menu(
             "PacWOman", 600, 400, theme=themes.THEME_SOLARIZED)
         main_menu.add.button("Restart", self.game.set_up_game)
@@ -28,7 +30,7 @@ class Gamemenus:
         main_menu.add.button("Quit", pygame_menu.events.EXIT)
         main_menu.mainloop(self.game.screen)
 
-    def over_menu(self):
+    def over_menu(self) -> None:
         self.game.over = True
         main_menu = pygame_menu.Menu(
             "PacWOman", 600, 400, theme=themes.THEME_SOLARIZED)

@@ -1,4 +1,5 @@
-import pygame
+import pygame  # type: ignore
+from mazegenerator import MazeGenerator  # type: ignore
 
 
 class PacSpriteSheet():
@@ -15,14 +16,17 @@ class PacSpriteSheet():
         sprite.blit(self.sheet, (0, 0), (x, y, w, h))
         return sprite
 
-    def get_sprite_at(self, row, col, w=None, h=None) -> pygame.Surface:
+    def get_sprite_at(
+            self, row: int, col: int, w: int | None = None,
+            h: int | None = None) -> pygame.Surface:
         w = w or self.SPRITE_W
         h = h or self.SPRITE_H
         return self.get_sprite(col * self.CELL, row * self.CELL, w, h)
 
 
 class Pacwoman:
-    def __init__(self, x, y, sprite_sheet, screen_w, screen_y) -> None:
+    def __init__(self, x: int, y: int, sprite_sheet: PacSpriteSheet,
+                 screen_w: int, screen_y: int) -> None:
         self.x = x
         self.y = y
         self.screen_w = screen_w
@@ -50,7 +54,7 @@ class Pacwoman:
         }
         self.current_frame = self.frame_sets[self.direction][0]
 
-    def input(self, keys) -> None:
+    def input(self, keys: pygame.key.ScancodeWrapper) -> None:
         requested = None
         if keys[pygame.K_LEFT] or keys[pygame.K_a]:
             requested = (-1, 0)
@@ -66,7 +70,7 @@ class Pacwoman:
 
         self.state = "moving"
 
-    def move(self, mazegen) -> None:
+    def move(self, mazegen: MazeGenerator) -> None:
         if self.state != "moving":
             return
 
@@ -135,5 +139,5 @@ class Pacwoman:
                                                  self.direction][
                                                  self.frame_index]
 
-    def draw(self, surface) -> None:
+    def draw(self, surface: pygame.surface.Surface) -> None:
         surface.blit(self.current_frame, (self.x, self.y))
