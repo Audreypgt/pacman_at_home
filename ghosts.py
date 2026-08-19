@@ -15,6 +15,7 @@ class Ghosts(Pacwoman):
         self.warning: bool = False
         self.on_spawn = False
         self.dead: bool = False
+        self.ghost_state = "normal"
         self.scared_frame_sets: dict([tuple[int, int], pygame.Surface]) = {
             (-1, 0): [
                 sprite_sheet.get_sprite_at(15, 0),
@@ -52,8 +53,8 @@ class Ghosts(Pacwoman):
                 ]
         }
         self.dead_frame_sets: dict([tuple[int, int], pygame.Surface]) = {
-            (-1, 0): [sprite_sheet.get_sprite_at(5, 6)],
-            (1, 0): [sprite_sheet.get_sprite_at(7, 6)],
+            (-1, 0): [sprite_sheet.get_sprite_at(7, 6)],
+            (1, 0): [sprite_sheet.get_sprite_at(5, 6)],
             (0, 1): [sprite_sheet.get_sprite_at(6, 6)],
             (0, -1): [sprite_sheet.get_sprite_at(8, 6)]
         }
@@ -67,14 +68,17 @@ class Ghosts(Pacwoman):
         self.curr_cell: tuple[int, int] = (self.coord_x, self.coord_y)
 
     def update(self) -> None:
-        if self.scared and self.warning:
+        if self.dead:
+            active_frames = self.dead_frame_sets
+            self.frame_index = (self.frame_index + 1) % len(
+                    active_frames[self.direction])
+            self.move_speed = 3
+        elif self.scared and self.warning:
             flash_on = (pygame.time.get_ticks() // 200) % 2 == 0
             active_frames = (self.flash_frame_sets if flash_on else
                              self.scared_frame_sets)
         elif self.scared:
             active_frames = self.scared_frame_sets
-        elif self.dead:
-            active_frames = self.dead_frame_sets
         else:
             active_frames = self.frame_sets
 
@@ -85,6 +89,12 @@ class Ghosts(Pacwoman):
                 self.frame_index = (self.frame_index + 1) % len(
                     active_frames[self.direction])
         self.current_frame = active_frames[self.direction][self.frame_index]
+
+    def is_centered(self) -> bool:
+        MAZE_CELL = 50
+        offset = (MAZE_CELL - PacSpriteSheet.SPRITE_W) // 2
+        return (self.x - offset) % MAZE_CELL == 0 and \
+            (self.y - offset) % MAZE_CELL == 0
 
     def find_neighbors(self, mazegen, x, y) -> list[tuple[int, int]]:
         neighbors: list[tuple[int, int]] = []
@@ -153,6 +163,8 @@ class Ghosts(Pacwoman):
         spawn_y = (spawn_y + PacSpriteSheet.SPRITE_W // 2) // 50
 
         if (self.coord_x, self.coord_y) == (spawn_x, spawn_y):
+            self.dead = False
+            self.move_speed = 1
             return True
 
         path: list[tuple[int, int]] = []
@@ -198,10 +210,10 @@ class Ghosts(Pacwoman):
         return False
 
     def scatter_move(self, mazegen, spawn_x, spawn_y) -> None:
-        if self.dead:
-            self.dead = False
-            while not self.on_spawn:
-                self.scatter_mode(mazegen, spawn_x, spawn_y)
+        # print("scatter move")
+        # print(self.on_spawn, self.state)
+        # print()
+        self.on_spawn = False
 
         if self.state != "moving":
             self.on_spawn = self.scatter_mode(mazegen, spawn_x, spawn_y)
@@ -216,12 +228,6 @@ class Ghosts(Pacwoman):
             self.on_spawn = self.scatter_mode(mazegen, spawn_x, spawn_y)
 
         self.curr_cell = (curr_x, curr_y)
-
-    def is_centered(self) -> bool:
-        MAZE_CELL = 50
-        offset = (MAZE_CELL - PacSpriteSheet.SPRITE_W) // 2
-        return (self.x - offset) % MAZE_CELL == 0 and \
-            (self.y - offset) % MAZE_CELL == 0
 
 
 class Blinky(Ghosts):
@@ -298,17 +304,14 @@ class Blinky(Ghosts):
             self.direction = (next_x - self.coord_x), (next_y - self.coord_y)
             self.next_direction = self.direction
             self.state = "moving"
-            # print(f"curr=({self.coord_x},{self.coord_y})
-            #       target={pacwoman_loc}"
-            #       f" path={path}")
             return
         else:
             self.choose_random_direction(mazegen)
             return
 
     def bfs_move(self, mazegen, pacwoman) -> None:
-        # print(f"first loc {curr_x, curr_y}")
-        # print(f"curr_cell before {self.curr_cell}")
+        # print("bfs")
+        # print(self.on_spawn, self.state)
 
         if self.state != "moving":
             self.choose_bfs_direction(mazegen, pacwoman)
@@ -320,8 +323,6 @@ class Blinky(Ghosts):
         curr_x = (self.x + PacSpriteSheet.SPRITE_W // 2) // 50
         curr_y = (self.y + PacSpriteSheet.SPRITE_H // 2) // 50
         self.curr_cell = (curr_x, curr_y)
-        # print(f"curr_cell after {self.curr_cell}")
-        # print()
 
 
 class Pinky(Ghosts):

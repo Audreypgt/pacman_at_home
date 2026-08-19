@@ -20,7 +20,7 @@ class Pacgums:
             sprite_sheet.get_sprite_at(sp_gum_row, sp_gum_col), (30, 30))
 
     def init_gums(self, mazegen, pacwoman):
-        # en double ?
+        # some variables en double, normal ?
         self.gums = set()
         self.super_gum = set()
         self.eat_ghosts = False
