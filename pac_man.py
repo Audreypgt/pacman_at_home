@@ -60,8 +60,23 @@ class GameController(object):
         move
         """
         self.check_events()
-        keys: pygame.key.ScancodeWrapper = pygame.key.get_pressed()
         dt: float = self.clock.get_time() / 1000
+
+        if self.game_state == "dying":
+            self.pacwoman.update()
+            if self.pacwoman.is_death_animation_done():
+                self.respawn_all()
+                self.game_state = "frozen"
+                self.respawn_timer = self.respawn_delay
+            return
+
+        if self.game_state == "frozen":
+            self.respawn_timer -= dt
+            if self.respawn_timer <= 0:
+                self.game_state = "playing"
+            return
+
+        keys: pygame.key.ScancodeWrapper = pygame.key.get_pressed()
         self.pacwoman.input(keys)
         self.pacwoman.move(mazegen)
         self.pacwoman.update()
@@ -180,16 +195,17 @@ class GameController(object):
         timer_text = self.timer_font.render(
             f'Time: {int(self.time)}', True, (255, 255, 255))
         self.screen.blit(timer_text, (10, 50))
-        # draw maze
+
         self.draw_maze(mazegen)
-        # draw gums
         self.pacgums.draw(self.game_surface)
-        # draw sprites
         self.pacwoman.draw(self.game_surface)
-        self.blinky.draw(self.game_surface)
-        self.pinky.draw(self.game_surface)
-        self.clyde.draw(self.game_surface)
-        self.inky.draw(self.game_surface)
+
+        if self.game_state != "dying":
+            self.blinky.draw(self.game_surface)
+            self.pinky.draw(self.game_surface)
+            self.clyde.draw(self.game_surface)
+            self.inky.draw(self.game_surface)
+
         # update display with changes
         pygame.display.flip()
 
@@ -243,6 +259,9 @@ class GameController(object):
         self.prev_eat_ghosts = False
         self.score_font = pygame.font.Font(None, 36)
         self.timer_font = pygame.font.Font(None, 36)
+        self.game_state = "playing"
+        self.respawn_delay = 2.0
+        self.respawn_timer = 0.0
         pac_sheet = self.pac_sheet
 
         # Pacwoman
@@ -361,10 +380,12 @@ class GameController(object):
             ghost_rect = pygame.Rect(
                 ghost.x + HIT_MARGIN, ghost.y + HIT_MARGIN, hit_w, hit_h)
             if pac_rect.colliderect(ghost_rect):
-                if self.pacgums.eat_ghosts:
+                if ghost.scared:
                     ghost.dead = True
                     ghost.update()
                     self.pacgums.score += 200
+                elif ghost.dead:
+                    pass
                 else:
                     self.pacwoman_hit()
                     return
@@ -375,11 +396,16 @@ class GameController(object):
             self.running = False
             self.menus.over_menu()
         else:
-            self.respawn_all()
+            self.pacwoman.start_death_animation()
+            self.game_state = "dying"
 
     def respawn_all(self) -> None:
         self.pacwoman.x, self.pacwoman.y = self.pacwoman_spawn
         self.pacwoman.state = "idle"
+        self.pacwoman.direction = (1, 0)
+        self.pacwoman.next_direction = (1, 0)
+        self.pacwoman.frame_index = 0
+        self.pacwoman.current_frame = self.pacwoman.frame_sets[(1, 0)][0]
 
         self.blinky.x, self.blinky.y = self.blinky_spawn
         self.pinky.x, self.pinky.y = self.pinky_spawn

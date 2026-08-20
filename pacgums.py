@@ -19,7 +19,7 @@ class Pacgums:
         self.pacgum_img = pygame.transform.scale(
             sprite_sheet.get_sprite_at(gum_row, gum_col), (25, 25))
         self.sp_pacgum_img = pygame.transform.scale(
-            sprite_sheet.get_sprite_at(sp_gum_row, sp_gum_col), (30, 30))
+            sprite_sheet.get_sprite_at(sp_gum_row, sp_gum_col), (40, 40))
 
     def init_gums(self, mazegen: MazeGenerator, pacwoman: Pacwoman) -> None:
         # some variables en double, normal ?
@@ -76,12 +76,19 @@ class Pacgums:
             self.scared_timer = 0.0
 
     def draw(self, screen: pygame.surface.Surface) -> None:
+        gum_size = self.pacgum_img.get_width()
+        gum_offset = (MAZE_CELL - gum_size) / 2
         for row, col in self.gums:
             cx = col * MAZE_CELL
             cy = row * MAZE_CELL
-            screen.blit(self.pacgum_img, (cx + 15.5, cy + 16.5))
+            screen.blit(self.pacgum_img, (cx + gum_offset, cy + gum_offset))
 
-        for row, col in self.super_gum:
-            cx = col * MAZE_CELL
-            cy = row * MAZE_CELL
-            screen.blit(self.sp_pacgum_img, (cx + 15.5, cy + 16.5))
+        blink_on = (pygame.time.get_ticks() // 250) % 2 == 0
+        if blink_on:
+            sp_size = self.sp_pacgum_img.get_width()
+            sp_offset = (MAZE_CELL - sp_size) / 2
+            for row, col in self.super_gum:
+                cx = col * MAZE_CELL
+                cy = row * MAZE_CELL
+                screen.blit(self.sp_pacgum_img,
+                            (cx + sp_offset, cy + sp_offset))

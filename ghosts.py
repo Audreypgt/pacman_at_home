@@ -73,7 +73,7 @@ class Ghosts(Pacwoman):
             active_frames = self.dead_frame_sets
             self.frame_index = (self.frame_index + 1) % len(
                     active_frames[self.direction])
-            self.move_speed = 3
+            self.move_speed = 2
         elif self.scared and self.warning:
             flash_on = (pygame.time.get_ticks() // 200) % 2 == 0
             active_frames = (

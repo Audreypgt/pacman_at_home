@@ -53,6 +53,33 @@ class Pacwoman:
                       sprite_sheet.get_sprite_at(11, 17)]
         }
         self.current_frame = self.frame_sets[self.direction][0]
+        self.death_frame_sets = [
+            sprite_sheet.get_sprite_at(0, 7),
+            sprite_sheet.get_sprite_at(1, 7),
+            sprite_sheet.get_sprite_at(2, 7),
+            sprite_sheet.get_sprite_at(3, 7),
+            sprite_sheet.get_sprite_at(4, 7),
+            sprite_sheet.get_sprite_at(5, 7),
+            sprite_sheet.get_sprite_at(6, 7),
+            sprite_sheet.get_sprite_at(7, 7),
+            sprite_sheet.get_sprite_at(8, 7),
+            sprite_sheet.get_sprite_at(9, 7),
+            sprite_sheet.get_sprite_at(10, 7),
+        ]
+        self.death_animation_speed = 8
+        self.death_frame_index = 0
+        self.death_timer = 0
+
+    def start_death_animation(self) -> None:
+        self.state = "dying"
+        self.death_frame_index = 0
+        self.death_timer = 0
+        self.death_hold_timer = 0
+        self.death_hold_duration = 30
+
+    def is_death_animation_done(self) -> bool:
+        return (self.death_frame_index >= len(self.death_frame_sets) - 1
+                and self.death_hold_timer >= self.death_hold_duration)
 
     def input(self, keys: pygame.key.ScancodeWrapper) -> None:
         requested = None
@@ -67,8 +94,7 @@ class Pacwoman:
 
         if requested is not None:
             self.next_direction = requested
-
-        self.state = "moving"
+            self.state = "moving"
 
     def move(self, mazegen: MazeGenerator) -> None:
         if self.state != "moving":
@@ -129,6 +155,19 @@ class Pacwoman:
             self.x, self.y = clamped_x, clamped_y
 
     def update(self) -> None:
+        if self.state == "dying":
+            self.current_frame = self.death_frame_sets[self.death_frame_index]
+
+            if self.death_frame_index >= len(self.death_frame_sets) - 1:
+                self.death_hold_timer += 1
+                return
+
+            self.death_timer += 1
+            if self.death_timer >= self.death_animation_speed:
+                self.death_timer = 0
+                self.death_frame_index += 1
+            return
+
         if self.state == "moving":
             self.move_timer += 1
             if self.move_timer >= self.animation_speed:
@@ -138,6 +177,8 @@ class Pacwoman:
             self.current_frame = self.frame_sets[
                                                  self.direction][
                                                  self.frame_index]
+        elif self.state == "idle":
+            self.current_frame = self.frame_sets[self.direction][0]
 
     def draw(self, surface: pygame.surface.Surface) -> None:
         surface.blit(self.current_frame, (self.x, self.y))
