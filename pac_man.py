@@ -68,15 +68,19 @@ class GameController(object):
         self.pacgums.eat(self.pacwoman)
         self.pacgums.update(dt)
 
-        for ghost in (self.blinky, self.inky, self.pinky, self.clyde):
-            ghost.scared = self.pacgums.eat_ghosts
+        pellet_just_activate = (
+            self.pacgums.eat_ghosts and not self.prev_eat_ghosts)
+        self.prev_eat_ghosts = self.pacgums.eat_ghosts
+
+        for ghost in (self.blinky, self.inky, self.clyde, self.pinky):
+            if pellet_just_activate and not ghost.dead:
+                ghost.scared = True
+            if not self.pacgums.eat_ghosts:
+                ghost.scared = False
             if self.ghost_state != "scared" and ghost.scared:
                 self.ghost_state = "scared"
             ghost.warning = (
                 self.pacgums.eat_ghosts and self.pacgums.scared_timer <= 4)
-
-        if not self.pacgums.eat_ghosts and self.ghost_state == "scared":
-            self.ghost_state = "normal"
 
         if self.ghost_state == "scatter":
             self.scatter_timer -= dt
@@ -236,6 +240,7 @@ class GameController(object):
         self.lives = 3
         self.ghost_state = "normal"
         self.invulnerable_timer = 0
+        self.prev_eat_ghosts = False
         self.score_font = pygame.font.Font(None, 36)
         self.timer_font = pygame.font.Font(None, 36)
         pac_sheet = self.pac_sheet

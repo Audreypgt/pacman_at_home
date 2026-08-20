@@ -115,12 +115,6 @@ class Ghosts(Pacwoman):
     def choose_random_direction(self, mazegen: MazeGenerator) -> None:
         MAZE_CELL = 50
 
-        # directions = {
-        #     (0, -1): 1,
-        #     (1, 0): 2,
-        #     (0, 1): 4,
-        #     (-1, 0): 8}
-
         maze_height = len(mazegen.maze)
         maze_width = len(mazegen.maze[0])
 
@@ -134,6 +128,7 @@ class Ghosts(Pacwoman):
             return
 
         cell = mazegen.maze[row][col]
+        # reverse = (-self.direction[0], -self.direction[1])
         possible_directions = []
         for direction, wall_bit in {
             (0, -1): 1,
@@ -143,6 +138,10 @@ class Ghosts(Pacwoman):
         }.items():
             if not (cell & wall_bit):
                 possible_directions.append(direction)
+
+        # non_reverse = [d for d in possible_directions if d != reverse]
+        # if non_reverse:
+        #     possible_directions = non_reverse
 
         if possible_directions:
             self.direction = random.choice(possible_directions)
@@ -154,6 +153,9 @@ class Ghosts(Pacwoman):
             self.choose_random_direction(mazegen)
 
         super().move(mazegen)
+
+        if self.is_centered() and self.state == "moving":
+            self.choose_random_direction(mazegen)
 
         if self.state == "idle":
             self.choose_random_direction(mazegen)
@@ -167,6 +169,9 @@ class Ghosts(Pacwoman):
 
         if (self.coord_x, self.coord_y) == (spawn_x, spawn_y):
             self.dead = False
+            self.scared = False
+            self.warning = False
+            self.ghost_state = "normal"
             self.move_speed = 1
             return True
 
@@ -215,7 +220,7 @@ class Ghosts(Pacwoman):
                      ) -> None:
         self.on_spawn = False
 
-        if self.state != "moving":
+        if self.is_centered() and self.state != "moving":
             self.on_spawn = self.scatter_mode(mazegen, spawn_x, spawn_y)
 
         if not self.on_spawn:
