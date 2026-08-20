@@ -5,3 +5,4 @@ game win screen
 clyde, inky algo
 super pacgums animation -> done
 game over/win score name
+multiple levels with fixed maze per levels
