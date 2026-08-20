@@ -1,11 +1,12 @@
 luka to do list:
 
 death animation -> done
-game win screen
+game win screen -> done
 clyde, inky algo
 super pacgums animation -> done
-game over/win score name
+game over/win score name -> done
 multiple levels with fixed maze per levels
+win game screen, add next level button
 
 cheat mode:
 pause time, invicibility
