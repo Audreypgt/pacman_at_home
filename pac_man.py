@@ -48,6 +48,7 @@ class GameController(object):
         self.time_interval_scatter = 40000  # 40 seconds (keeps running during
         # the 6 seconds of scatter mode so actually 34 seconds)
         self.scatter_event = pygame.USEREVENT+1
+        self.pacwoman_invincible = True
         pygame.time.set_timer(self.scatter_event, self.time_interval_scatter)
 
     def set_background(self) -> None:
@@ -82,6 +83,9 @@ class GameController(object):
         self.pacwoman.update()
         self.pacgums.eat(self.pacwoman)
         self.pacgums.update(dt)
+
+        if not self.pacgums.gums and not self.pacgums.super_gum:
+            self.win_game()
 
         pellet_just_activate = (
             self.pacgums.eat_ghosts and not self.prev_eat_ghosts)
@@ -251,7 +255,7 @@ class GameController(object):
             self.sort_score_file()
             self.over = False
         self.clock = pygame.time.Clock()
-        self.time = 120.0
+        self.time = 220.0
         self.running = True
         self.lives = 3
         self.ghost_state = "normal"
@@ -262,6 +266,7 @@ class GameController(object):
         self.game_state = "playing"
         self.respawn_delay = 2.0
         self.respawn_timer = 0.0
+        self.won = False
         pac_sheet = self.pac_sheet
 
         # Pacwoman
@@ -384,20 +389,48 @@ class GameController(object):
                     ghost.dead = True
                     ghost.update()
                     self.pacgums.score += 200
-                elif ghost.dead:
-                    pass
-                else:
+                elif not self.pacwoman_invincible:
                     self.pacwoman_hit()
                     return
+                elif ghost.dead:
+                    pass
+
+    def win_game(self) -> None:
+        self.running = False
+        self.won = True
+        self.menus.over_menu()
 
     def pacwoman_hit(self) -> None:
         self.lives -= 1
         if self.lives <= 0:
             self.running = False
+            self.won = False
             self.menus.over_menu()
         else:
             self.pacwoman.start_death_animation()
             self.game_state = "dying"
+
+    def save_score(self, name: str) -> None:
+        with open(configuration.highscore_filename, 'a') as f:
+            f.write(f"{name}: {self.pacgums.score}\n")
+        self.sort_score_file()
+
+    def get_top_scores(self, limit: int = 10) -> list[tuple[str, int]]:
+        scores: list[tuple[str, int]] = []
+        try:
+            with open(configuration.highscore_filename, 'r') as f:
+                for line in f:
+                    parts = line.strip().split(": ")
+                    if len(parts) == 2:
+                        scores.append((parts[0], int(parts[1])))
+        except FileNotFoundError:
+            pass
+        return scores[:limit]
+
+    def quit_game_over(self) -> None:
+        self.save_score(self.looser.get_value())
+        pygame.quit()
+        quit()
 
     def respawn_all(self) -> None:
         self.pacwoman.x, self.pacwoman.y = self.pacwoman_spawn

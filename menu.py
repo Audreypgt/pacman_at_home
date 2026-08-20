@@ -32,14 +32,33 @@ class Gamemenus:
 
     def over_menu(self) -> None:
         self.game.over = True
+        title = "You Win !" if self.game.won else "Game Over"
+
         main_menu = pygame_menu.Menu(
-            "PacWOman", 600, 400, theme=themes.THEME_SOLARIZED)
-        self.game.looser = main_menu.add.text_input("Name: ", default="LOOSER")
+            title, 600, 500, theme=themes.THEME_SOLARIZED)
+
+        main_menu.add.label(f"Score: {self.game.pacgums.score}")
+        self.game.looser = main_menu.add.text_input("Name: ", default="Player")
+        main_menu.add.button("Save & View Leaderboard", self.leaderboard_menu)
         main_menu.add.button("Restart", self.game.set_up_game)
         main_menu.add.button(
-            "Give up like you did with your dreams", self.game.quit_game_over)
+            "Quit", self.game.quit_game_over)
         # ERROR ================= pygame.error: video system not initialized
         main_menu.mainloop(self.game.screen)
+
+    def leaderboard_menu(self) -> None:
+        self.game.save_score(self.game.looser.get_value())
+
+        board_menu = pygame_menu.Menu("Top 10 Scored", 600, 500, 
+                                      theme=themes.THEME_SOLARIZED)
+        top_scores = self.game.get_top_scores()
+        if not top_scores:
+            board_menu.add.label("No scores yet")
+        for i, (name, score) in enumerate(top_scores, start=1):
+            board_menu.add.label(f"{i}. {name}: {score}")
+        board_menu.add.button("Restart", self.game.set_up_game)
+        board_menu.add.button("Quit", pygame_menu.events.EXIT)
+        board_menu.mainloop(self.game.screen)
 
     # def set_difficulty(self, difficulty) -> None:
     #     """select difficulty level from menu"""
