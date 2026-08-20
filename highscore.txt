@@ -1,6 +1,6 @@
+LOOSER: 11530
 testagain: 3560
 Luka: 2620
 jauline: 2260
-LOOSER: 540
 egrgtrgefregrtgrtgrgref: 200
 test"é": 90

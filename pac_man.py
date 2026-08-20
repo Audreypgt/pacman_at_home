@@ -87,7 +87,14 @@ class GameController(object):
             self.pacgums.eat_ghosts and not self.prev_eat_ghosts)
         self.prev_eat_ghosts = self.pacgums.eat_ghosts
 
-        for ghost in (self.blinky, self.inky, self.clyde, self.pinky):
+        self.ghosts = {
+            "blinky": (self.blinky, self.blinky_spawn),
+            "inky": (self.inky, self.inky_spawn),
+            "pinky": (self.pinky, self.pinky_spawn),
+            "clyde": (self.clyde, self.clyde_spawn)
+        }
+
+        for _, (ghost, _) in self.ghosts.items():
             if pellet_just_activate and not ghost.dead:
                 ghost.scared = True
             if not self.pacgums.eat_ghosts:
@@ -103,68 +110,38 @@ class GameController(object):
                 self.ghost_state = "normal"
                 self.scatter_timer = 0.0
 
-        if self.blinky.dead:
-            self.blinky.scatter_move(
-                mazegen, self.blinky_spawn[0], self.blinky_spawn[1])
-        else:
-            self.blinky_move: dict[str, Callable[..., Any]] = {
-                "normal": partial(
-                    self.blinky.bfs_move, mazegen, self.pacwoman),
-                "scatter": partial(
-                    self.blinky.scatter_move, mazegen, self.blinky_spawn[0],
-                    self.blinky_spawn[1]),
-                "scared": partial(
-                    self.blinky.bfs_move, mazegen, self.pacwoman),
-                # "scared": partial(
-                #   self.blinky.scared_move, mazegen, self.pacwoman)
-                }
-            self.blinky_move[self.ghost_state]()
-        self.blinky.update()
+        for name, (ghost, spawn) in self.ghosts.items():
+            if ghost.dead:
+                ghost.scatter_move(
+                    mazegen, spawn[0], spawn[1])
 
-        if self.pinky.dead:
-            self.pinky.scatter_move(
-                mazegen, self.pinky_spawn[0], self.pinky_spawn[1])
-        self.pinky_move: dict[str, Callable[..., Any]] = {
-            "normal": partial(self.pinky.move_random, mazegen),
-            "scatter": partial(
-                self.pinky.scatter_move, mazegen, self.pinky_spawn[0],
-                self.pinky_spawn[1]),
-            "scared": partial(self.pinky.move_random, mazegen),
-            # "scared": partial(
-            #     self.pinky.scared_move, mazegen, self.pacwoman)
-            }
-        self.pinky_move[self.ghost_state]()
-        self.pinky.update()
-
-        if self.clyde.dead:
-            self.clyde.scatter_move(
-                mazegen, self.clyde_spawn[0], self.clyde_spawn[1])
-        self.clyde_move: dict[str, Callable[..., Any]] = {
-            "normal": partial(self.clyde.move_random, mazegen),
-            "scatter": partial(
-                self.clyde.scatter_move, mazegen, self.clyde_spawn[0],
-                self.clyde_spawn[1]),
-            "scared": partial(self.clyde.move_random, mazegen),
-            # "scared": partial(
-            #     self.clyde.scared_move, mazegen, self.pacwoman)
-            }
-        self.clyde_move[self.ghost_state]()
-        self.clyde.update()
-
-        if self.inky.dead:
-            self.inky.scatter_move(
-                mazegen, self.inky_spawn[0], self.inky_spawn[1])
-        self.inky_move: dict[str, Callable[..., Any]] = {
-            "normal": partial(self.inky.move_random, mazegen),
-            "scatter": partial(
-                self.inky.scatter_move, mazegen, self.inky_spawn[0],
-                self.inky_spawn[1]),
-            "scared": partial(self.inky.move_random, mazegen),
-            # "scared": partial(
-            #     self.inky.scared_move, mazegen, self.pacwoman)
-            }
-        self.inky_move[self.ghost_state]()
-        self.inky.update()
+            # TODO
+            # move random used as a placeholder for unique algo
+            # replace here when the algos are done
+            # also used as a place holder for scared mode, uncomment last
+            # lines when scared mode is done
+            else:
+                self.ghost_move: dict[str, Callable[..., Any]] = {
+                    "blinky": partial(
+                        self.blinky.bfs_move, mazegen, self.pacwoman),
+                    "inky": partial(self.inky.move_random, mazegen),
+                    "pinky": partial(self.pinky.move_random, mazegen),
+                    "clyde": partial(self.clyde.move_random, mazegen),
+                    "scatter": partial(
+                        ghost.scatter_move, mazegen, spawn[0],
+                        spawn[1]),
+                    "scared": partial(
+                        ghost.move_random, mazegen) if "blinky" not in
+                    name else partial(self.blinky.bfs_move, mazegen,
+                                      self.pacwoman),
+                    # "scared": partial(
+                    #     ghost.scared_move, mazegen, self.pacwoman)
+                    }
+                if self.ghost_state != "normal":
+                    self.ghost_move[self.ghost_state]()
+                else:
+                    self.ghost_move[name]()
+                ghost.update()
 
         self.check_collisions()
 
@@ -195,7 +172,7 @@ class GameController(object):
         timer_text = self.timer_font.render(
             f'Time: {int(self.time)}', True, (255, 255, 255))
         self.screen.blit(timer_text, (10, 50))
-
+        # draw maze, gums and sprites
         self.draw_maze(mazegen)
         self.pacgums.draw(self.game_surface)
         self.pacwoman.draw(self.game_surface)
@@ -368,13 +345,6 @@ class GameController(object):
             self.pacwoman.x + HIT_MARGIN,
             self.pacwoman.y + HIT_MARGIN,
             hit_w, hit_h)
-
-        self.ghosts = {
-            "blinky": (self.blinky, self.blinky_spawn),
-            "inky": (self.inky, self.inky_spawn),
-            "pinky": (self.pinky, self.pinky_spawn),
-            "clyde": (self.clyde, self.clyde_spawn)
-        }
 
         for name, (ghost, spawn) in self.ghosts.items():
             ghost_rect = pygame.Rect(
