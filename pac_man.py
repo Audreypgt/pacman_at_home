@@ -23,6 +23,9 @@ SCREENSIZE = (SCREENWIDTH, SCREENHEIGHT)
 
 BLACK = (0, 0, 0)
 PINK = (255, 209, 220)
+YELLOW = (255, 255, 0)
+
+LEVEL_SEEDS = {1: 1, 2: 2, 3: 3}
 
 
 class GameController(object):
@@ -38,6 +41,7 @@ class GameController(object):
         self.running = False
         self.ghost_state = "normal"
         self.over = False
+        self.won = False
         self.looser: widgets.TextInput = None
         self.pac_sheet = PacSpriteSheet("sprites/pac_sheet.png")
         self.pacgums = Pacgums(
@@ -48,7 +52,10 @@ class GameController(object):
         self.time_interval_scatter = 40000  # 40 seconds (keeps running during
         # the 6 seconds of scatter mode so actually 34 seconds)
         self.scatter_event = pygame.USEREVENT+1
-        self.pacwoman_invincible = True
+        self.current_level = 1
+        self.max_level = max(LEVEL_SEEDS.keys())
+        self.cheat_invincible = False
+        self.cheat_freeze_time = False
         pygame.time.set_timer(self.scatter_event, self.time_interval_scatter)
 
     def set_background(self) -> None:
@@ -83,9 +90,6 @@ class GameController(object):
         self.pacwoman.update()
         self.pacgums.eat(self.pacwoman)
         self.pacgums.update(dt)
-
-        if not self.pacgums.gums and not self.pacgums.super_gum:
-            self.win_game()
 
         pellet_just_activate = (
             self.pacgums.eat_ghosts and not self.prev_eat_ghosts)
@@ -149,6 +153,9 @@ class GameController(object):
 
         self.check_collisions()
 
+        if not self.pacgums.gums and not self.pacgums.super_gum:
+            self.level_complete()
+
     def check_events(self) -> None:
         """check user inputs, which keys are pressed"""
         for event in pygame.event.get():
@@ -159,6 +166,15 @@ class GameController(object):
                 if event.key == pygame.K_ESCAPE:
                     self.menus.pause_menu()
                     self.paused = True
+                if event.key == pygame.K_i:
+                    self.cheat_invincible = not self.cheat_invincible
+                if event.key == pygame.K_p:
+                    self.cheat_freeze_time = not self.cheat_freeze_time
+                if event.key == pygame.K_n:
+                    if self.current_level < self.max_level:
+                        self.running = False
+                        self.next_level()
+                        return
             if (event.type == self.scatter_event
                and self.ghost_state == "normal"):
                 self.ghost_state = "scatter"
@@ -176,6 +192,22 @@ class GameController(object):
         timer_text = self.timer_font.render(
             f'Time: {int(self.time)}', True, (255, 255, 255))
         self.screen.blit(timer_text, (10, 50))
+
+        level_text = self.score_font.render(
+            f'Level: {self.current_level}', True, (255, 255, 255))
+        self.screen.blit(level_text, (SCREENWIDTH - 150, 10))
+
+        cheat_labels = []
+        if self.cheat_invincible:
+            cheat_labels.append("INVINCIBLE")
+        if self.cheat_freeze_time:
+            cheat_labels.append("TIME FROZEN")
+        if cheat_labels:
+            cheat_text = self.timer_font.render(
+                " | ".join(cheat_labels), True, YELLOW)
+            self.screen.blit(cheat_text, cheat_text.get_rect(
+                topright=(SCREENWIDTH - 250, 50)))
+
         # draw maze, gums and sprites
         self.draw_maze(mazegen)
         self.pacgums.draw(self.game_surface)
@@ -225,6 +257,24 @@ class GameController(object):
         # 15 = 1111 tout ferme
 
     def set_up_game(self) -> None:
+        self.current_level = 1
+        self.load_level(reset_progress=True)
+        self.cheat_invincible = False
+        self.cheat_freeze_time = False
+
+    def restart_game(self) -> None:
+        self.set_up_game()
+
+    def next_level(self) -> None:
+        self.current_level += 1
+        self.load_level(reset_progress=False)
+
+    def level_complete(self) -> None:
+        self.running = False
+        self.won = True
+        self.menus.over_menu()
+
+    def load_level(self, reset_progress: bool) -> None:
         if self.over:
             with open(configuration.highscore_filename, 'a') as f:
                 f.write(
@@ -232,9 +282,9 @@ class GameController(object):
             self.sort_score_file()
             self.over = False
         self.clock = pygame.time.Clock()
-        self.time = 220.0
+        self.time = 120.0
         self.running = True
-        self.lives = 3
+        self.won = False
         self.ghost_state = "normal"
         self.invulnerable_timer = 0
         self.prev_eat_ghosts = False
@@ -243,8 +293,12 @@ class GameController(object):
         self.game_state = "playing"
         self.respawn_delay = 2.0
         self.respawn_timer = 0.0
-        self.won = False
         pac_sheet = self.pac_sheet
+
+        if reset_progress:
+            self.lives = 3
+        saved_score = self.pacgums.score
+        mazegen.generate(LEVEL_SEEDS[self.current_level])
 
         # Pacwoman
         maze_width = len(mazegen.maze[0])
@@ -257,8 +311,9 @@ class GameController(object):
         self.pacwoman = Pacwoman(
             spawn_x, spawn_y, pac_sheet, GAME_WIDTH, GAME_HEIGHT)
 
-        # Pacgums
         self.pacgums.init_gums(mazegen, self.pacwoman)
+        if not reset_progress:
+            self.pacgums.score = saved_score
 
         # Blinky
         spawn_x_blky = (
@@ -301,12 +356,16 @@ class GameController(object):
         self.paused = False
         while self.running:
             self.update()
-            self.time -= self.clock.tick(60) / 1000
+            if self.cheat_freeze_time:
+                self.clock.tick(60)
+            else:
+                self.time -= self.clock.tick(60) / 1000
             self.time = round(self.time, 2)
             self.render(mazegen)
             if self.time <= 0:
                 self.time = 0
                 self.running = False
+                self.won = False
                 self.menus.over_menu()
 
     def sort_score_file(self) -> None:
@@ -328,14 +387,6 @@ class GameController(object):
             for name, score in scores_dict.items():
                 f.write(
                     f"{name}: {score}\n")
-
-    def quit_game_over(self) -> None:
-        with open(configuration.highscore_filename, 'a') as f:
-            f.write(
-                f"{self.looser.get_value()}: {self.pacgums.score}\n")
-        self.sort_score_file()
-        pygame.quit()
-        quit()
 
     def check_collisions(self) -> None:
         if self.invulnerable_timer > 0:
@@ -359,16 +410,13 @@ class GameController(object):
                     ghost.dead = True
                     ghost.update()
                     self.pacgums.score += 200
-                elif not self.pacwoman_invincible:
-                    self.pacwoman_hit()
-                    return
                 elif ghost.dead:
                     pass
-
-    def win_game(self) -> None:
-        self.running = False
-        self.won = True
-        self.menus.over_menu()
+                elif self.cheat_invincible:
+                    pass
+                else:
+                    self.pacwoman_hit()
+                    return
 
     def pacwoman_hit(self) -> None:
         self.lives -= 1

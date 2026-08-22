@@ -1,3 +1,4 @@
+LOOSER: 11220
 Luka: 9820
 testagain: 3560
 jauline: 2260
