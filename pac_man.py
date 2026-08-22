@@ -43,7 +43,7 @@ class GameController(object):
         self.ghost_state = "normal"
         self.over = False
         self.won = False
-        self.looser: widgets.TextInput = None
+        self.player: widgets.TextInput = None
         self.pac_sheet = PacSpriteSheet("sprites/pac_sheet.png")
         self.pacgums = Pacgums(
             self.pac_sheet, gum_row=5, gum_col=8, sp_gum_row=6, sp_gum_col=8)
@@ -279,7 +279,7 @@ class GameController(object):
         if self.over:
             with open(configuration.highscore_filename, 'a') as f:
                 f.write(
-                    f"{self.looser.get_value()}: {self.pacgums.score}\n")
+                    f"{self.player.get_value()}: {self.pacgums.score}\n")
             self.sort_score_file()
             self.over = False
         self.clock = pygame.time.Clock()
@@ -447,7 +447,7 @@ class GameController(object):
         return scores[:limit]
 
     def quit_game_over(self) -> None:
-        self.save_score(self.looser.get_value())
+        self.save_score(self.player.get_value())
         pygame.quit()
         quit()
 
