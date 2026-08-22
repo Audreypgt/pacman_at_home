@@ -25,7 +25,8 @@ BLACK = (0, 0, 0)
 PINK = (255, 209, 220)
 YELLOW = (255, 255, 0)
 
-LEVEL_SEEDS = {1: 1, 2: 2, 3: 3}
+LEVEL_SEEDS = {1: 41, 2: 42, 3: 43, 4: 44, 5: 45, 6: 46, 7: 47,
+               8: 48, 9: 49, 10: 40}
 
 
 class GameController(object):

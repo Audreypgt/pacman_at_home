@@ -5,8 +5,10 @@ game win screen -> done
 clyde, inky algo
 super pacgums animation -> done
 game over/win score name -> done
-multiple levels with fixed maze per levels
-win game screen, add next level button
+multiple levels with fixed maze per levels -> done
+win game screen, add next level button -> done
+instructions screen
+
 
 cheat mode:
-pause time, invicibility
+pause time, invicibility, next level button -> done
