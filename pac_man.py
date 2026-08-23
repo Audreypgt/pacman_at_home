@@ -39,7 +39,8 @@ class GameController(object):
             pygame.Rect(0, GUI_HEIGHT, GAME_WIDTH, GAME_HEIGHT))
         self.background: pygame.surface.Surface = None
         self.running = False
-        self.ghost_state = "normal"
+        # self.ghost_state = "normal"
+        self.scatter = False
         self.over = False
         self.won = False
         self.looser: widgets.TextInput = None
@@ -95,39 +96,33 @@ class GameController(object):
             self.pacgums.eat_ghosts and not self.prev_eat_ghosts)
         self.prev_eat_ghosts = self.pacgums.eat_ghosts
 
-        self.ghosts = {
-            "blinky": (self.blinky, self.blinky_spawn),
-            "inky": (self.inky, self.inky_spawn),
-            "pinky": (self.pinky, self.pinky_spawn),
-            "clyde": (self.clyde, self.clyde_spawn)
-        }
-
         for _, (ghost, _) in self.ghosts.items():
             if pellet_just_activate and not ghost.dead:
                 ghost.scared = True
             if not self.pacgums.eat_ghosts:
                 ghost.scared = False
-            if self.ghost_state != "scared" and ghost.scared:
-                self.ghost_state = "scared"
+            if ghost.ghost_state != "scared" and ghost.scared:
+                ghost.ghost_state = "scared"
             ghost.warning = (
                 self.pacgums.eat_ghosts and self.pacgums.scared_timer <= 4)
 
-        if self.ghost_state == "scatter":
+        if self.scatter:
+            for _, (ghost, _) in self.ghosts.items():
+                ghost.ghost_state = "scatter"
             self.scatter_timer -= dt
             if self.scatter_timer <= 0:
-                self.ghost_state = "normal"
+                ghost.ghost_state = "normal"
                 self.scatter_timer = 0.0
 
         for name, (ghost, spawn) in self.ghosts.items():
             if ghost.dead:
+                ghost.ghost_state = "normal"
                 ghost.scatter_move(
                     mazegen, spawn[0], spawn[1])
 
             # TODO
             # move random used as a placeholder for unique algo
             # replace here when the algos are done
-            # also used as a place holder for scared mode, uncomment last
-            # lines when scared mode is done
             else:
                 self.ghost_move: dict[str, Callable[..., Any]] = {
                     "blinky": partial(
@@ -139,14 +134,10 @@ class GameController(object):
                         ghost.scatter_move, mazegen, spawn[0],
                         spawn[1]),
                     "scared": partial(
-                        ghost.move_random, mazegen) if "blinky" not in
-                    name else partial(self.blinky.bfs_move, mazegen,
-                                      self.pacwoman),
-                    # "scared": partial(
-                    #     ghost.scared_move, mazegen, self.pacwoman)
+                        ghost.move_random, mazegen),
                     }
-                if self.ghost_state != "normal":
-                    self.ghost_move[self.ghost_state]()
+                if ghost.ghost_state != "normal":
+                    self.ghost_move[ghost.ghost_state]()
                 else:
                     self.ghost_move[name]()
                 ghost.update()
@@ -175,9 +166,8 @@ class GameController(object):
                         self.running = False
                         self.next_level()
                         return
-            if (event.type == self.scatter_event
-               and self.ghost_state == "normal"):
-                self.ghost_state = "scatter"
+            if (event.type == self.scatter_event and self.scatter):
+                self.scatter = True
                 self.scatter_timer = self.scatter_duration
 
     def render(self, mazegen: MazeGenerator) -> None:
@@ -285,7 +275,6 @@ class GameController(object):
         self.time = 120.0
         self.running = True
         self.won = False
-        self.ghost_state = "normal"
         self.invulnerable_timer = 0
         self.prev_eat_ghosts = False
         self.score_font = pygame.font.Font(None, 36)
@@ -348,6 +337,15 @@ class GameController(object):
         self.inky_spawn = (spawn_x_inky, spawn_y_inky)
         self.inky = Inky(
             spawn_x_inky, spawn_y_inky, pac_sheet, GAME_WIDTH, GAME_HEIGHT)
+
+        self.ghosts = {
+            "blinky": (self.blinky, self.blinky_spawn),
+            "inky": (self.inky, self.inky_spawn),
+            "pinky": (self.pinky, self.pinky_spawn),
+            "clyde": (self.clyde, self.clyde_spawn)
+        }
+        for _, (ghost, _) in self.ghosts.items():
+            ghost.ghost_state = "normal"
 
         self.start_game()
 
