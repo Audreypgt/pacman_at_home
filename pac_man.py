@@ -196,7 +196,11 @@ class GameController(object):
 
         level_text = self.score_font.render(
             f'Level: {self.current_level}', True, (255, 255, 255))
-        self.screen.blit(level_text, (SCREENWIDTH - 150, 10))
+        self.screen.blit(level_text, (SCREENWIDTH - 250, 10))
+
+        lives_text = self.lives_font.render(f"Remaining Lives: {self.lives}",
+                                            True, (255, 255, 255))
+        self.screen.blit(lives_text, (SCREENWIDTH - 250, 50))
 
         cheat_labels = []
         if self.cheat_invincible:
@@ -291,6 +295,7 @@ class GameController(object):
         self.prev_eat_ghosts = False
         self.score_font = pygame.font.Font(None, 36)
         self.timer_font = pygame.font.Font(None, 36)
+        self.lives_font = pygame.font.Font(None, 36)
         self.game_state = "playing"
         self.respawn_delay = 2.0
         self.respawn_timer = 0.0
