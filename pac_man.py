@@ -50,7 +50,7 @@ class GameController(object):
         self.menus = Gamemenus(self)
         self.scatter_duration: float = 6.0
         self.scatter_timer: float = 0.0
-        self.time_interval_scatter = 40000  # 40 seconds (keeps running during
+        self.time_interval_scatter = 20000  # 40 seconds (keeps running during
         # the 6 seconds of scatter mode so actually 34 seconds)
         self.scatter_event = pygame.USEREVENT+1
         self.current_level = 1
@@ -103,6 +103,8 @@ class GameController(object):
                 ghost.scared = False
             if ghost.ghost_state != "scared" and ghost.scared:
                 ghost.ghost_state = "scared"
+            elif ghost.ghost_state == "scared" and not ghost.scared:
+                ghost.ghost_state = "normal"
             ghost.warning = (
                 self.pacgums.eat_ghosts and self.pacgums.scared_timer <= 4)
 
@@ -111,8 +113,10 @@ class GameController(object):
                 ghost.ghost_state = "scatter"
             self.scatter_timer -= dt
             if self.scatter_timer <= 0:
-                ghost.ghost_state = "normal"
+                for _, (ghost, _) in self.ghosts.items():
+                    ghost.ghost_state = "normal"
                 self.scatter_timer = 0.0
+                self.scatter = False
 
         for name, (ghost, spawn) in self.ghosts.items():
             if ghost.dead:
@@ -124,6 +128,9 @@ class GameController(object):
             # move random used as a placeholder for unique algo
             # replace here when the algos are done
             else:
+                print(name)
+                print(f"scatter = {self.scatter}")
+                print(f"ghost state = {ghost.ghost_state}\n")
                 self.ghost_move: dict[str, Callable[..., Any]] = {
                     "blinky": partial(
                         self.blinky.bfs_move, mazegen, self.pacwoman),
@@ -166,7 +173,10 @@ class GameController(object):
                         self.running = False
                         self.next_level()
                         return
-            if (event.type == self.scatter_event and self.scatter):
+            if ((event.type == self.scatter_event) and
+                all(ghost.ghost_state == "normal"
+                    for _, (ghost, _) in self.ghosts.items())):
+                print("scatter activated")
                 self.scatter = True
                 self.scatter_timer = self.scatter_duration
 
@@ -460,6 +470,10 @@ class GameController(object):
         self.pinky.x, self.pinky.y = self.pinky_spawn
         self.clyde.x, self.clyde.y = self.clyde_spawn
         self.inky.x, self.inky.y = self.inky_spawn
+
+        # CHECK IF NEEDED OR NOT AFTER FIXING SCATTER MODE
+        # for _, (ghost, _) in self.ghosts.items():
+        #     ghost.ghost_state = "normal"
 
         self.invulnerable_timer = 90
 
