@@ -12,6 +12,7 @@ class Gamemenus:
         main_menu = pygame_menu.Menu(
             "PacWoman", 600, 400, theme=themes.THEME_SOLARIZED)
         main_menu.add.button("Play", self.game.set_up_game)
+        main_menu.add.button("Instructions", self.instructions_menu)
         main_menu.add.button("Quit", pygame_menu.events.EXIT)
         main_menu.mainloop(self.game.screen)
 
@@ -55,3 +56,16 @@ class Gamemenus:
         board_menu.add.button("Main Menu", self.start_menu)
         board_menu.add.button("Quit", pygame_menu.events.EXIT)
         board_menu.mainloop(self.game.screen)
+
+    def instructions_menu(self) -> None:
+        instructions_page = pygame_menu.Menu(
+            "Instructions", 600, 800, theme=themes.THEME_SOLARIZED)
+
+        instructions_page.add.label("How to Play")
+        instructions_page.add.label("Move with the arrow keys")
+        instructions_page.add.label("Eat all pacgums to win")
+        instructions_page.add.label("Avoid the ghosts!")
+        instructions_page.add.label("Super PacGums let you eat ghosts")
+        instructions_page.add.vertical_margin(20)
+        instructions_page.add.button("Back", self.start_menu)
+        instructions_page.mainloop(self.game.screen)
