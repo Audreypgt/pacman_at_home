@@ -25,7 +25,8 @@ BLACK = (0, 0, 0)
 PINK = (255, 209, 220)
 YELLOW = (255, 255, 0)
 
-LEVEL_SEEDS = {1: 1, 2: 2, 3: 3}
+LEVEL_SEEDS = {1: 41, 2: 42, 3: 43, 4: 44, 5: 45, 6: 46, 7: 47,
+               8: 48, 9: 49, 10: 40}
 
 
 class GameController(object):
@@ -43,7 +44,7 @@ class GameController(object):
         self.scatter = False
         self.over = False
         self.won = False
-        self.looser: widgets.TextInput = None
+        self.player: widgets.TextInput = None
         self.pac_sheet = PacSpriteSheet("sprites/pac_sheet.png")
         self.pacgums = Pacgums(
             self.pac_sheet, gum_row=5, gum_col=8, sp_gum_row=6, sp_gum_col=8)
@@ -195,7 +196,11 @@ class GameController(object):
 
         level_text = self.score_font.render(
             f'Level: {self.current_level}', True, (255, 255, 255))
-        self.screen.blit(level_text, (SCREENWIDTH - 150, 10))
+        self.screen.blit(level_text, (SCREENWIDTH - 250, 10))
+
+        lives_text = self.lives_font.render(f"Remaining Lives: {self.lives}",
+                                            True, (255, 255, 255))
+        self.screen.blit(lives_text, (SCREENWIDTH - 250, 50))
 
         cheat_labels = []
         if self.cheat_invincible:
@@ -278,7 +283,7 @@ class GameController(object):
         if self.over:
             with open(configuration.highscore_filename, 'a') as f:
                 f.write(
-                    f"{self.looser.get_value()}: {self.pacgums.score}\n")
+                    f"{self.player.get_value()}: {self.pacgums.score}\n")
             self.sort_score_file()
             self.over = False
         self.clock = pygame.time.Clock()
@@ -289,6 +294,7 @@ class GameController(object):
         self.prev_eat_ghosts = False
         self.score_font = pygame.font.Font(None, 36)
         self.timer_font = pygame.font.Font(None, 36)
+        self.lives_font = pygame.font.Font(None, 36)
         self.game_state = "playing"
         self.respawn_delay = 2.0
         self.respawn_timer = 0.0
@@ -454,7 +460,7 @@ class GameController(object):
         return scores[:limit]
 
     def quit_game_over(self) -> None:
-        self.save_score(self.looser.get_value())
+        self.save_score(self.player.get_value())
         pygame.quit()
         quit()
 
