@@ -111,7 +111,8 @@ class GameController(object):
 
         if self.scatter:
             for _, (ghost, _) in self.ghosts.items():
-                ghost.ghost_state = "scatter"
+                if ghost.ghost_state == "normal":
+                    ghost.ghost_state = "scatter"
             self.scatter_timer -= dt
             if self.scatter_timer <= 0:
                 for _, (ghost, _) in self.ghosts.items():
