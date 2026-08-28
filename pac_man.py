@@ -53,7 +53,7 @@ class GameController(object):
         self.menus = Gamemenus(self)
         self.scatter_duration: float = 6.0
         self.scatter_timer: float = 0.0
-        self.time_interval_scatter: float = 40.0
+        self.time_interval_scatter: int = 40000
         self.scatter_event = pygame.USEREVENT+1
         self.current_level = 1
         self.max_level = max(LEVEL_SEEDS.keys())
@@ -67,7 +67,9 @@ class GameController(object):
         self.background.fill(BLACK)
 
     def update(self) -> None:
-        dt: float = self.clock.get_time() / 1000
+        # Cap dt so a long pause (or any blocking menu) can't drain the
+        # timer all at once on the first frame after we resume.
+        dt: float = min(self.clock.get_time() / 1000, 0.1)
 
         if self.game_state == "dying":
             self.pacwoman.update()
@@ -82,15 +84,6 @@ class GameController(object):
             if self.respawn_timer <= 0:
                 self.game_state = "playing"
             return
-
-        if not self.cheat_freeze_time:
-            self.time = round(self.time - dt, 2)
-            if self.time <= 0:
-                self.time = 0
-                self.running = False
-                self.won = False
-                self.menus.over_menu()
-                return
 
         if not self.cheat_freeze_time:
             self.time = round(self.time - dt, 2)
@@ -400,6 +393,9 @@ class GameController(object):
     def start_game(self) -> None:
         """create maze, check user inputs and render new elements"""
         self.paused = False
+        # Reset the clock so the first update() after a long pause
+        # doesn't see a huge dt and drain the timer.
+        self.clock.tick()
         while self.running:
             self.update()
             self.clock.tick(60)

@@ -375,8 +375,8 @@ class Pinky(Ghosts):
         if self.is_centered() and self.state == "moving":
             self.choose_bfs_direction(mazegen, pacwoman, True)
 
-        curr_x = (self.x + PacSpriteSheet.SPRITE_W // 2) // 50
-        curr_y = (self.y + PacSpriteSheet.SPRITE_H // 2) // 50
+        curr_x = (self.x + self.sprite_w // 2) // 50
+        curr_y = (self.y + self.sprite_h // 2) // 50
         self.curr_cell = (curr_x, curr_y)
 
 
