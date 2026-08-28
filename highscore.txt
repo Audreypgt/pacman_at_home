@@ -1,5 +1,4 @@
 Luka: 15820
-Player: 12020
 testagain: 3560
 jauline: 2260
 egrgtrgefregrtgrtgrgref: 200
@@ -8,3 +7,4 @@ barnabe: 120
 LOOSER: 100
 player: 100
 test"é": 90
+Player: 0

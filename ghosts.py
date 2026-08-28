@@ -332,7 +332,6 @@ class Pinky(Ghosts):
     def __init__(self, x: int, y: int, sprite_sheet: PacSpriteSheet,
                  screen_w: int, screen_y: int) -> None:
         super().__init__(x, y, sprite_sheet, screen_w, screen_y)
-
         self.frame_sets = {
             # West
             (-1, 0): [

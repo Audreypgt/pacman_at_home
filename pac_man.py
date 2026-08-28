@@ -40,7 +40,6 @@ class GameController(object):
             pygame.Rect(0, GUI_HEIGHT, GAME_WIDTH, GAME_HEIGHT))
         self.background: pygame.surface.Surface = None
         self.running = False
-        # self.ghost_state = "normal"
         self.scatter = False
         self.over = False
         self.won = False
@@ -51,14 +50,12 @@ class GameController(object):
         self.menus = Gamemenus(self)
         self.scatter_duration: float = 6.0
         self.scatter_timer: float = 0.0
-        self.time_interval_scatter = 20000  # 40 seconds (keeps running during
-        # the 6 seconds of scatter mode so actually 34 seconds)
+        self.time_interval_scatter: float = 40.0
         self.scatter_event = pygame.USEREVENT+1
         self.current_level = 1
         self.max_level = max(LEVEL_SEEDS.keys())
         self.cheat_invincible = False
         self.cheat_freeze_time = False
-        pygame.time.set_timer(self.scatter_event, self.time_interval_scatter)
 
     def set_background(self) -> None:
         self.background = pygame.Surface(SCREENSIZE).convert()
@@ -69,7 +66,6 @@ class GameController(object):
         call the function that checks the user inputs, and makes the ghosts
         move
         """
-        self.check_events()
         dt: float = self.clock.get_time() / 1000
 
         if self.game_state == "dying":
@@ -85,6 +81,17 @@ class GameController(object):
             if self.respawn_timer <= 0:
                 self.game_state = "playing"
             return
+
+        self.check_events()
+
+        if self.time_interval_scatter > 0:
+            self.time_interval_scatter = self.time_interval_scatter - dt
+        else:
+            self.time_interval_scatter = 40.0
+
+        if self.time_interval_scatter <= 0:
+            self.scatter = True
+            self.scatter_timer = self.scatter_duration
 
         keys: pygame.key.ScancodeWrapper = pygame.key.get_pressed()
         self.pacwoman.input(keys)
@@ -130,9 +137,9 @@ class GameController(object):
             # move random used as a placeholder for unique algo
             # replace here when the algos are done
             else:
-                print(name)
-                print(f"scatter = {self.scatter}")
-                print(f"ghost state = {ghost.ghost_state}\n")
+                # print(name)
+                # print(f"scatter = {self.scatter}")
+                # print(f"ghost state = {ghost.ghost_state}\n")
                 self.ghost_move: dict[str, Callable[..., Any]] = {
                     "blinky": partial(
                         self.blinky.bfs_move, mazegen, self.pacwoman),
@@ -175,12 +182,6 @@ class GameController(object):
                         self.running = False
                         self.next_level()
                         return
-            if ((event.type == self.scatter_event) and
-                all(ghost.ghost_state == "normal"
-                    for _, (ghost, _) in self.ghosts.items())):
-                print("scatter activated")
-                self.scatter = True
-                self.scatter_timer = self.scatter_duration
 
     def render(self, mazegen: MazeGenerator) -> None:
         """draw images to the screen"""
@@ -263,6 +264,7 @@ class GameController(object):
         # 15 = 1111 tout ferme
 
     def set_up_game(self) -> None:
+        self.time_interval_scatter = 40.0
         self.current_level = 1
         self.load_level(reset_progress=True)
         self.cheat_invincible = False
@@ -477,10 +479,6 @@ class GameController(object):
         self.pinky.x, self.pinky.y = self.pinky_spawn
         self.clyde.x, self.clyde.y = self.clyde_spawn
         self.inky.x, self.inky.y = self.inky_spawn
-
-        # CHECK IF NEEDED OR NOT AFTER FIXING SCATTER MODE
-        # for _, (ghost, _) in self.ghosts.items():
-        #     ghost.ghost_state = "normal"
 
         self.invulnerable_timer = 90
 
