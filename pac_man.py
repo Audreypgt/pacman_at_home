@@ -1,6 +1,5 @@
 import pygame  # type: ignore
 from pygame_menu import widgets  # type: ignore
-# import random
 from mazegenerator import MazeGenerator  # type: ignore
 from parsing import parse
 from pacwoman import PacSpriteSheet, Pacwoman
@@ -44,7 +43,11 @@ class GameController(object):
         self.over = False
         self.won = False
         self.player: widgets.TextInput = None
-        self.pac_sheet = PacSpriteSheet("sprites/pac_sheet.png")
+        self.sprite_w = 42
+        self.sprite_h = 42
+        self.pac_sheet = PacSpriteSheet(
+            "sprites/pac_sheet.png",
+            sprite_w=self.sprite_w, sprite_h=self.sprite_h)
         self.pacgums = Pacgums(
             self.pac_sheet, gum_row=5, gum_col=8, sp_gum_row=6, sp_gum_col=8)
         self.menus = Gamemenus(self)
@@ -57,6 +60,7 @@ class GameController(object):
         self.max_level = max(LEVEL_SEEDS.keys())
         self.cheat_invincible = False
         self.cheat_freeze_time = False
+        self.beat_the_game = False
         pygame.time.set_timer(self.scatter_event, self.time_interval_scatter)
 
     def set_background(self) -> None:
@@ -64,10 +68,6 @@ class GameController(object):
         self.background.fill(BLACK)
 
     def update(self) -> None:
-        """function called once per frame of the game == our game loop
-        call the function that checks the user inputs, and makes the ghosts
-        move
-        """
         self.check_events()
         dt: float = self.clock.get_time() / 1000
 
@@ -84,6 +84,15 @@ class GameController(object):
             if self.respawn_timer <= 0:
                 self.game_state = "playing"
             return
+
+        if not self.cheat_freeze_time:
+            self.time = round(self.time - dt, 2)
+            if self.time <= 0:
+                self.time = 0
+                self.running = False
+                self.won = False
+                self.menus.over_menu()
+                return
 
         keys: pygame.key.ScancodeWrapper = pygame.key.get_pressed()
         self.pacwoman.input(keys)
@@ -143,8 +152,6 @@ class GameController(object):
                         ghost.move_random, mazegen) if "blinky" not in
                     name else partial(self.blinky.bfs_move, mazegen,
                                       self.pacwoman),
-                    # "scared": partial(
-                    #     ghost.scared_move, mazegen, self.pacwoman)
                     }
                 if self.ghost_state != "normal":
                     self.ghost_move[self.ghost_state]()
@@ -176,6 +183,10 @@ class GameController(object):
                         self.running = False
                         self.next_level()
                         return
+                    # On the last level: N acts like winning the level
+                    self.running = False
+                    self.level_complete()
+                    return
             if (event.type == self.scatter_event
                and self.ghost_state == "normal"):
                 self.ghost_state = "scatter"
@@ -266,6 +277,7 @@ class GameController(object):
         self.load_level(reset_progress=True)
         self.cheat_invincible = False
         self.cheat_freeze_time = False
+        self.beat_the_game = False
 
     def restart_game(self) -> None:
         self.set_up_game()
@@ -277,7 +289,11 @@ class GameController(object):
     def level_complete(self) -> None:
         self.running = False
         self.won = True
-        self.menus.over_menu()
+        if self.current_level >= self.max_level:
+            self.beat_the_game = True
+            self.menus.final_win_menu()
+        else:
+            self.menus.over_menu()
 
     def load_level(self, reset_progress: bool) -> None:
         if self.over:
@@ -311,8 +327,8 @@ class GameController(object):
         maze_height = len(mazegen.maze)
         center_col: int = maze_width // 2
         center_row: int = maze_height // 2
-        spawn_x: int = center_col * 50 + (50 - PacSpriteSheet.SPRITE_W) // 2
-        spawn_y: int = center_row * 50 + (50 - PacSpriteSheet.SPRITE_H) // 2
+        spawn_x: int = center_col * 50 + (50 - self.sprite_w) // 2
+        spawn_y: int = center_row * 50 + (50 - self.sprite_h) // 2
         self.pacwoman_spawn = (spawn_x, spawn_y)
         self.pacwoman = Pacwoman(
             spawn_x, spawn_y, pac_sheet, GAME_WIDTH, GAME_HEIGHT)
@@ -324,20 +340,20 @@ class GameController(object):
         # Blinky
         spawn_x_blky = (
             len(mazegen.maze[0]) - 1) * 50 + (
-                50 - PacSpriteSheet.SPRITE_W) // 2
+                50 - self.sprite_w) // 2
         spawn_y_blky = (
             len(mazegen.maze) - 1) * 50 + (
-                50 - PacSpriteSheet.SPRITE_H) // 2
+                50 - self.sprite_h) // 2
         self.blinky_spawn = (spawn_x_blky, spawn_y_blky)
         self.blinky = Blinky(
             spawn_x_blky, spawn_y_blky, pac_sheet,
             GAME_WIDTH, GAME_HEIGHT)
 
         # Pinky
-        spawn_x_pky = (50 - PacSpriteSheet.SPRITE_W) // 2
+        spawn_x_pky = (50 - self.sprite_w) // 2
         spawn_y_pky = (
             len(mazegen.maze) - 1) * 50 + (
-                50 - PacSpriteSheet.SPRITE_H) // 2
+                50 - self.sprite_h) // 2
         self.pinky_spawn = (spawn_x_pky, spawn_y_pky)
         self.pinky = Pinky(
             spawn_x_pky, spawn_y_pky, pac_sheet, GAME_WIDTH, GAME_HEIGHT)
@@ -349,8 +365,8 @@ class GameController(object):
 
         # Inky
         spawn_x_inky = (len(mazegen.maze[0]) - 1) * 50 + (
-                50 - PacSpriteSheet.SPRITE_W) // 2
-        spawn_y_inky = (50 - PacSpriteSheet.SPRITE_H) // 2
+                50 - self.sprite_w) // 2
+        spawn_y_inky = (50 - self.sprite_h) // 2
         self.inky_spawn = (spawn_x_inky, spawn_y_inky)
         self.inky = Inky(
             spawn_x_inky, spawn_y_inky, pac_sheet, GAME_WIDTH, GAME_HEIGHT)
@@ -362,17 +378,8 @@ class GameController(object):
         self.paused = False
         while self.running:
             self.update()
-            if self.cheat_freeze_time:
-                self.clock.tick(60)
-            else:
-                self.time -= self.clock.tick(60) / 1000
-            self.time = round(self.time, 2)
+            self.clock.tick(60)
             self.render(mazegen)
-            if self.time <= 0:
-                self.time = 0
-                self.running = False
-                self.won = False
-                self.menus.over_menu()
 
     def sort_score_file(self) -> None:
         with open(configuration.highscore_filename, 'r') as f:
@@ -400,8 +407,8 @@ class GameController(object):
             return
 
         HIT_MARGIN = 12
-        hit_w = PacSpriteSheet.SPRITE_W - HIT_MARGIN * 2
-        hit_h = PacSpriteSheet.SPRITE_H - HIT_MARGIN * 2
+        hit_w = self.sprite_w - HIT_MARGIN * 2
+        hit_h = self.sprite_h - HIT_MARGIN * 2
 
         pac_rect = pygame.Rect(
             self.pacwoman.x + HIT_MARGIN,

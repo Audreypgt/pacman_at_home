@@ -5,11 +5,11 @@ from mazegenerator import MazeGenerator  # type: ignore
 class PacSpriteSheet():
 
     CELL = 47
-    SPRITE_W = 42
-    SPRITE_H = 42
 
-    def __init__(self, filename: str) -> None:
+    def __init__(self, filename: str, sprite_w: int = 42, sprite_h: int = 42) -> None:
         self.sheet = pygame.image.load(filename).convert_alpha()
+        self.sprite_w = sprite_w
+        self.sprite_h = sprite_h
 
     def get_sprite(self, x: int, y: int, w: int, h: int) -> pygame.Surface:
         sprite = pygame.Surface((w, h), pygame.SRCALPHA)
@@ -19,8 +19,8 @@ class PacSpriteSheet():
     def get_sprite_at(
             self, row: int, col: int, w: int | None = None,
             h: int | None = None) -> pygame.Surface:
-        w = w or self.SPRITE_W
-        h = h or self.SPRITE_H
+        w = w or self.sprite_w
+        h = h or self.sprite_h
         return self.get_sprite(col * self.CELL, row * self.CELL, w, h)
 
 
@@ -31,6 +31,8 @@ class Pacwoman:
         self.y = y
         self.screen_w = screen_w
         self.screen_y = screen_y
+        self.sprite_w = sprite_sheet.sprite_w
+        self.sprite_h = sprite_sheet.sprite_h
         self.direction = (1, 0)
         self.next_direction = (1, 0)
         self.move_speed = 3
@@ -104,8 +106,8 @@ class Pacwoman:
         maze_height = len(mazegen.maze)
         maze_width = len(mazegen.maze[0])
 
-        center_x = self.x + PacSpriteSheet.SPRITE_W // 2
-        center_y = self.y + PacSpriteSheet.SPRITE_H // 2
+        center_x = self.x + self.sprite_w // 2
+        center_y = self.y + self.sprite_h // 2
         col = center_x // MAZE_CELL
         row = center_y // MAZE_CELL
 
@@ -125,7 +127,7 @@ class Pacwoman:
 
         dx, dy = self.direction
 
-        offset = (MAZE_CELL - PacSpriteSheet.SPRITE_W) // 2
+        offset = (MAZE_CELL - self.sprite_w) // 2
         if dx != 0:
             self.y = row * MAZE_CELL + offset
         elif dy != 0:
@@ -137,17 +139,17 @@ class Pacwoman:
         if cell & wall_bit[self.direction]:
             if dx == 1:
                 new_x = min(new_x, col * MAZE_CELL +
-                            (MAZE_CELL - PacSpriteSheet.SPRITE_W))
+                            (MAZE_CELL - self.sprite_w))
             elif dx == -1:
                 new_x = max(new_x, col * MAZE_CELL)
             elif dy == 1:
                 new_y = min(new_y, row * MAZE_CELL +
-                            (MAZE_CELL - PacSpriteSheet.SPRITE_H))
+                            (MAZE_CELL - self.sprite_w))
             elif dy == -1:
                 new_y = max(new_y, row * MAZE_CELL)
 
-        clamped_x = max(0, min(self.screen_w - PacSpriteSheet.SPRITE_W, new_x))
-        clamped_y = max(0, min(self.screen_y - PacSpriteSheet.SPRITE_H, new_y))
+        clamped_x = max(0, min(self.screen_w - self.sprite_w, new_x))
+        clamped_y = max(0, min(self.screen_y - self.sprite_h, new_y))
 
         if clamped_x == self.x and clamped_y == self.y:
             self.state = "idle"

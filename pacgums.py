@@ -15,6 +15,8 @@ class Pacgums:
         self.eat_ghosts: bool = False
         self.scared_duration: float = scared_duration
         self.scared_timer: float = 0.0
+        self.sprite_h = 42
+        self.sprite_w = 42
 
         self.pacgum_img = pygame.transform.scale(
             sprite_sheet.get_sprite_at(gum_row, gum_col), (25, 25))
@@ -28,8 +30,8 @@ class Pacgums:
         self.eat_ghosts = False
         self.scared_timer = 0.0
 
-        pac_col = (pacwoman.x + PacSpriteSheet.SPRITE_W // 2) // MAZE_CELL
-        pac_row = (pacwoman.y + PacSpriteSheet.SPRITE_H // 2) // MAZE_CELL
+        pac_col = (pacwoman.x + self.sprite_w // 2) // MAZE_CELL
+        pac_row = (pacwoman.y + self.sprite_h// 2) // MAZE_CELL
 
         for row, lines in enumerate(mazegen.maze):
             for col, cell in enumerate(lines):
@@ -54,8 +56,8 @@ class Pacgums:
         self.score = 0
 
     def eat(self, pacwoman: Pacwoman) -> None:
-        center_x = pacwoman.x + PacSpriteSheet.SPRITE_W // 2
-        center_y = pacwoman.y + PacSpriteSheet.SPRITE_H // 2
+        center_x = pacwoman.x + self.sprite_w // 2
+        center_y = pacwoman.y + self.sprite_h // 2
         col = center_x // MAZE_CELL
         row = center_y // MAZE_CELL
 

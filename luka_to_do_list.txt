@@ -7,8 +7,9 @@ super pacgums animation -> done
 game over/win score name -> done
 multiple levels with fixed maze per levels -> done
 win game screen, add next level button -> done
-instructions screen
-
+instructions screen -> done
+pimper instructions -> done
+changer couleur de background dans instructions
 
 cheat mode:
 pause time, invicibility, next level button -> done

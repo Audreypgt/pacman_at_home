@@ -64,8 +64,8 @@ class Ghosts(Pacwoman):
         self.move_speed = 1
         self.animation_speed = 1.5
         self.flash_animation_speed = 8
-        self.coord_x = (self.x + PacSpriteSheet.SPRITE_W // 2) // 50
-        self.coord_y = (self.y + PacSpriteSheet.SPRITE_H // 2) // 50
+        self.coord_x = (self.x + self.sprite_w // 2) // 50
+        self.coord_y = (self.y + self.sprite_h // 2) // 50
         self.curr_cell: tuple[int, int] = (self.coord_x, self.coord_y)
 
     def update(self) -> None:
@@ -93,7 +93,7 @@ class Ghosts(Pacwoman):
 
     def is_centered(self) -> bool:
         MAZE_CELL = 50
-        offset = (MAZE_CELL - PacSpriteSheet.SPRITE_W) // 2
+        offset = (MAZE_CELL - self.sprite_w) // 2
         return (self.x - offset) % MAZE_CELL == 0 and \
             (self.y - offset) % MAZE_CELL == 0
 
@@ -118,8 +118,8 @@ class Ghosts(Pacwoman):
         maze_height = len(mazegen.maze)
         maze_width = len(mazegen.maze[0])
 
-        center_x = self.x + PacSpriteSheet.SPRITE_W // 2
-        center_y = self.y + PacSpriteSheet.SPRITE_H // 2
+        center_x = self.x + self.sprite_w // 2
+        center_y = self.y + self.sprite_h // 2
         col = center_x // MAZE_CELL
         row = center_y // MAZE_CELL
 
@@ -162,10 +162,10 @@ class Ghosts(Pacwoman):
 
     def scatter_mode(self, mazegen: MazeGenerator, spawn_x: int, spawn_y: int
                      ) -> bool:
-        self.coord_x = (self.x + PacSpriteSheet.SPRITE_W // 2) // 50
-        self.coord_y = (self.y + PacSpriteSheet.SPRITE_H // 2) // 50
-        spawn_x = (spawn_x + PacSpriteSheet.SPRITE_W // 2) // 50
-        spawn_y = (spawn_y + PacSpriteSheet.SPRITE_W // 2) // 50
+        self.coord_x = (self.x + self.sprite_w // 2) // 50
+        self.coord_y = (self.y + self.sprite_h // 2) // 50
+        spawn_x = (spawn_x + self.sprite_w // 2) // 50
+        spawn_y = (spawn_y + self.sprite_w // 2) // 50
 
         if (self.coord_x, self.coord_y) == (spawn_x, spawn_y):
             self.dead = False
@@ -226,8 +226,8 @@ class Ghosts(Pacwoman):
         if not self.on_spawn:
             super().move(mazegen)
 
-        curr_x = (self.x + PacSpriteSheet.SPRITE_W // 2) // 50
-        curr_y = (self.y + PacSpriteSheet.SPRITE_H // 2) // 50
+        curr_x = (self.x + self.sprite_w // 2) // 50
+        curr_y = (self.y + self.sprite_h // 2) // 50
 
         if (curr_x, curr_y) != self.curr_cell and self.state == "moving":
             self.on_spawn = self.scatter_mode(mazegen, spawn_x, spawn_y)
@@ -267,10 +267,10 @@ class Blinky(Ghosts):
             self, mazegen: MazeGenerator, pacwoman: Pacwoman) -> None:
         # coords are received as nb of pixels so we convert to
         # (x, y) coordinates
-        self.coord_x = (self.x + PacSpriteSheet.SPRITE_W // 2) // 50
-        self.coord_y = (self.y + PacSpriteSheet.SPRITE_H // 2) // 50
-        pw_x = (pacwoman.x + PacSpriteSheet.SPRITE_W // 2) // 50
-        pw_y = (pacwoman.y + PacSpriteSheet.SPRITE_H // 2) // 50
+        self.coord_x = (self.x + self.sprite_w // 2) // 50
+        self.coord_y = (self.y + self.sprite_h // 2) // 50
+        pw_x = (pacwoman.x + self.sprite_w // 2) // 50
+        pw_y = (pacwoman.y + self.sprite_h // 2) // 50
 
         pacwoman_loc = pw_x, pw_y
         queue: deque[tuple[int, int]] = deque()
@@ -323,8 +323,8 @@ class Blinky(Ghosts):
         if self.is_centered() and self.state == "moving":
             self.choose_bfs_direction(mazegen, pacwoman)
 
-        curr_x = (self.x + PacSpriteSheet.SPRITE_W // 2) // 50
-        curr_y = (self.y + PacSpriteSheet.SPRITE_H // 2) // 50
+        curr_x = (self.x + self.sprite_w // 2) // 50
+        curr_y = (self.y + self.sprite_h // 2) // 50
         self.curr_cell = (curr_x, curr_y)
 
 
