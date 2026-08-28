@@ -234,26 +234,14 @@ class Ghosts(Pacwoman):
 
         self.curr_cell = (curr_x, curr_y)
 
-    def choose_bfs_direction(
-            self, mazegen: MazeGenerator, pacwoman: Pacwoman,
-            pinky: bool) -> None:
+    def find_bfs_path(
+            self, mazegen: MazeGenerator, pacwoman: Pacwoman) -> None:
         # coords are received as nb of pixels so we convert to
         # (x, y) coordinates
         self.coord_x = (self.x + PacSpriteSheet.SPRITE_W // 2) // 50
         self.coord_y = (self.y + PacSpriteSheet.SPRITE_H // 2) // 50
         pw_x = (pacwoman.x + PacSpriteSheet.SPRITE_W // 2) // 50
         pw_y = (pacwoman.y + PacSpriteSheet.SPRITE_H // 2) // 50
-
-        if pinky:
-            pw_dir = pacwoman.direction
-            if pw_dir[0] == 1:
-                pw_x += 4
-            elif pw_dir[0] == -1:
-                pw_x -= 4
-            elif pw_dir[1] == 1:
-                pw_y += 4
-            elif pw_dir[1] == -1:
-                pw_y -= 4
 
         pacwoman_loc = pw_x, pw_y
         queue: deque[tuple[int, int]] = deque()
@@ -279,24 +267,10 @@ class Ghosts(Pacwoman):
                     parent.update({((new_x), (new_y)): (v_x, v_y)})
                     queue.append(((new_x), (new_y)))
 
-        path: list[tuple[int, int]] = [pacwoman_loc]
-        while parent.get(path[-1]) is not None:
-            path.append(parent[path[-1]])
-        path = path[::-1]
-
-        # Condition in case anything goes wrong and no path is found
-        # even though it shouldn't happen
-        if len(path) >= 2:
-            # next step for ghost is second to last coordinates, since last
-            # one is the current location
-            next_x, next_y = path[1]
-            self.direction = (next_x - self.coord_x), (next_y - self.coord_y)
-            self.next_direction = self.direction
-            self.state = "moving"
-            return
-        else:
-            self.choose_random_direction(mazegen)
-            return
+        self.path: list[tuple[int, int]] = [pacwoman_loc]
+        while parent.get(self.path[-1]) is not None:
+            self.path.append(parent[self.path[-1]])
+        self.path = self.path[::-1]
 
 
 class Blinky(Ghosts):
@@ -327,13 +301,32 @@ class Blinky(Ghosts):
                 ]
         }
 
+    def choose_bfs_direction(
+            self, mazegen: MazeGenerator, pacwoman: Pacwoman) -> None:
+        # Condition in case anything goes wrong and no path is found
+        # even though it shouldn't happen
+        # if len(self.path) >= 2:
+
+        # next step for ghost is second to last coordinates, since last
+        # one is the current location
+        next_x, next_y = self.path[1]
+        self.direction = (next_x - self.coord_x), (next_y - self.coord_y)
+        self.next_direction = self.direction
+        self.state = "moving"
+
+        #     # return
+        # else:
+        #     self.choose_random_direction(mazegen)
+        #     return
+
     def bfs_move(self, mazegen: MazeGenerator, pacwoman: Pacwoman) -> None:
         if self.state != "moving":
-            self.choose_bfs_direction(mazegen, pacwoman, False)
+            self.find_bfs_path(mazegen, pacwoman)
+            self.choose_bfs_direction(mazegen, pacwoman)
         super().move(mazegen)
 
         if self.is_centered() and self.state == "moving":
-            self.choose_bfs_direction(mazegen, pacwoman, False)
+            self.find_bfs_path(mazegen, pacwoman)
 
         curr_x = (self.x + PacSpriteSheet.SPRITE_W // 2) // 50
         curr_y = (self.y + PacSpriteSheet.SPRITE_H // 2) // 50
@@ -367,13 +360,25 @@ class Pinky(Ghosts):
                 ]
         }
 
+    def choose_bfs_direction(
+            self, mazegen: MazeGenerator, pacwoman: Pacwoman) -> None:
+
+        pacwoman_dir = pacwoman.direction
+        if pacwoman_dir == (1, 0):
+            
+        next_x, next_y = self.path[1]
+        self.direction = (next_x - self.coord_x), (next_y - self.coord_y)
+        self.next_direction = self.direction
+        self.state = "moving"
+
     def bfs_move(self, mazegen: MazeGenerator, pacwoman: Pacwoman) -> None:
         if self.state != "moving":
-            self.choose_bfs_direction(mazegen, pacwoman, True)
+            self.find_bfs_path(mazegen, pacwoman)
+            self.choose_bfs_direction(mazegen, pacwoman)
         super().move(mazegen)
 
         if self.is_centered() and self.state == "moving":
-            self.choose_bfs_direction(mazegen, pacwoman, True)
+            self.find_bfs_path(mazegen, pacwoman)
 
         curr_x = (self.x + PacSpriteSheet.SPRITE_W // 2) // 50
         curr_y = (self.y + PacSpriteSheet.SPRITE_H // 2) // 50

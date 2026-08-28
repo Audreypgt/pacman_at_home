@@ -144,7 +144,8 @@ class GameController(object):
                     "blinky": partial(
                         self.blinky.bfs_move, mazegen, self.pacwoman),
                     "inky": partial(self.inky.move_random, mazegen),
-                    "pinky": partial(self.pinky.move_random, mazegen),
+                    "pinky": partial(
+                        self.pinky.bfs_move, mazegen, self.pacwoman),
                     "clyde": partial(self.clyde.move_random, mazegen),
                     "scatter": partial(
                         ghost.scatter_move, mazegen, spawn[0],
