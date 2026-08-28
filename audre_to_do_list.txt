@@ -1,6 +1,6 @@
-- Pinky algo
+- Pinky algo -> done
 
-- Scare mode (behavior to be defined)
+- Scare mode -> done
 
 - Change maze size with config file width/height for each level
     + Change screen window size to a percentage of the screen

@@ -53,20 +53,22 @@ class GameController(object):
         self.menus = Gamemenus(self)
         self.scatter_duration: float = 6.0
         self.scatter_timer: float = 0.0
-        self.time_interval_scatter: int = 40000
-        self.scatter_event = pygame.USEREVENT+1
+        self.time_interval_scatter: float = 40.0
         self.current_level = 1
         self.max_level = max(LEVEL_SEEDS.keys())
         self.cheat_invincible = False
         self.cheat_freeze_time = False
         self.beat_the_game = False
-        pygame.time.set_timer(self.scatter_event, self.time_interval_scatter)
 
     def set_background(self) -> None:
         self.background = pygame.Surface(SCREENSIZE).convert()
         self.background.fill(BLACK)
 
     def update(self) -> None:
+        """function called once per frame of the game == our game loop
+        call the function that checks the user inputs, and makes the ghosts
+        move
+        """
         # Cap dt so a long pause (or any blocking menu) can't drain the
         # timer all at once on the first frame after we resume.
         dt: float = min(self.clock.get_time() / 1000, 0.1)
@@ -97,7 +99,8 @@ class GameController(object):
         self.check_events()
 
         if self.time_interval_scatter > 0:
-            self.time_interval_scatter = self.time_interval_scatter - dt
+            self.time_interval_scatter = round(
+                self.time_interval_scatter - dt, 2)
         else:
             self.time_interval_scatter = 40.0
 
@@ -132,6 +135,7 @@ class GameController(object):
             for _, (ghost, _) in self.ghosts.items():
                 if ghost.ghost_state == "normal":
                     ghost.ghost_state = "scatter"
+            print(self.scatter_timer)
             self.scatter_timer -= dt
             if self.scatter_timer <= 0:
                 for _, (ghost, _) in self.ghosts.items():
@@ -146,12 +150,9 @@ class GameController(object):
                     mazegen, spawn[0], spawn[1])
 
             # TODO
-            # move random used as a placeholder for unique algo
+            # move_random used as a placeholder for unique algo
             # replace here when the algos are done
             else:
-                # print(name)
-                # print(f"scatter = {self.scatter}")
-                # print(f"ghost state = {ghost.ghost_state}\n")
                 self.ghost_move: dict[str, Callable[..., Any]] = {
                     "blinky": partial(
                         self.blinky.bfs_move, mazegen, self.pacwoman),
@@ -313,6 +314,7 @@ class GameController(object):
             self.over = False
         self.clock = pygame.time.Clock()
         self.time = 120.0
+        self.time_interval_scatter = 40.0
         self.running = True
         self.won = False
         self.invulnerable_timer = 0
@@ -391,7 +393,7 @@ class GameController(object):
         self.start_game()
 
     def start_game(self) -> None:
-        """create maze, check user inputs and render new elements"""
+        """set clock, update game, check user inputs and render new elements"""
         self.paused = False
         # Reset the clock so the first update() after a long pause
         # doesn't see a huge dt and drain the timer.
@@ -497,6 +499,7 @@ class GameController(object):
         self.inky.x, self.inky.y = self.inky_spawn
 
         self.invulnerable_timer = 90
+        self.time_interval_scatter = 40.0
 
 
 if __name__ == "__main__":
