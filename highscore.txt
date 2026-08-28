@@ -8,3 +8,4 @@ barnabe: 120
 LOOSER: 100
 player: 100
 test"é": 90
+Player: 0

@@ -234,43 +234,26 @@ class Ghosts(Pacwoman):
 
         self.curr_cell = (curr_x, curr_y)
 
-
-class Blinky(Ghosts):
-    def __init__(self, x: int, y: int, sprite_sheet: PacSpriteSheet,
-                 screen_w: int, screen_y: int) -> None:
-        super().__init__(x, y, sprite_sheet, screen_w, screen_y)
-
-        self.frame_sets = {
-            # West
-            (-1, 0): [
-                sprite_sheet.get_sprite_at(4, 0),
-                sprite_sheet.get_sprite_at(5, 0)
-                ],
-            # East
-            (1, 0): [
-                sprite_sheet.get_sprite_at(0, 0),
-                sprite_sheet.get_sprite_at(1, 0),
-                ],
-            # South
-            (0, 1): [
-                sprite_sheet.get_sprite_at(2, 0),
-                sprite_sheet.get_sprite_at(3, 0),
-                ],
-            # North
-            (0, -1): [
-                sprite_sheet.get_sprite_at(6, 0),
-                sprite_sheet.get_sprite_at(7, 0)
-                ]
-        }
-
     def choose_bfs_direction(
-            self, mazegen: MazeGenerator, pacwoman: Pacwoman) -> None:
+            self, mazegen: MazeGenerator, pacwoman: Pacwoman,
+            pinky: bool) -> None:
         # coords are received as nb of pixels so we convert to
         # (x, y) coordinates
         self.coord_x = (self.x + self.sprite_w // 2) // 50
         self.coord_y = (self.y + self.sprite_h // 2) // 50
         pw_x = (pacwoman.x + self.sprite_w // 2) // 50
         pw_y = (pacwoman.y + self.sprite_h // 2) // 50
+
+        if pinky:
+            pw_dir = pacwoman.direction
+            if pw_dir[0] == 1:
+                pw_x += 4
+            elif pw_dir[0] == -1:
+                pw_x -= 4
+            elif pw_dir[1] == 1:
+                pw_y += 4
+            elif pw_dir[1] == -1:
+                pw_y -= 4
 
         pacwoman_loc = pw_x, pw_y
         queue: deque[tuple[int, int]] = deque()
@@ -315,13 +298,42 @@ class Blinky(Ghosts):
             self.choose_random_direction(mazegen)
             return
 
+
+class Blinky(Ghosts):
+    def __init__(self, x: int, y: int, sprite_sheet: PacSpriteSheet,
+                 screen_w: int, screen_y: int) -> None:
+        super().__init__(x, y, sprite_sheet, screen_w, screen_y)
+
+        self.frame_sets = {
+            # West
+            (-1, 0): [
+                sprite_sheet.get_sprite_at(4, 0),
+                sprite_sheet.get_sprite_at(5, 0)
+                ],
+            # East
+            (1, 0): [
+                sprite_sheet.get_sprite_at(0, 0),
+                sprite_sheet.get_sprite_at(1, 0),
+                ],
+            # South
+            (0, 1): [
+                sprite_sheet.get_sprite_at(2, 0),
+                sprite_sheet.get_sprite_at(3, 0),
+                ],
+            # North
+            (0, -1): [
+                sprite_sheet.get_sprite_at(6, 0),
+                sprite_sheet.get_sprite_at(7, 0)
+                ]
+        }
+
     def bfs_move(self, mazegen: MazeGenerator, pacwoman: Pacwoman) -> None:
         if self.state != "moving":
-            self.choose_bfs_direction(mazegen, pacwoman)
+            self.choose_bfs_direction(mazegen, pacwoman, False)
         super().move(mazegen)
 
         if self.is_centered() and self.state == "moving":
-            self.choose_bfs_direction(mazegen, pacwoman)
+            self.choose_bfs_direction(mazegen, pacwoman, False)
 
         curr_x = (self.x + self.sprite_w // 2) // 50
         curr_y = (self.y + self.sprite_h // 2) // 50
@@ -332,7 +344,6 @@ class Pinky(Ghosts):
     def __init__(self, x: int, y: int, sprite_sheet: PacSpriteSheet,
                  screen_w: int, screen_y: int) -> None:
         super().__init__(x, y, sprite_sheet, screen_w, screen_y)
-
         self.frame_sets = {
             # West
             (-1, 0): [
@@ -355,6 +366,18 @@ class Pinky(Ghosts):
                 sprite_sheet.get_sprite_at(7, 1)
                 ]
         }
+
+    def bfs_move(self, mazegen: MazeGenerator, pacwoman: Pacwoman) -> None:
+        if self.state != "moving":
+            self.choose_bfs_direction(mazegen, pacwoman, True)
+        super().move(mazegen)
+
+        if self.is_centered() and self.state == "moving":
+            self.choose_bfs_direction(mazegen, pacwoman, True)
+
+        curr_x = (self.x + PacSpriteSheet.SPRITE_W // 2) // 50
+        curr_y = (self.y + PacSpriteSheet.SPRITE_H // 2) // 50
+        self.curr_cell = (curr_x, curr_y)
 
 
 class Clyde(Ghosts):
