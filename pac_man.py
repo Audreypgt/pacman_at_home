@@ -197,13 +197,28 @@ class GameController(object):
                         self.menus.leaderboard_menu()
                 else:
                     if event.key == pygame.K_ESCAPE:
-                        self.menus.pause_menu()
                         self.paused = True
-                    if event.key == pygame.K_i:
+                        self.menus.pause_menu()
+                    if self.menus.paused_menu:
+                        if event.key == pygame.K_q:
+                            pygame.quit()
+                            quit()
+                        elif event.key == pygame.K_SPACE:
+                            self.menus.paused_menu = False
+                            self.start_game()
+                        elif event.key == pygame.K_RETURN:
+                            self.menus.paused_menu = False
+                            self.restart_game()
+
+                        elif event.key == pygame.K_m:
+                            self.menus.paused_menu = False
+                            self.menus.start_menu()
+
+                    elif event.key == pygame.K_i:
                         self.cheat_invincible = not self.cheat_invincible
-                    if event.key == pygame.K_p:
+                    elif event.key == pygame.K_p:
                         self.cheat_freeze_time = not self.cheat_freeze_time
-                    if event.key == pygame.K_n:
+                    elif event.key == pygame.K_n:
                         if self.current_level < self.max_level:
                             self.running = False
                             self.next_level()

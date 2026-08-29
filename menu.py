@@ -71,15 +71,14 @@ class Gamemenus:
             ]
 
     def start_menu(self) -> None:
-        print("hi")
         self.started_menu = True
-        theme = pacwoman_theme()
+        self.theme = pacwoman_theme()
         while self.started_menu:
             pacwoman_logo = pygame.image.load(
                 "sprites/pacwoman_logo.png")
             x = (self.game.screen.get_width()) // 5
             y = 50
-            font = pygame.font.SysFont(theme.title_font, 50)
+            font = pygame.font.SysFont(self.theme.title_font, 50)
             start_text = font.render(
                 "Press SPACE to start", True, pac_man.YELLOW)
             instruc_text = font.render(
@@ -109,13 +108,38 @@ class Gamemenus:
         # main_menu.mainloop(self.game.screen)
 
     def pause_menu(self) -> None:
-        main_menu = pygame_menu.Menu(
-            "PacWoman", 600, 400, theme=pacwoman_theme(600, 400))
-        main_menu.add.button("Resume", self.game.start_game)
-        main_menu.add.button("Restart", self.game.restart_game)
-        main_menu.add.button("Main Menu", self.start_menu)
-        main_menu.add.button("Quit", pygame_menu.events.EXIT)
-        main_menu.mainloop(self.game.screen)
+        self.paused_menu = True
+        while self.paused_menu:
+            pacwoman_logo = pygame.image.load(
+                "sprites/pacwoman_logo.png")
+            x = (self.game.screen.get_width()) // 5
+            y = 50
+            font = pygame.font.SysFont(self.theme.title_font, 50)
+            resume_text = font.render(
+                "Press SPACE to resume", True, pac_man.YELLOW)
+            restart_text = font.render(
+                "Press ENTER to restart", True, pac_man.YELLOW)
+            mainmen_text = font.render(
+                "Press M to go back to main menu", True, pac_man.YELLOW)
+            quit_text = font.render("Press Q to quit", True, pac_man.YELLOW)
+
+            self.game.screen.fill(pac_man.BLACK)
+            self.game.screen.blit(pacwoman_logo, (x, y))
+            self.game.screen.blit(resume_text, (x, y + 300))
+            self.game.screen.blit(restart_text, (x, y + 400))
+            self.game.screen.blit(mainmen_text, (x, y + 500))
+            self.game.screen.blit(quit_text, (x, y + 600))
+
+            self.game.check_events()
+            pygame.display.update()
+
+        # main_menu = pygame_menu.Menu(
+        #     "PacWoman", 600, 400, theme=pacwoman_theme(600, 400))
+        # main_menu.add.button("Resume", self.game.start_game)
+        # main_menu.add.button("Restart", self.game.restart_game)
+        # main_menu.add.button("Main Menu", self.start_menu)
+        # main_menu.add.button("Quit", pygame_menu.events.EXIT)
+        # main_menu.mainloop(self.game.screen)
 
     def over_menu(self) -> None:
         self.game.over = True
