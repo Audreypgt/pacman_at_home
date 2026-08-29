@@ -3,6 +3,7 @@ import pygame  # type: ignore
 import pygame_menu  # type: ignore
 from pygame_menu import themes
 from pac_man import GameController
+import pac_man
 from pacwoman import PacSpriteSheet
 
 SPRITES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sprites")
@@ -36,7 +37,6 @@ def pacwoman_theme(width: int = 600, height: int = 700) -> themes.Theme:
 
 
 class Gamemenus:
-
     def __init__(self, game: GameController):
         self.game = game
         self.num_frames = 41
@@ -50,7 +50,8 @@ class Gamemenus:
         )
         full = self.control_sheet.get_sprite_at(0, 0, sheet_w, sheet_h)
         self.controls_frames: list[pygame.Surface] = [
-            full.subsurface((i * self.sprite_w, 0, self.sprite_w, self.sprite_h))
+            full.subsurface((i * self.sprite_w, 0,
+                             self.sprite_w, self.sprite_h))
             for i in range(self.num_frames)
         ]
         self.controls_frame_index = 0
@@ -70,13 +71,42 @@ class Gamemenus:
             ]
 
     def start_menu(self) -> None:
-        main_menu = pygame_menu.Menu(
-            "PacWoman", 600, 400, theme=pacwoman_theme(600, 400))
-        main_menu.add.button("Play", self.game.set_up_game)
-        main_menu.add.button("Instructions", self.instructions_menu)
-        main_menu.add.button("Leaderboard", self.leaderboard_menu)
-        main_menu.add.button("Quit", pygame_menu.events.EXIT)
-        main_menu.mainloop(self.game.screen)
+        print("hi")
+        self.started_menu = True
+        theme = pacwoman_theme()
+        while self.started_menu:
+            pacwoman_logo = pygame.image.load(
+                "sprites/pacwoman_logo.png")
+            x = (self.game.screen.get_width()) // 5
+            y = 50
+            font = pygame.font.SysFont(theme.title_font, 50)
+            start_text = font.render(
+                "Press SPACE to start", True, pac_man.YELLOW)
+            instruc_text = font.render(
+                "Press H for instructions", True, pac_man.YELLOW)
+            ldbd_text = font.render(
+                "Press L for leaderboard", True, pac_man.YELLOW)
+            quit_text = font.render("Press Q to quit", True, pac_man.YELLOW)
+
+            self.game.screen.fill(pac_man.BLACK)
+            self.game.screen.blit(pacwoman_logo, (x, y))
+            self.game.screen.blit(start_text, (x, y + 300))
+            self.game.screen.blit(instruc_text, (x, y + 400))
+            self.game.screen.blit(ldbd_text, (x, y + 500))
+            self.game.screen.blit(quit_text, (x, y + 600))
+
+            self.game.check_events()
+            pygame.display.update()
+
+        self.game.set_up_game()
+
+        # main_menu = pygame_menu.Menu(
+        #     "PacWoman", 600, 400, theme=pacwoman_theme(600, 400))
+        # main_menu.add.button("Play", self.game.set_up_game)
+        # main_menu.add.button("Instructions", self.instructions_menu)
+        # main_menu.add.button("Leaderboard", self.leaderboard_menu)
+        # main_menu.add.button("Quit", pygame_menu.events.EXIT)
+        # main_menu.mainloop(self.game.screen)
 
     def pause_menu(self) -> None:
         main_menu = pygame_menu.Menu(
