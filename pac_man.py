@@ -23,6 +23,7 @@ SCREENSIZE = (SCREENWIDTH, SCREENHEIGHT)
 BLACK = (0, 0, 0)
 PINK = (255, 209, 220)
 YELLOW = (255, 255, 0)
+WHITE = (255, 255, 255)
 
 LEVEL_SEEDS = {1: 41, 2: 42, 3: 43, 4: 44, 5: 45, 6: 46, 7: 47,
                8: 48, 9: 49, 10: 40}
@@ -135,7 +136,6 @@ class GameController(object):
             for _, (ghost, _) in self.ghosts.items():
                 if ghost.ghost_state == "normal":
                     ghost.ghost_state = "scatter"
-            print(self.scatter_timer)
             self.scatter_timer -= dt
             if self.scatter_timer <= 0:
                 for _, (ghost, _) in self.ghosts.items():
@@ -184,7 +184,6 @@ class GameController(object):
                 pygame.quit()
                 quit()
             if event.type == pygame.KEYDOWN:
-                print(self.menus.started_menu)
                 if self.menus.started_menu:
                     if event.key == pygame.K_q:
                         pygame.quit()
@@ -192,9 +191,22 @@ class GameController(object):
                     elif event.key == pygame.K_SPACE:
                         self.menus.started_menu = False
                     elif event.key == pygame.K_h:
+                        self.menus.started_menu = False
                         self.menus.instructions_menu()
                     elif event.key == pygame.K_l:
+                        self.menus.started_menu = False
                         self.menus.leaderboard_menu()
+                if self.menus.ldbd_menu:
+                    if self.won:
+                        if event.key == pygame.K_q:
+                            pygame.quit()
+                            quit()
+                        elif event.key == pygame.K_n:
+                            self.menus.ldbd_menu = False
+                            self.next_level()
+                    elif event.key == pygame.K_m:
+                        self.menus.ldbd_menu = False
+                        self.menus.start_menu()
                 else:
                     if event.key == pygame.K_ESCAPE:
                         self.paused = True

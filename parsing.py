@@ -157,7 +157,6 @@ class Configuration(BaseModel):
 
 class JSONWithCommentsDecoder(json.JSONDecoder):
     def init(self, **kw) -> None:
-        print(type(kw))
         super().__init__(**kw)
 
     def decode(self, s: str, _: Callable[..., Any] = lambda: "") -> Any:
