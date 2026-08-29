@@ -128,7 +128,7 @@ class Ghosts(Pacwoman):
             return
 
         cell = mazegen.maze[row][col]
-        # reverse = (-self.direction[0], -self.direction[1])
+        reverse = (-self.direction[0], -self.direction[1])
         possible_directions = []
         for direction, wall_bit in {
             (0, -1): 1,
@@ -139,9 +139,10 @@ class Ghosts(Pacwoman):
             if not (cell & wall_bit):
                 possible_directions.append(direction)
 
-        # non_reverse = [d for d in possible_directions if d != reverse]
-        # if non_reverse:
-        #     possible_directions = non_reverse
+        # classic rule: no immediate U-turn unless it is the only way out
+        non_reverse = [d for d in possible_directions if d != reverse]
+        if non_reverse:
+            possible_directions = non_reverse
 
         if possible_directions:
             self.direction = random.choice(possible_directions)
@@ -216,23 +217,68 @@ class Ghosts(Pacwoman):
 
         return False
 
+    def snap_to_cell_center(self) -> None:
+        """realign the sprite on its cell's centre slot"""
+        col = (self.x + self.sprite_w // 2) // 50
+        row = (self.y + self.sprite_h // 2) // 50
+        offset = (50 - self.sprite_w) // 2
+        self.x = col * 50 + offset
+        self.y = row * 50 + offset
+
+    def crossed_cell_center(self, old_x: int, old_y: int) -> bool:
+        offset = (50 - self.sprite_w) // 2
+        for old, new in ((old_x, self.x), (old_y, self.y)):
+            if old == new:
+                continue
+            delta = (old - offset) % 50
+            if delta == 0:
+                continue
+            if new < old:
+                if new <= old - delta:
+                    return True
+            else:
+                if new >= old + (50 - delta):
+                    return True
+        return False
+
     def scatter_move(self, mazegen: MazeGenerator, spawn_x: int, spawn_y: int
                      ) -> None:
         self.on_spawn = False
 
-        if self.is_centered() and self.state != "moving":
+        if self.state != "moving":
+            self.snap_to_cell_center()
             self.on_spawn = self.scatter_mode(mazegen, spawn_x, spawn_y)
 
         if not self.on_spawn:
+            old_x, old_y = self.x, self.y
             super().move(mazegen)
 
-        curr_x = (self.x + self.sprite_w // 2) // 50
-        curr_y = (self.y + self.sprite_h // 2) // 50
+            if (self.crossed_cell_center(old_x, old_y)
+                    and self.state == "moving"):
+                self.snap_to_cell_center()
+                self.on_spawn = self.scatter_mode(mazegen, spawn_x, spawn_y)
 
-        if (curr_x, curr_y) != self.curr_cell and self.state == "moving":
-            self.on_spawn = self.scatter_mode(mazegen, spawn_x, spawn_y)
+        self.curr_cell = ((self.x + self.sprite_w // 2) // 50,
+                          (self.y + self.sprite_h // 2) // 50)
 
-        self.curr_cell = (curr_x, curr_y)
+    def bfs_distances(
+            self, mazegen: MazeGenerator,
+            target: tuple[int, int]) -> dict[tuple[int, int], int]:
+        """BFS from target: BFS distance of every reachable cell"""
+        maze_width = len(mazegen.maze[0])
+        maze_height = len(mazegen.maze)
+        if not (0 <= target[0] < maze_width and 0 <= target[1] < maze_height):
+            return {}
+        distances: dict[tuple[int, int], int] = {target: 0}
+        queue: deque[tuple[int, int]] = deque([target])
+        while queue:
+            v_x, v_y = queue.popleft()
+            for dir_x, dir_y in self.find_neighbors(mazegen, v_x, v_y):
+                new_cell = (v_x + dir_x, v_y + dir_y)
+                if new_cell not in distances:
+                    distances[new_cell] = distances[(v_x, v_y)] + 1
+                    queue.append(new_cell)
+        return distances
 
     def choose_bfs_direction(
             self, mazegen: MazeGenerator, pacwoman: Pacwoman,
@@ -254,6 +300,9 @@ class Ghosts(Pacwoman):
                 pw_y += 4
             elif pw_dir[1] == -1:
                 pw_y -= 4
+
+        pw_x = max(0, min(pw_x, len(mazegen.maze[0]) - 1))
+        pw_y = max(0, min(pw_y, len(mazegen.maze) - 1))
 
         pacwoman_loc = pw_x, pw_y
         queue: deque[tuple[int, int]] = deque()
@@ -283,15 +332,24 @@ class Ghosts(Pacwoman):
         while parent.get(path[-1]) is not None:
             path.append(parent[path[-1]])
         path = path[::-1]
-
-        # Condition in case anything goes wrong and no path is found
-        # even though it shouldn't happen
         if len(path) >= 2:
-            # next step for ghost is second to last coordinates, since last
-            # one is the current location
             next_x, next_y = path[1]
-            self.direction = (next_x - self.coord_x), (next_y - self.coord_y)
-            self.next_direction = self.direction
+            next_dir = (next_x - self.coord_x), (next_y - self.coord_y)
+            reverse = (-self.direction[0], -self.direction[1])
+            if next_dir == reverse:
+                alternatives = [
+                    d for d in self.find_neighbors(
+                        mazegen, self.coord_x, self.coord_y)
+                    if d != reverse]
+                if alternatives:
+                    distances = self.bfs_distances(mazegen, pacwoman_loc)
+                    next_dir = min(
+                        alternatives,
+                        key=lambda d: distances.get(
+                            (self.coord_x + d[0], self.coord_y + d[1]),
+                            float("inf")))
+            self.direction = next_dir
+            self.next_direction = next_dir
             self.state = "moving"
             return
         else:
