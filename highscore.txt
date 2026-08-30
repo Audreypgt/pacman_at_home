@@ -1,8 +1,9 @@
 Luka: 15820
-Player: 8820
+lulu: 14420
+Player: 12020
 testagain: 3560
 jauline: 2260
-egrgtrgefregrtgrtgrgref: 200
+egrgtrgefreg: 200
 luka: 130
 barnabe: 120
 LOOSER: 100

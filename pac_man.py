@@ -23,6 +23,10 @@ SCREENSIZE = (SCREENWIDTH, SCREENHEIGHT)
 BLACK = (0, 0, 0)
 PINK = (255, 209, 220)
 YELLOW = (255, 255, 0)
+WHITE = (255, 255, 255)
+
+WALL_WIDTH = 12
+WALL_INNER_WIDTH = 4
 
 LEVEL_SEEDS = {1: 41, 2: 42, 3: 43, 4: 44, 5: 45, 6: 46, 7: 47,
                8: 48, 9: 49, 10: 40}
@@ -38,6 +42,7 @@ class GameController(object):
         self.game_surface = self.screen.subsurface(
             pygame.Rect(0, GUI_HEIGHT, GAME_WIDTH, GAME_HEIGHT))
         self.background: pygame.surface.Surface = None
+        self.maze_surface: pygame.surface.Surface = None
         self.running = False
         self.scatter = False
         self.over = False
@@ -135,7 +140,6 @@ class GameController(object):
             for _, (ghost, _) in self.ghosts.items():
                 if ghost.ghost_state == "normal":
                     ghost.ghost_state = "scatter"
-            print(self.scatter_timer)
             self.scatter_timer -= dt
             if self.scatter_timer <= 0:
                 for _, (ghost, _) in self.ghosts.items():
@@ -183,22 +187,61 @@ class GameController(object):
                 pygame.quit()
                 quit()
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    self.menus.pause_menu()
-                    self.paused = True
-                if event.key == pygame.K_i:
-                    self.cheat_invincible = not self.cheat_invincible
-                if event.key == pygame.K_p:
-                    self.cheat_freeze_time = not self.cheat_freeze_time
-                if event.key == pygame.K_n:
-                    if self.current_level < self.max_level:
+                if self.menus.started_menu:
+                    if event.key == pygame.K_q:
+                        pygame.quit()
+                        quit()
+                    elif event.key == pygame.K_SPACE:
+                        self.menus.started_menu = False
+                    elif event.key == pygame.K_h:
+                        self.menus.started_menu = False
+                        self.menus.instructions_menu()
+                    elif event.key == pygame.K_l:
+                        self.menus.started_menu = False
+                        self.menus.leaderboard_menu()
+                if self.menus.ldbd_menu:
+                    if self.won:
+                        if event.key == pygame.K_q:
+                            pygame.quit()
+                            quit()
+                        elif event.key == pygame.K_n:
+                            self.menus.ldbd_menu = False
+                            self.next_level()
+                    elif event.key == pygame.K_m:
+                        self.menus.ldbd_menu = False
+                        self.menus.start_menu()
+                else:
+                    if event.key == pygame.K_ESCAPE:
+                        self.paused = True
+                        self.menus.pause_menu()
+                    if self.menus.paused_menu:
+                        if event.key == pygame.K_q:
+                            pygame.quit()
+                            quit()
+                        elif event.key == pygame.K_SPACE:
+                            self.menus.paused_menu = False
+                            self.start_game()
+                        elif event.key == pygame.K_RETURN:
+                            self.menus.paused_menu = False
+                            self.restart_game()
+
+                        elif event.key == pygame.K_m:
+                            self.menus.paused_menu = False
+                            self.menus.start_menu()
+
+                    elif event.key == pygame.K_i:
+                        self.cheat_invincible = not self.cheat_invincible
+                    elif event.key == pygame.K_p:
+                        self.cheat_freeze_time = not self.cheat_freeze_time
+                    elif event.key == pygame.K_n:
+                        if self.current_level < self.max_level:
+                            self.running = False
+                            self.next_level()
+                            return
+                        # On the last level: N acts like winning the level
                         self.running = False
-                        self.next_level()
+                        self.level_complete()
                         return
-                    # On the last level: N acts like winning the level
-                    self.running = False
-                    self.level_complete()
-                    return
 
     def render(self, mazegen: MazeGenerator) -> None:
         """draw images to the screen"""
@@ -246,32 +289,28 @@ class GameController(object):
         # update display with changes
         pygame.display.flip()
 
-    def draw_maze(self, mazegen: MazeGenerator) -> None:
+    def get_wall_segments(self, mazegen: MazeGenerator) -> list[tuple[
+            tuple[int, int], tuple[int, int]]]:
+        """collect every wall edge of the maze as line segments"""
+        segments: list[tuple[tuple[int, int], tuple[int, int]]] = []
         cy = 0
-        cx = 0
         for line in mazegen.maze:
+            cx = 0
             for cell in line:
                 # North
                 if cell & 1:
-                    pygame.draw.line(
-                        self.game_surface, PINK, (cx, cy), (cx + 50, cy))
+                    segments.append(((cx, cy), (cx + 50, cy)))
                 # East
                 if cell & 2:
-                    pygame.draw.line(
-                        self.game_surface, PINK, (cx + 50, cy), (
-                            cx + 50, cy + 50))
+                    segments.append(((cx + 50, cy), (cx + 50, cy + 50)))
                 # South
                 if cell & 4:
-                    pygame.draw.line(
-                        self.game_surface, PINK, (cx, cy + 50), (
-                            cx + 50, cy + 50))
+                    segments.append(((cx, cy + 50), (cx + 50, cy + 50)))
                 # West
                 if cell & 8:
-                    pygame.draw.line(
-                        self.game_surface, PINK, (cx, cy), (cx, cy + 50))
+                    segments.append(((cx, cy), (cx, cy + 50)))
                 cx += 50
             cy += 50
-            cx = 0
 
         # 1 = 0001 Nord
         # 2 = 0010 Est
@@ -279,6 +318,41 @@ class GameController(object):
         # 8 = 1000 Ouest
         # 3 = 0011 Fermee au Nord et a l'Est
         # 15 = 1111 tout ferme
+        return segments
+
+    def draw_capsule(
+            self, surface: pygame.surface.Surface,
+            color: tuple[int, int, int],
+            seg: tuple[tuple[int, int], tuple[int, int]],
+            width: int) -> None:
+        (x1, y1), (x2, y2) = seg
+        r = width // 2
+        if y1 == y2:
+            rect = pygame.Rect(min(x1, x2), y1 - r, abs(x2 - x1), width)
+        else:
+            rect = pygame.Rect(x1 - r, min(y1, y2), width, abs(y2 - y1))
+        pygame.draw.rect(surface, color, rect)
+        pygame.draw.circle(surface, color, (x1, y1), r)
+        pygame.draw.circle(surface, color, (x2, y2), r)
+
+    def build_maze_surface(self, mazegen: MazeGenerator) -> None:
+        surface = pygame.Surface((GAME_WIDTH, GAME_HEIGHT))
+        segments = self.get_wall_segments(mazegen)
+
+        # thick pink skeleton
+        for seg in segments:
+            self.draw_capsule(surface, PINK, seg, WALL_WIDTH)
+
+        # black inner layer, thinner, to hollow out the wall
+        for seg in segments:
+            self.draw_capsule(surface, BLACK, seg, WALL_INNER_WIDTH)
+
+        self.maze_surface = surface
+
+    def draw_maze(self, mazegen: MazeGenerator) -> None:
+        if self.maze_surface is None:
+            self.build_maze_surface(mazegen)
+        self.game_surface.blit(self.maze_surface, (0, 0))
 
     def set_up_game(self) -> None:
         self.time_interval_scatter = 40.0
@@ -330,6 +404,8 @@ class GameController(object):
             self.lives = 3
         saved_score = self.pacgums.score
         mazegen.generate(LEVEL_SEEDS[self.current_level])
+        # to reset the walls between each levels, so that in level 2 you dont get level 1 walls, its cache.
+        self.maze_surface = None
 
         # Pacwoman
         maze_width = len(mazegen.maze[0])

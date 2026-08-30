@@ -1,0 +1,24 @@
+MISSING COMPLETELY
+------------------
+README.md
+Packaging: no itch.io/Steam upload
+Project management folder: timeline, progress vs plan, team organization
+Clean error handling if the maze generator fails
+Clyde and Inky algos
+
+BROKEN (must fix)
+-----------------
+Bad arguments or bad config file -> Python traceback
+   Must print a clear message instead, never crash
+lvl_max_time from config is never used, time is hardcoded 120s
+Highscore: names not validated
+Scores with the same name overwrite each other in the score file
+
+PARTIAL / TO CHECK
+------------------
+All 10 levels use seed 42. After level 1, mazes must be random
+
+GOOD IF ADDED
+-------------
+Cheat mode menu: just like instructions menu
+Make the instruction page prettier

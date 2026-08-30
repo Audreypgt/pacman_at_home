@@ -3,9 +3,11 @@ import pygame  # type: ignore
 import pygame_menu  # type: ignore
 from pygame_menu import themes
 from pac_man import GameController
+import pac_man
 from pacwoman import PacSpriteSheet
 
-SPRITES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sprites")
+SPRITES_DIR = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "sprites")
 
 
 PAC_YELLOW = (255, 242, 0)
@@ -36,7 +38,6 @@ def pacwoman_theme(width: int = 600, height: int = 700) -> themes.Theme:
 
 
 class Gamemenus:
-
     def __init__(self, game: GameController):
         self.game = game
         self.num_frames = 41
@@ -50,13 +51,17 @@ class Gamemenus:
         )
         full = self.control_sheet.get_sprite_at(0, 0, sheet_w, sheet_h)
         self.controls_frames: list[pygame.Surface] = [
-            full.subsurface((i * self.sprite_w, 0, self.sprite_w, self.sprite_h))
+            full.subsurface((i * self.sprite_w, 0,
+                             self.sprite_w, self.sprite_h))
             for i in range(self.num_frames)
         ]
         self.controls_frame_index = 0
         self.controls_animation_speed = 1.5
         self.controls_timer = 0
         self.current_controls_frame = self.controls_frames[0]
+        self.started_menu = False
+        self.paused_menu = False
+        self.ldbd_menu = False
 
     def update(self) -> None:
         self.controls_timer += 1
@@ -70,23 +75,59 @@ class Gamemenus:
             ]
 
     def start_menu(self) -> None:
-        main_menu = pygame_menu.Menu(
-            "PacWoman", 600, 400, theme=pacwoman_theme(600, 400))
-        main_menu.add.button("Play", self.game.set_up_game)
-        main_menu.add.button("Instructions", self.instructions_menu)
-        main_menu.add.button("Leaderboard", self.leaderboard_menu)
-        main_menu.add.button("Quit", pygame_menu.events.EXIT)
-        main_menu.mainloop(self.game.screen)
+        self.started_menu = True
+        self.theme = pacwoman_theme()
+        self.pacwoman_logo = pygame.image.load(
+            "sprites/pacwoman_logo.png")
+        self.x = (self.game.screen.get_width()) // 5
+        self.y = 50
+        self.font = pygame.font.SysFont(self.theme.title_font, 50)
+        start_text = self.font.render(
+            "Press SPACE to start", True, pac_man.YELLOW)
+        instruc_text = self.font.render(
+            "Press H for instructions", True, pac_man.YELLOW)
+        ldbd_text = self.font.render(
+            "Press L for leaderboard", True, pac_man.YELLOW)
+        # mainmen_text used in pause menu and leaderboard, but either can come
+        # before the other so i put it here
+        self.mainmen_text = self.font.render(
+            "Press M to go back to main menu", True, pac_man.YELLOW)
+        self.quit_text = self.font.render(
+            "Press Q to quit", True, pac_man.YELLOW)
+
+        while self.started_menu:
+            self.game.screen.fill(pac_man.BLACK)
+            self.game.screen.blit(self.pacwoman_logo, (self.x, self.y))
+            self.game.screen.blit(start_text, (self.x, self.y + 300))
+            self.game.screen.blit(instruc_text, (self.x, self.y + 400))
+            self.game.screen.blit(ldbd_text, (self.x, self.y + 500))
+            self.game.screen.blit(self.quit_text, (self.x, self.y + 600))
+
+            self.game.check_events()
+            pygame.display.update()
+
+        self.game.set_up_game()
 
     def pause_menu(self) -> None:
-        main_menu = pygame_menu.Menu(
-            "PacWoman", 600, 400, theme=pacwoman_theme(600, 400))
-        main_menu.add.button("Resume", self.game.start_game)
-        main_menu.add.button("Restart", self.game.restart_game)
-        main_menu.add.button("Main Menu", self.start_menu)
-        main_menu.add.button("Quit", pygame_menu.events.EXIT)
-        main_menu.mainloop(self.game.screen)
+        self.paused_menu = True
+        resume_text = self.font.render(
+            "Press SPACE to resume", True, pac_man.YELLOW)
+        restart_text = self.font.render(
+            "Press ENTER to restart", True, pac_man.YELLOW)
 
+        while self.paused_menu:
+
+            self.game.screen.fill(pac_man.BLACK)
+            self.game.screen.blit(self.pacwoman_logo, (self.x, self.y))
+            self.game.screen.blit(resume_text, (self.x, self.y + 300))
+            self.game.screen.blit(restart_text, (self.x, self.y + 400))
+            self.game.screen.blit(self.mainmen_text, (self.x, self.y + 500))
+            self.game.screen.blit(self.quit_text, (self.x, self.y + 600))
+
+            self.game.check_events()
+            pygame.display.update()
+
+    # TO DO ---------------------------------------------------------------
     def over_menu(self) -> None:
         self.game.over = True
         title = "You Win!" if self.game.won else "Game Over"
@@ -94,7 +135,8 @@ class Gamemenus:
         main_menu = pygame_menu.Menu(
             title, 600, 500, theme=pacwoman_theme(600, 500))
         main_menu.add.label(f"Score: {self.game.pacgums.score}")
-        self.game.player = main_menu.add.text_input("Name: ", default="Player")
+        self.game.player = main_menu.add.text_input(
+            "Name: ", default="Player")
         main_menu.add.button(
             "Save & View Leaderboard",
             lambda: self.leaderboard_menu(save_current=True),
@@ -107,23 +149,65 @@ class Gamemenus:
         main_menu.mainloop(self.game.screen)
 
     def leaderboard_menu(self, save_current: bool = False) -> None:
+        self.ldbd_menu = True
+        self.title_font = pygame.font.SysFont(self.theme.title_font, 75)
+        self.scores_font = pygame.font.SysFont(self.theme.title_font, 30)
+        title = self.title_font.render("Top 10 Scores", True, pac_man.PINK)
+        no_scores = self.font.render(
+            "No scores yet", True, pac_man.WHITE)
+        self.nxt_lv_txt = self.font.render(
+            "Press N for next level", True, pac_man.YELLOW)
+
         if save_current:
             self.game.save_score(self.game.player.get_value())
-
-        board_menu = pygame_menu.Menu(
-            "Top 10 Scores", 600, 500, theme=pacwoman_theme(600, 500))
         top_scores = self.game.get_top_scores()
-        if not top_scores:
-            board_menu.add.label("No scores yet")
-        for i, (name, score) in enumerate(top_scores, start=1):
-            board_menu.add.label(f"{i}. {name}: {score}")
 
-        if self.game.won and self.game.current_level < self.game.max_level:
-            board_menu.add.button("Next Level", self.game.next_level)
-        board_menu.add.button("Main Menu", self.start_menu)
-        board_menu.add.button("Quit", pygame_menu.events.EXIT)
-        board_menu.mainloop(self.game.screen)
+        while self.ldbd_menu:
+            self.game.screen.fill(pac_man.BLACK)
+            self.game.screen.blit(self.pacwoman_logo, (self.x, self.y))
+            self.game.screen.blit(title, (self.x + 50, self.y + 220))
 
+            if not top_scores:
+                self.game.screen.blit(no_scores, (self.x, self.y + 320))
+            else:
+                add_y = 320
+                for i, (name, score) in enumerate(top_scores, start=1):
+                    score = self.scores_font.render(
+                        f"{i}. {name}: {score}", True, pac_man.WHITE)
+                    self.game.screen.blit(score, (self.x, self.y + add_y))
+                    add_y += 40
+                    if i == 5:
+                        break
+                add_y = 320
+                add_x = 300
+                for i, (name, score) in enumerate(top_scores, start=1):
+                    if i > 5:
+                        score = self.scores_font.render(
+                            f"{i}. {name}: {score}", True, pac_man.WHITE)
+                        self.game.screen.blit(score, (
+                            self.x + add_x, self.y + add_y))
+                        add_y += 40
+
+                if self.game.won and (self.game.current_level
+                                      < self.game.max_level):
+                    add_y += 20
+                    self.game.screen.blit(self.nxt_lv_txt, (
+                        self.x, self.y + add_y))
+                    add_y += 50
+                    self.game.screen.blit(self.mainmen_text, (
+                        self.x, self.y + add_y))
+                    add_y += 50
+                    self.game.screen.blit(self.quit_text, (
+                        self.x, self.y + add_y))
+                else:
+                    add_y += 50
+                    self.game.screen.blit(self.mainmen_text, (
+                        self.x - 50, self.y + add_y))
+
+            self.game.check_events()
+            pygame.display.update()
+
+    # TO DO ---------------------------------------------------------------
     def instructions_menu(self) -> None:
         instructions_page = pygame_menu.Menu(
             "Instructions", 600, 800, theme=pacwoman_theme(600, 800))
