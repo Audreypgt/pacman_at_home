@@ -162,12 +162,13 @@ class Ghosts(Pacwoman):
 
     def scatter_mode(self, mazegen: MazeGenerator, spawn_x: int, spawn_y: int
                      ) -> bool:
-        self.coord_x = (self.x + self.sprite_w // 2) // 50
-        self.coord_y = (self.y + self.sprite_h // 2) // 50
-        spawn_x = (spawn_x + self.sprite_w // 2) // 50
-        spawn_y = (spawn_y + self.sprite_w // 2) // 50
+        """Return True when the ghost reached its spawn cell, else follow
+        the BFS path toward it (used for respawn and scatter states)."""
+        self.coord_x, self.coord_y = self.current_cell()
+        spawn_cell = ((spawn_x + self.sprite_w // 2) // 50,
+                      (spawn_y + self.sprite_w // 2) // 50)
 
-        if (self.coord_x, self.coord_y) == (spawn_x, spawn_y):
+        if (self.coord_x, self.coord_y) == spawn_cell:
             self.dead = False
             self.scared = False
             self.warning = False
@@ -175,19 +176,26 @@ class Ghosts(Pacwoman):
             self.move_speed = 1
             return True
 
-        spawn_loc = spawn_x, spawn_y
+        self.bfs_direction(mazegen, spawn_cell)
+        return False
+
+    def bfs_direction(self, mazegen: MazeGenerator,
+                      target: tuple[int, int]) -> None:
+        """BFS the shortest path to the target cell (x, y), then set the
+        direction to its first step. Falls back to a random direction if
+        no path is found."""
+        self.coord_x, self.coord_y = self.current_cell()
         queue: deque[tuple[int, int]] = deque()
         visited: set[tuple[int, int]] = set()
         visited.add((self.coord_x, self.coord_y))
         queue.append((self.coord_x, self.coord_y))
         parent: dict[tuple[int, int], tuple[int, int] | None] = {
             (self.coord_x, self.coord_y): None}
-        parent.update({(self.coord_x, self.coord_y): None})
 
-        # BFS algorithm to find shortest path to spawn_loc
+        # BFS algorithm to find shortest path to target
         while queue:
             v_x, v_y = queue.popleft()
-            if (v_x, v_y) == spawn_loc:
+            if (v_x, v_y) == target:
                 break
             for edges in self.find_neighbors(mazegen, v_x, v_y):
                 dir_x, dir_y = edges
@@ -199,7 +207,7 @@ class Ghosts(Pacwoman):
                     parent.update({((new_x), (new_y)): (v_x, v_y)})
                     queue.append(((new_x), (new_y)))
 
-        path: list[tuple[int, int]] = [spawn_loc]
+        path: list[tuple[int, int]] = [target]
         while parent.get(path[-1]) is not None:
             path.append(parent[path[-1]])
         path = path[::-1]
@@ -209,12 +217,14 @@ class Ghosts(Pacwoman):
             self.direction = (next_x - self.coord_x), (next_y - self.coord_y)
             self.next_direction = self.direction
             self.state = "moving"
-            return False
         else:
             self.choose_random_direction(mazegen)
-            return False
 
-        return False
+    def distance_to(self, other: Pacwoman) -> int:
+        """manhattan distance in maze cells to another sprite"""
+        own_x, own_y = self.current_cell()
+        other_x, other_y = other.current_cell()
+        return abs(own_x - other_x) + abs(own_y - other_y)
 
     def scatter_move(self, mazegen: MazeGenerator, spawn_x: int, spawn_y: int
                      ) -> None:
@@ -237,66 +247,14 @@ class Ghosts(Pacwoman):
     def choose_bfs_direction(
             self, mazegen: MazeGenerator, pacwoman: Pacwoman,
             pinky: bool) -> None:
-        # coords are received as nb of pixels so we convert to
-        # (x, y) coordinates
-        self.coord_x = (self.x + self.sprite_w // 2) // 50
-        self.coord_y = (self.y + self.sprite_h // 2) // 50
-        pw_x = (pacwoman.x + self.sprite_w // 2) // 50
-        pw_y = (pacwoman.y + self.sprite_h // 2) // 50
+        pw_x, pw_y = pacwoman.current_cell()
 
         if pinky:
-            pw_dir = pacwoman.direction
-            if pw_dir[0] == 1:
-                pw_x += 4
-            elif pw_dir[0] == -1:
-                pw_x -= 4
-            elif pw_dir[1] == 1:
-                pw_y += 4
-            elif pw_dir[1] == -1:
-                pw_y -= 4
+            pw_dir_x, pw_dir_y = pacwoman.direction
+            pw_x += pw_dir_x * 4
+            pw_y += pw_dir_y * 4
 
-        pacwoman_loc = pw_x, pw_y
-        queue: deque[tuple[int, int]] = deque()
-        visited: set[tuple[int, int]] = set()
-        visited.add((self.coord_x, self.coord_y))
-        queue.append((self.coord_x, self.coord_y))
-        parent: dict[tuple[int, int], tuple[int, int] | None] = {
-            (self.coord_x, self.coord_y): None}
-        parent.update({(self.coord_x, self.coord_y): None})
-
-        # BFS algorithm to find shortest path to pacman
-        while queue:
-            v_x, v_y = queue.popleft()
-            if (v_x, v_y) == pacwoman_loc:
-                break
-            for edges in self.find_neighbors(mazegen, v_x, v_y):
-                dir_x, dir_y = edges
-                new_x, new_y = v_x + dir_x, v_y + dir_y
-                if (0 <= new_x < len(mazegen.maze[0])) \
-                    and (0 <= new_y < len(mazegen.maze)) \
-                   and ((new_x), (new_y)) not in visited:
-                    visited.add((new_x, new_y))
-                    parent.update({((new_x), (new_y)): (v_x, v_y)})
-                    queue.append(((new_x), (new_y)))
-
-        path: list[tuple[int, int]] = [pacwoman_loc]
-        while parent.get(path[-1]) is not None:
-            path.append(parent[path[-1]])
-        path = path[::-1]
-
-        # Condition in case anything goes wrong and no path is found
-        # even though it shouldn't happen
-        if len(path) >= 2:
-            # next step for ghost is second to last coordinates, since last
-            # one is the current location
-            next_x, next_y = path[1]
-            self.direction = (next_x - self.coord_x), (next_y - self.coord_y)
-            self.next_direction = self.direction
-            self.state = "moving"
-            return
-        else:
-            self.choose_random_direction(mazegen)
-            return
+        self.bfs_direction(mazegen, (pw_x, pw_y))
 
 
 class Blinky(Ghosts):
@@ -381,6 +339,11 @@ class Pinky(Ghosts):
 
 
 class Clyde(Ghosts):
+    """chases pacwoman, but runs back to his corner when she gets too
+    close"""
+
+    SHY_RADIUS = 8
+
     def __init__(self, x: int, y: int, sprite_sheet: PacSpriteSheet,
                  screen_w: int, screen_y: int) -> None:
         super().__init__(x, y, sprite_sheet, screen_w, screen_y)
@@ -408,8 +371,33 @@ class Clyde(Ghosts):
                 ]
         }
 
+    def chase_or_retreat(self, mazegen: MazeGenerator, pacwoman: Pacwoman,
+                         spawn_x: int, spawn_y: int) -> None:
+        """chase pacwoman, or walk home when she is closer than
+        SHY_RADIUS cells"""
+        corner = ((spawn_x + self.sprite_w // 2) // 50,
+                  (spawn_y + self.sprite_w // 2) // 50)
+        if self.distance_to(pacwoman) < Clyde.SHY_RADIUS:
+            self.bfs_direction(mazegen, corner)
+        else:
+            self.choose_bfs_direction(mazegen, pacwoman, False)
+
+    def clyde_move(self, mazegen: MazeGenerator, pacwoman: Pacwoman,
+                   spawn_x: int, spawn_y: int) -> None:
+        if self.state != "moving":
+            self.chase_or_retreat(mazegen, pacwoman, spawn_x, spawn_y)
+        super().move(mazegen)
+
+        if self.is_centered() and self.state == "moving":
+            self.chase_or_retreat(mazegen, pacwoman, spawn_x, spawn_y)
+
 
 class Inky(Ghosts):
+    """hunts pacwoman from far away, but wanders randomly
+    once close to her"""
+
+    WANDER_RADIUS = 8
+
     def __init__(self, x: int, y: int, sprite_sheet: PacSpriteSheet,
                  screen_w: int, screen_y: int) -> None:
         super().__init__(x, y, sprite_sheet, screen_w, screen_y)
@@ -436,3 +424,20 @@ class Inky(Ghosts):
                 sprite_sheet.get_sprite_at(7, 2)
                 ]
         }
+
+    def hunt_or_wander(self, mazegen: MazeGenerator, pacwoman: Pacwoman
+                       ) -> None:
+        """chase pacwoman, or move randomly when closer than
+        WANDER_RADIUS cells"""
+        if self.distance_to(pacwoman) > Inky.WANDER_RADIUS:
+            self.choose_bfs_direction(mazegen, pacwoman, False)
+        else:
+            self.choose_random_direction(mazegen)
+
+    def inky_move(self, mazegen: MazeGenerator, pacwoman: Pacwoman) -> None:
+        if self.state != "moving":
+            self.hunt_or_wander(mazegen, pacwoman)
+        super().move(mazegen)
+
+        if self.is_centered() and self.state == "moving":
+            self.hunt_or_wander(mazegen, pacwoman)

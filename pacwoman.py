@@ -98,6 +98,12 @@ class Pacwoman:
             self.next_direction = requested
             self.state = "moving"
 
+    def current_cell(self) -> tuple[int, int]:
+        """position in maze cells as (column, row)"""
+        MAZE_CELL = 50
+        return ((self.x + self.sprite_w // 2) // MAZE_CELL,
+                (self.y + self.sprite_h // 2) // MAZE_CELL)
+
     def move(self, mazegen: MazeGenerator) -> None:
         if self.state != "moving":
             return

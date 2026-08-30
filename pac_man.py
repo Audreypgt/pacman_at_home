@@ -148,18 +148,17 @@ class GameController(object):
                 ghost.ghost_state = "normal"
                 ghost.scatter_move(
                     mazegen, spawn[0], spawn[1])
-
-            # TODO
-            # move_random used as a placeholder for unique algo
-            # replace here when the algos are done
             else:
                 self.ghost_move: dict[str, Callable[..., Any]] = {
                     "blinky": partial(
                         self.blinky.bfs_move, mazegen, self.pacwoman),
-                    "inky": partial(self.inky.move_random, mazegen),
+                    "inky": partial(
+                        self.inky.inky_move, mazegen, self.pacwoman),
                     "pinky": partial(
                         self.pinky.bfs_move, mazegen, self.pacwoman),
-                    "clyde": partial(self.clyde.move_random, mazegen),
+                    "clyde": partial(
+                        self.clyde.clyde_move, mazegen, self.pacwoman,
+                        spawn[0], spawn[1]),
                     "scatter": partial(
                         ghost.scatter_move, mazegen, spawn[0],
                         spawn[1]),
