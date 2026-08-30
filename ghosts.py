@@ -215,13 +215,26 @@ class Ghosts(Pacwoman):
 
         if len(path) >= 2:
             next_x, next_y = path[1]
-            self.direction = (next_x - self.coord_x), (next_y - self.coord_y)
-            self.next_direction = self.direction
+            next_dir = (next_x - self.coord_x), (next_y - self.coord_y)
+            # classic rule: no immediate U-turn unless it is the only way
+            reverse = (-self.direction[0], -self.direction[1])
+            if next_dir == reverse:
+                alternatives = [
+                    d for d in self.find_neighbors(
+                        mazegen, self.coord_x, self.coord_y)
+                    if d != reverse]
+                if alternatives:
+                    distances = self.bfs_distances(mazegen, target)
+                    next_dir = min(
+                        alternatives,
+                        key=lambda d: distances.get(
+                            (self.coord_x + d[0], self.coord_y + d[1]),
+                            float("inf")))
+            self.direction = next_dir
+            self.next_direction = next_dir
             self.state = "moving"
-            return False
         else:
             self.choose_random_direction(mazegen)
-            return False
 
     def distance_to(self, other: Pacwoman) -> int:
         """manhattan distance in maze cells to another sprite"""
@@ -295,77 +308,19 @@ class Ghosts(Pacwoman):
     def choose_bfs_direction(
             self, mazegen: MazeGenerator, pacwoman: Pacwoman,
             pinky: bool) -> None:
+        """follow the BFS path to pacwoman; when pinky is True the target
+        is 4 cells ahead of her, to ambush instead of chase"""
         pw_x, pw_y = pacwoman.current_cell()
 
         if pinky:
             pw_dir_x, pw_dir_y = pacwoman.direction
             pw_x += pw_dir_x * 4
             pw_y += pw_dir_y * 4
-            pw_dir = pacwoman.direction
-            if pw_dir[0] == 1:
-                pw_x += 4
-            elif pw_dir[0] == -1:
-                pw_x -= 4
-            elif pw_dir[1] == 1:
-                pw_y += 4
-            elif pw_dir[1] == -1:
-                pw_y -= 4
 
         pw_x = max(0, min(pw_x, len(mazegen.maze[0]) - 1))
         pw_y = max(0, min(pw_y, len(mazegen.maze) - 1))
 
-        pacwoman_loc = pw_x, pw_y
-        queue: deque[tuple[int, int]] = deque()
-        visited: set[tuple[int, int]] = set()
-        visited.add((self.coord_x, self.coord_y))
-        queue.append((self.coord_x, self.coord_y))
-        parent: dict[tuple[int, int], tuple[int, int] | None] = {
-            (self.coord_x, self.coord_y): None}
-        parent.update({(self.coord_x, self.coord_y): None})
-
         self.bfs_direction(mazegen, (pw_x, pw_y))
-        # BFS algorithm to find shortest path to pacman
-        while queue:
-            v_x, v_y = queue.popleft()
-            if (v_x, v_y) == pacwoman_loc:
-                break
-            for edges in self.find_neighbors(mazegen, v_x, v_y):
-                dir_x, dir_y = edges
-                new_x, new_y = v_x + dir_x, v_y + dir_y
-                if (0 <= new_x < len(mazegen.maze[0])) \
-                    and (0 <= new_y < len(mazegen.maze)) \
-                   and ((new_x), (new_y)) not in visited:
-                    visited.add((new_x, new_y))
-                    parent.update({((new_x), (new_y)): (v_x, v_y)})
-                    queue.append(((new_x), (new_y)))
-
-        path: list[tuple[int, int]] = [pacwoman_loc]
-        while parent.get(path[-1]) is not None:
-            path.append(parent[path[-1]])
-        path = path[::-1]
-        if len(path) >= 2:
-            next_x, next_y = path[1]
-            next_dir = (next_x - self.coord_x), (next_y - self.coord_y)
-            reverse = (-self.direction[0], -self.direction[1])
-            if next_dir == reverse:
-                alternatives = [
-                    d for d in self.find_neighbors(
-                        mazegen, self.coord_x, self.coord_y)
-                    if d != reverse]
-                if alternatives:
-                    distances = self.bfs_distances(mazegen, pacwoman_loc)
-                    next_dir = min(
-                        alternatives,
-                        key=lambda d: distances.get(
-                            (self.coord_x + d[0], self.coord_y + d[1]),
-                            float("inf")))
-            self.direction = next_dir
-            self.next_direction = next_dir
-            self.state = "moving"
-            return
-        else:
-            self.choose_random_direction(mazegen)
-            return
 
 
 class Blinky(Ghosts):
