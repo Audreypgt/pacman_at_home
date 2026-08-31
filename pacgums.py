@@ -31,7 +31,7 @@ class Pacgums:
         self.scared_timer = 0.0
 
         pac_col = (pacwoman.x + self.sprite_w // 2) // MAZE_CELL
-        pac_row = (pacwoman.y + self.sprite_h// 2) // MAZE_CELL
+        pac_row = (pacwoman.y + self.sprite_h // 2) // MAZE_CELL
 
         for row, lines in enumerate(mazegen.maze):
             for col, cell in enumerate(lines):

@@ -6,7 +6,8 @@ class PacSpriteSheet():
 
     CELL = 47
 
-    def __init__(self, filename: str, sprite_w: int = 42, sprite_h: int = 42) -> None:
+    def __init__(self, filename: str, sprite_w: int = 42, sprite_h: int = 42
+                 ) -> None:
         self.sheet = pygame.image.load(filename).convert_alpha()
         self.sprite_w = sprite_w
         self.sprite_h = sprite_h

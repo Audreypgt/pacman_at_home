@@ -1,6 +1,6 @@
 import os
-import pygame  # type: ignore
-import pygame_menu  # type: ignore
+import pygame
+import pygame_menu
 from pygame_menu import themes
 from pac_man import GameController
 import pac_man

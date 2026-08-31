@@ -404,7 +404,8 @@ class GameController(object):
             self.lives = 3
         saved_score = self.pacgums.score
         mazegen.generate(LEVEL_SEEDS[self.current_level])
-        # to reset the walls between each levels, so that in level 2 you dont get level 1 walls, its cache.
+        # to reset the walls between each levels, so that in level 2 you dont
+        # get level 1 walls, its cache.
         self.maze_surface = None
 
         # Pacwoman
