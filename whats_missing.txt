@@ -2,17 +2,28 @@ MISSING COMPLETELY
 ------------------
 README.md
 Packaging: no itch.io/Steam upload
-Project management folder: timeline, progress vs plan, team organization
-Clean error handling if the maze generator fails
+Project management folder: timeline, progress vs plan,
+team organization
+Clean error handling if the maze generator fails                  --> Done (added try/except in main)
 Clyde and Inky algos
 
 BROKEN (must fix)
 -----------------
+Sprite of dead ghosts doesn't change anymore depending on
+directions ??
+Bug of the ghosts being blocked at restart, also they move
+weirdly, BFS not finding the shortest path for some reason ??
+
+Configuration file is not used for level specific values          --> Only missing width & height
+
 Bad arguments or bad config file -> Python traceback
-   Must print a clear message instead, never crash
-lvl_max_time from config is never used, time is hardcoded 120s
-Highscore: names not validated
-Scores with the same name overwrite each other in the score file
+   Must print a clear message instead, never crash                --> Done
+lvl_max_time from config is never used, time is hardcoded 120s    --> fixed
+Highscore: names not validated                                    --> can't be longer than 9 chars
+Scores with the same name overwrite each other in the score file  --> now we keep only the highestscore
+When eating a ghost, points are added several times, not just
+once, so score is wrong (if you collide with the ghost you keep   --> fixed
+getting points until it resuscitates)
 
 PARTIAL / TO CHECK
 ------------------
@@ -20,5 +31,5 @@ All 10 levels use seed 42. After level 1, mazes must be random
 
 GOOD IF ADDED
 -------------
-Cheat mode menu: just like instructions menu
+Cheat mode menu: just like instructions menu                      --> Done
 Make the instruction page prettier

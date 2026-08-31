@@ -107,18 +107,35 @@ class Gamemenus:
         over_menu .add.image(self.logo)
         over_menu.add.label(title)
         over_menu.add.label(f"Score: {self.game.pacgums.score}")
-        self.game.player = over_menu.add.text_input(
-            "Name: ", default="Player")
-        over_menu.add.button(
-            "Save & View Leaderboard",
-            lambda: self.leaderboard_menu(save_current=True),
-        )
+
+        if self.game.won and self.game.current_level == self.game.max_level:
+            self.game.player = over_menu.add.text_input(
+                "Name: ", default="Player")
+            over_menu.add.button(
+                "Save & View Leaderboard",
+                lambda: self.leaderboard_menu(save_current=True),
+            )
         if self.game.won and self.game.current_level < self.game.max_level:
             over_menu.add.button("Next Level", self.game.next_level)
+
+        if not self.game.won:
+            over_menu.add.button("Need a hand ?", self.cheat_menu)
+
         over_menu.add.button("Restart", self.game.restart_game)
         over_menu.add.button(
             "Quit", self.game.quit_game_over)
         over_menu.mainloop(self.game.screen)
+
+    def cheat_menu(self) -> None:
+        cheat_menu = pygame_menu.Menu(
+            "", pac_man.SCREENWIDTH, pac_man.SCREENHEIGHT,
+            theme=pacwoman_theme(pac_man.SCREENWIDTH, pac_man.SCREENHEIGHT))
+        cheat_menu .add.image(self.logo)
+        cheat_menu.add.label("Cheat codes:")
+        cheat_menu.add.label("Press i to be invicible")
+        cheat_menu.add.label("Press p to freeze time")
+        cheat_menu.add.button("Back", self.over_menu)
+        cheat_menu.mainloop(self.game.screen)
 
     def leaderboard_menu(self, save_current: bool = False) -> None:
         if save_current:

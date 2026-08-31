@@ -23,56 +23,56 @@ class Configuration(BaseModel):
     highscore_filename: str = Field(default="highscore.txt")
     # randomize levels (same for 1st level then different)
     levels: dict[str, LevelConfiguration] = Field(default={
-        "level_0": LevelConfiguration(),
-        "level_1": LevelConfiguration(
+        "level_1": LevelConfiguration(),
+        "level_2": LevelConfiguration(
             width_lvl=17,
             height_lvl=17,
             seed=42,
             pacgum=42
         ),
-        "level_2": LevelConfiguration(
+        "level_3": LevelConfiguration(
             width_lvl=20,
             height_lvl=20,
             seed=42,
             pacgum=42
         ),
-        "level_3": LevelConfiguration(
+        "level_4": LevelConfiguration(
             width_lvl=22,
             height_lvl=22,
             seed=42,
             pacgum=42
         ),
-        "level_4": LevelConfiguration(
+        "level_5": LevelConfiguration(
             width_lvl=25,
             height_lvl=25,
             seed=42,
             pacgum=42
         ),
-        "level_5": LevelConfiguration(
+        "level_6": LevelConfiguration(
             width_lvl=27,
             height_lvl=27,
             seed=42,
             pacgum=42
         ),
-        "level_6": LevelConfiguration(
+        "level_7": LevelConfiguration(
             width_lvl=30,
             height_lvl=30,
             seed=42,
             pacgum=42
         ),
-        "level_7": LevelConfiguration(
+        "level_8": LevelConfiguration(
             width_lvl=32,
             height_lvl=32,
             seed=42,
             pacgum=42
         ),
-        "level_8": LevelConfiguration(
+        "level_9": LevelConfiguration(
             width_lvl=35,
             height_lvl=35,
             seed=42,
             pacgum=42
         ),
-        "level_9": LevelConfiguration(
+        "level_10": LevelConfiguration(
             width_lvl=40,
             height_lvl=40,
             seed=42,
@@ -137,8 +137,8 @@ class Configuration(BaseModel):
     def validation_level(cls, value: Any) -> Any:
         levels: dict[str, LevelConfiguration] = {}
         try:
-            for index, level in enumerate(value.values()):
-                levels["level" + str(index)] = LevelConfiguration(**level)
+            for index, level in enumerate(value.values(), start=1):
+                levels["level_" + str(index)] = LevelConfiguration(**level)
             return levels
         except Exception:
             raise PydanticUseDefault
@@ -172,7 +172,7 @@ def parse() -> Configuration:
 
     if not len(argv) == 2:
         raise ArgsError("Wrong amount of arguments, parameters should be "
-                        "python program file and configuration file\n")
+                        "excactly: python file - configuration file\n")
 
     if not argv[1].endswith((".json")):
         raise ArgsError("Configuration file must be a json file\n")

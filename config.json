@@ -3,70 +3,70 @@
     // googoogaga
     # googoogaga
     "levels": {
-        "level_0": {
+        "level_1": {
             "width_lvl": 15,
             "height_lvl": 15,
-            "seed": 42,
-            "pacgum": 42
+            "seed": 41,
+            "pacgum": 2
         },
-        "level_1": {
+        "level_2": {
             "width_lvl": 17,
             "height_lvl": 17,
             "seed": 42,
-            "pacgum": 42
-        },
-        "level_2": {
-            "width_lvl": 20,
-            "height_lvl": 20,
-            "seed": 42,
-            "pacgum": 42
+            "pacgum": 207
         },
         "level_3": {
-            "width_lvl": 22,
-            "height_lvl": 22,
-            "seed": 42,
-            "pacgum": 42
+            "width_lvl": 20,
+            "height_lvl": 20,
+            "seed": 43,
+            "pacgum": 207
         },
         "level_4": {
-            "width_lvl": 25,
-            "height_lvl": 25,
-            "seed": 42,
-            "pacgum": 42
+            "width_lvl": 22,
+            "height_lvl": 22,
+            "seed": 44,
+            "pacgum": 207
         },
         "level_5": {
-            "width_lvl": 27,
-            "height_lvl": 27,
-            "seed": 42,
-            "pacgum": 42
+            "width_lvl": 25,
+            "height_lvl": 25,
+            "seed": 45,
+            "pacgum": 207
         },
         "level_6": {
-            "width_lvl": 30,
-            "height_lvl": 30,
-            "seed": 42,
-            "pacgum": 42
+            "width_lvl": 27,
+            "height_lvl": 27,
+            "seed": 46,
+            "pacgum": 207
         },
         "level_7": {
-            "width_lvl": 32,
-            "height_lvl": 32,
-            "seed": 42,
-            "pacgum": 42
+            "width_lvl": 30,
+            "height_lvl": 30,
+            "seed": 47,
+            "pacgum": 207
         },
         "level_8": {
-            "width_lvl": 35,
-            "height_lvl": 35,
-            "seed": 42,
-            "pacgum": 42
+            "width_lvl": 32,
+            "height_lvl": 32,
+            "seed": 48,
+            "pacgum": 207
         },
         "level_9": {
+            "width_lvl": 35,
+            "height_lvl": 35,
+            "seed": 49,
+            "pacgum": 207
+        },
+        "level_10": {
             "width_lvl": 40,
             "height_lvl": 40,
-            "seed": 42,
-            "pacgum": 42
+            "seed": 50,
+            "pacgum": 207
         }
     },
-    "lives": 3,
+    "lives": 1,
     "points_per_pacgum": 10,
     "points_per_super_pacgum": 50,
-    "points_per_ghost": 200,
-    "lvl_max_time": 90
+    "points_per_ghost": 100,
+    "lvl_max_time": 120
 }

@@ -28,14 +28,24 @@ WHITE = (255, 255, 255)
 WALL_WIDTH = 12
 WALL_INNER_WIDTH = 4
 
-LEVEL_SEEDS = {1: 41, 2: 42, 3: 43, 4: 44, 5: 45, 6: 46, 7: 47,
-               8: 48, 9: 49, 10: 40}
-
 
 class GameController(object):
     def __init__(self) -> None:
         # prevent circular import in menu.py:
         from menu import Gamemenus
+
+        self.level_seeds = {
+            1: configuration.levels["level_1"].seed,
+            2: configuration.levels["level_2"].seed,
+            3: configuration.levels["level_3"].seed,
+            4: configuration.levels["level_4"].seed,
+            5: configuration.levels["level_5"].seed,
+            6: configuration.levels["level_6"].seed,
+            7: configuration.levels["level_7"].seed,
+            8: configuration.levels["level_8"].seed,
+            9: configuration.levels["level_9"].seed,
+            10: configuration.levels["level_10"].seed,
+            }
 
         pygame.init()
         self.screen = pygame.display.set_mode(SCREENSIZE, 0, 32)
@@ -48,6 +58,7 @@ class GameController(object):
         self.over = False
         self.won = False
         self.player: widgets.TextInput = None
+        self.dict_scores: dict[str, int] = {}
         self.sprite_w = 42
         self.sprite_h = 42
         self.pac_sheet = PacSpriteSheet(
@@ -60,7 +71,7 @@ class GameController(object):
         self.scatter_timer: float = 0.0
         self.time_interval_scatter: float = 40.0
         self.current_level = 1
-        self.max_level = max(LEVEL_SEEDS.keys())
+        self.max_level = max(self.level_seeds.keys())
         self.cheat_invincible = False
         self.cheat_freeze_time = False
         self.beat_the_game = False
@@ -117,7 +128,7 @@ class GameController(object):
         self.pacwoman.input(keys)
         self.pacwoman.move(mazegen)
         self.pacwoman.update()
-        self.pacgums.eat(self.pacwoman)
+        self.pacgums.eat(self.pacwoman, configuration)
         self.pacgums.update(dt)
 
         pellet_just_activate = (
@@ -187,61 +198,22 @@ class GameController(object):
                 pygame.quit()
                 quit()
             if event.type == pygame.KEYDOWN:
-                if self.menus.started_menu:
-                    if event.key == pygame.K_q:
-                        pygame.quit()
-                        quit()
-                    elif event.key == pygame.K_SPACE:
-                        self.menus.started_menu = False
-                    elif event.key == pygame.K_h:
-                        self.menus.started_menu = False
-                        self.menus.instructions_menu()
-                    elif event.key == pygame.K_l:
-                        self.menus.started_menu = False
-                        self.menus.leaderboard_menu()
-                if self.menus.ldbd_menu:
-                    if self.won:
-                        if event.key == pygame.K_q:
-                            pygame.quit()
-                            quit()
-                        elif event.key == pygame.K_n:
-                            self.menus.ldbd_menu = False
-                            self.next_level()
-                    elif event.key == pygame.K_m:
-                        self.menus.ldbd_menu = False
-                        self.menus.start_menu()
-                else:
-                    if event.key == pygame.K_ESCAPE:
-                        self.paused = True
-                        self.menus.pause_menu()
-                    if self.menus.paused_menu:
-                        if event.key == pygame.K_q:
-                            pygame.quit()
-                            quit()
-                        elif event.key == pygame.K_SPACE:
-                            self.menus.paused_menu = False
-                            self.start_game()
-                        elif event.key == pygame.K_RETURN:
-                            self.menus.paused_menu = False
-                            self.restart_game()
-
-                        elif event.key == pygame.K_m:
-                            self.menus.paused_menu = False
-                            self.menus.start_menu()
-
-                    elif event.key == pygame.K_i:
-                        self.cheat_invincible = not self.cheat_invincible
-                    elif event.key == pygame.K_p:
-                        self.cheat_freeze_time = not self.cheat_freeze_time
-                    elif event.key == pygame.K_n:
-                        if self.current_level < self.max_level:
-                            self.running = False
-                            self.next_level()
-                            return
-                        # On the last level: N acts like winning the level
+                if event.key == pygame.K_ESCAPE:
+                    self.menus.pause_menu()
+                    self.paused = True
+                if event.key == pygame.K_i:
+                    self.cheat_invincible = not self.cheat_invincible
+                if event.key == pygame.K_p:
+                    self.cheat_freeze_time = not self.cheat_freeze_time
+                if event.key == pygame.K_n:
+                    if self.current_level < self.max_level:
                         self.running = False
-                        self.level_complete()
+                        self.next_level()
                         return
+                    # On the last level: N acts like winning the level
+                    self.running = False
+                    self.level_complete()
+                    return
 
     def render(self, mazegen: MazeGenerator) -> None:
         """draw images to the screen"""
@@ -374,19 +346,17 @@ class GameController(object):
         self.won = True
         if self.current_level >= self.max_level:
             self.beat_the_game = True
-            self.menus.final_win_menu()
-        else:
-            self.menus.over_menu()
+        self.menus.over_menu()
 
     def load_level(self, reset_progress: bool) -> None:
-        if self.over:
+        if self.over and self.won and self.current_level == self.max_level:
             with open(configuration.highscore_filename, 'a') as f:
                 f.write(
                     f"{self.player.get_value()}: {self.pacgums.score}\n")
             self.sort_score_file()
             self.over = False
         self.clock = pygame.time.Clock()
-        self.time = 120.0
+        self.time = configuration.lvl_max_time
         self.time_interval_scatter = 40.0
         self.running = True
         self.won = False
@@ -401,9 +371,9 @@ class GameController(object):
         pac_sheet = self.pac_sheet
 
         if reset_progress:
-            self.lives = 3
+            self.lives = configuration.lives
         saved_score = self.pacgums.score
-        mazegen.generate(LEVEL_SEEDS[self.current_level])
+        mazegen.generate(self.level_seeds[self.current_level])
         # to reset the walls between each levels, so that in level 2 you dont
         # get level 1 walls, its cache.
         self.maze_surface = None
@@ -419,7 +389,8 @@ class GameController(object):
         self.pacwoman = Pacwoman(
             spawn_x, spawn_y, pac_sheet, GAME_WIDTH, GAME_HEIGHT)
 
-        self.pacgums.init_gums(mazegen, self.pacwoman)
+        self.pacgums.init_gums(
+            mazegen, self.pacwoman, self.current_level, configuration)
         if not reset_progress:
             self.pacgums.score = saved_score
 
@@ -520,7 +491,8 @@ class GameController(object):
                 if ghost.scared:
                     ghost.dead = True
                     ghost.update()
-                    self.pacgums.score += 200
+                    ghost.scared = False
+                    self.pacgums.score += configuration.points_per_ghost
                 elif ghost.dead:
                     pass
                 elif self.cheat_invincible:
@@ -540,9 +512,35 @@ class GameController(object):
             self.game_state = "dying"
 
     def save_score(self, name: str) -> None:
-        with open(configuration.highscore_filename, 'a') as f:
-            f.write(f"{name}: {self.pacgums.score}\n")
-        self.sort_score_file()
+        if len(name) > 9:
+            short_name = ""
+            for i, letter in enumerate(name, start=1):
+                if i == 10:
+                    break
+                short_name += str(letter)
+            name = short_name
+            print(short_name)
+            print(name)
+
+        # with open(configuration.highscore_filename, 'r') as f:
+            # scores: str = f.read()
+            # if name in scores:
+            #     score_1 = self.dict_scores[name]
+            #     score_2 = self.pacgums.score
+            #     if score_1 > score_2:
+            #         return
+
+        try:
+            self.dict_scores[name]
+            score_1 = self.dict_scores[name]
+            score_2 = self.pacgums.score
+            if score_1 > score_2:
+                return
+        except KeyError:
+            with open(configuration.highscore_filename, 'a') as f:
+                f.write(f"{name}: {self.pacgums.score}\n")
+            self.dict_scores.update({name: self.pacgums.score})
+            self.sort_score_file()
 
     def get_top_scores(self, limit: int = 10) -> list[tuple[str, int]]:
         scores: list[tuple[str, int]] = []
@@ -557,7 +555,8 @@ class GameController(object):
         return scores[:limit]
 
     def quit_game_over(self) -> None:
-        self.save_score(self.player.get_value())
+        if self.won and self.current_level == self.max_level:
+            self.save_score(self.player.get_value())
         pygame.quit()
         quit()
 
@@ -579,6 +578,7 @@ class GameController(object):
 
 
 if __name__ == "__main__":
+    # try:
     configuration = parse()
     game = GameController()
     game.set_background()
@@ -586,3 +586,5 @@ if __name__ == "__main__":
 
     # start from starting menu
     game.menus.start_menu()
+    # except Exception as e:
+    #     print(e)

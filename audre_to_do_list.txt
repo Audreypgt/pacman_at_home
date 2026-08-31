@@ -1,9 +1,4 @@
-- Pinky algo -> done
+- Change maze size with config file width/height for each level
+    + Change screen window size to a percentage of the screen
 
-- Scare mode -> done
-
-- Use config file bc wtf we acting like it doesn't exist ???
-    - Change maze size with config file width/height for each level
-        + Change screen window size to a percentage of the screen
-
-- Add max len for names in highscores
+- README

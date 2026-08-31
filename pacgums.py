@@ -23,7 +23,8 @@ class Pacgums:
         self.sp_pacgum_img = pygame.transform.scale(
             sprite_sheet.get_sprite_at(sp_gum_row, sp_gum_col), (40, 40))
 
-    def init_gums(self, mazegen: MazeGenerator, pacwoman: Pacwoman) -> None:
+    def init_gums(self, mazegen: MazeGenerator, pacwoman: Pacwoman,
+                  current_level, configuration) -> None:
         # some variables en double, normal ?
         self.gums = set()
         self.super_gum = set()
@@ -33,10 +34,15 @@ class Pacgums:
         pac_col = (pacwoman.x + self.sprite_w // 2) // MAZE_CELL
         pac_row = (pacwoman.y + self.sprite_h // 2) // MAZE_CELL
 
+        i = 0
+        level_pacgums = configuration.levels[f"level_{current_level}"].pacgum
         for row, lines in enumerate(mazegen.maze):
             for col, cell in enumerate(lines):
-                if cell != 15:
+                if i >= level_pacgums:
+                    break
+                elif cell != 15:
                     self.gums.add((row, col))
+                    i += 1
 
         self.gums.discard((pac_row, pac_col))
 
@@ -55,7 +61,7 @@ class Pacgums:
 
         self.score = 0
 
-    def eat(self, pacwoman: Pacwoman) -> None:
+    def eat(self, pacwoman: Pacwoman, configuration: dict) -> None:
         center_x = pacwoman.x + self.sprite_w // 2
         center_y = pacwoman.y + self.sprite_h // 2
         col = center_x // MAZE_CELL
@@ -63,10 +69,10 @@ class Pacgums:
 
         if (row, col) in self.gums:
             self.gums.discard((row, col))
-            self.score += 10
+            self.score += configuration.points_per_pacgum
         elif (row, col) in self.super_gum:
             self.super_gum.discard((row, col))
-            self.score += 50
+            self.score += configuration.points_per_super_pacgum
             self.eat_ghosts = True
             self.scared_timer = self.scared_duration
 
