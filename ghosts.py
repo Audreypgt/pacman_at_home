@@ -1,12 +1,12 @@
-import pygame  # type: ignore
+import pygame
 import random
 from collections import deque
 from pacwoman import PacSpriteSheet, Pacwoman
-from mazegenerator import MazeGenerator  # type: ignore
+from mazegenerator import MazeGenerator
 
 
 class Ghosts(Pacwoman):
-    def __init__(self, x: int, y: int, sprite_sheet: pygame.surface.Surface,
+    def __init__(self, x: int, y: int, sprite_sheet: PacSpriteSheet,
                  screen_w: int, screen_y: int) -> None:
         super().__init__(x, y, sprite_sheet, screen_w, screen_y)
         self.direction: tuple[int, int] = (1, 0)
@@ -21,38 +21,30 @@ class Ghosts(Pacwoman):
         self.scared_frame_sets: dict[tuple[int, int], pygame.Surface] = {
             (-1, 0): [
                 sprite_sheet.get_sprite_at(15, 0),
-                sprite_sheet.get_sprite_at(16, 0)
-                ],
+                sprite_sheet.get_sprite_at(16, 0)],
             (1, 0): [
                 sprite_sheet.get_sprite_at(11, 0),
-                sprite_sheet.get_sprite_at(12, 0)
-                ],
+                sprite_sheet.get_sprite_at(12, 0)],
             (0, 1): [
                 sprite_sheet.get_sprite_at(13, 0),
-                sprite_sheet.get_sprite_at(14, 0)
-                ],
+                sprite_sheet.get_sprite_at(14, 0)],
             (0, -1): [
                 sprite_sheet.get_sprite_at(17, 0),
-                sprite_sheet.get_sprite_at(18, 0)
-                ]
+                sprite_sheet.get_sprite_at(18, 0)]
         }
         self.flash_frame_sets: dict[tuple[int, int], pygame.Surface] = {
             (-1, 0): [
                 sprite_sheet.get_sprite_at(15, 0),
-                sprite_sheet.get_sprite_at(16, 1)
-                ],
+                sprite_sheet.get_sprite_at(16, 1)],
             (1, 0): [
                 sprite_sheet.get_sprite_at(11, 0),
-                sprite_sheet.get_sprite_at(12, 1)
-                ],
+                sprite_sheet.get_sprite_at(12, 1)],
             (0, 1): [
                 sprite_sheet.get_sprite_at(13, 0),
-                sprite_sheet.get_sprite_at(14, 1)
-                ],
+                sprite_sheet.get_sprite_at(14, 1)],
             (0, -1): [
                 sprite_sheet.get_sprite_at(17, 0),
-                sprite_sheet.get_sprite_at(18, 1)
-                ]
+                sprite_sheet.get_sprite_at(18, 1)]
         }
         self.dead_frame_sets: dict[tuple[int, int], pygame.Surface] = {
             (-1, 0): [sprite_sheet.get_sprite_at(7, 6)],
@@ -72,7 +64,7 @@ class Ghosts(Pacwoman):
         if self.dead:
             active_frames = self.dead_frame_sets
             self.frame_index = (self.frame_index + 1) % len(
-                    active_frames[self.direction])
+                active_frames[self.direction])
             self.move_speed = 2
         elif self.scared and self.warning:
             flash_on = (pygame.time.get_ticks() // 200) % 2 == 0
@@ -278,8 +270,8 @@ class Ghosts(Pacwoman):
             old_x, old_y = self.x, self.y
             super().move(mazegen)
 
-            if (self.crossed_cell_center(old_x, old_y)
-                    and self.state == "moving"):
+            if (self.crossed_cell_center(
+                    old_x, old_y) and self.state == "moving"):
                 self.snap_to_cell_center()
                 self.on_spawn = self.scatter_mode(mazegen, spawn_x, spawn_y)
 
@@ -332,23 +324,19 @@ class Blinky(Ghosts):
             # West
             (-1, 0): [
                 sprite_sheet.get_sprite_at(4, 0),
-                sprite_sheet.get_sprite_at(5, 0)
-                ],
+                sprite_sheet.get_sprite_at(5, 0)],
             # East
             (1, 0): [
                 sprite_sheet.get_sprite_at(0, 0),
-                sprite_sheet.get_sprite_at(1, 0),
-                ],
+                sprite_sheet.get_sprite_at(1, 0),],
             # South
             (0, 1): [
                 sprite_sheet.get_sprite_at(2, 0),
-                sprite_sheet.get_sprite_at(3, 0),
-                ],
+                sprite_sheet.get_sprite_at(3, 0),],
             # North
             (0, -1): [
                 sprite_sheet.get_sprite_at(6, 0),
-                sprite_sheet.get_sprite_at(7, 0)
-                ]
+                sprite_sheet.get_sprite_at(7, 0)]
         }
 
     def bfs_move(self, mazegen: MazeGenerator, pacwoman: Pacwoman) -> None:
@@ -372,23 +360,19 @@ class Pinky(Ghosts):
             # West
             (-1, 0): [
                 sprite_sheet.get_sprite_at(4, 1),
-                sprite_sheet.get_sprite_at(5, 1)
-                ],
+                sprite_sheet.get_sprite_at(5, 1)],
             # East
             (1, 0): [
                 sprite_sheet.get_sprite_at(0, 1),
-                sprite_sheet.get_sprite_at(1, 1),
-                ],
+                sprite_sheet.get_sprite_at(1, 1),],
             # South
             (0, 1): [
                 sprite_sheet.get_sprite_at(2, 1),
-                sprite_sheet.get_sprite_at(3, 1),
-                ],
+                sprite_sheet.get_sprite_at(3, 1),],
             # North
             (0, -1): [
                 sprite_sheet.get_sprite_at(6, 1),
-                sprite_sheet.get_sprite_at(7, 1)
-                ]
+                sprite_sheet.get_sprite_at(7, 1)]
         }
 
     def bfs_move(self, mazegen: MazeGenerator, pacwoman: Pacwoman) -> None:
@@ -418,23 +402,19 @@ class Clyde(Ghosts):
             # West
             (-1, 0): [
                 sprite_sheet.get_sprite_at(4, 3),
-                sprite_sheet.get_sprite_at(5, 3)
-                ],
+                sprite_sheet.get_sprite_at(5, 3)],
             # East
             (1, 0): [
                 sprite_sheet.get_sprite_at(0, 3),
-                sprite_sheet.get_sprite_at(1, 3),
-                ],
+                sprite_sheet.get_sprite_at(1, 3),],
             # South
             (0, 1): [
                 sprite_sheet.get_sprite_at(2, 3),
-                sprite_sheet.get_sprite_at(3, 3),
-                ],
+                sprite_sheet.get_sprite_at(3, 3),],
             # North
             (0, -1): [
                 sprite_sheet.get_sprite_at(6, 3),
-                sprite_sheet.get_sprite_at(7, 3)
-                ]
+                sprite_sheet.get_sprite_at(7, 3)]
         }
 
     def chase_or_retreat(self, mazegen: MazeGenerator, pacwoman: Pacwoman,
@@ -472,23 +452,19 @@ class Inky(Ghosts):
             # West
             (-1, 0): [
                 sprite_sheet.get_sprite_at(4, 2),
-                sprite_sheet.get_sprite_at(5, 2)
-                ],
+                sprite_sheet.get_sprite_at(5, 2)],
             # East
             (1, 0): [
                 sprite_sheet.get_sprite_at(0, 2),
-                sprite_sheet.get_sprite_at(1, 2),
-                ],
+                sprite_sheet.get_sprite_at(1, 2),],
             # South
             (0, 1): [
                 sprite_sheet.get_sprite_at(2, 2),
-                sprite_sheet.get_sprite_at(3, 2),
-                ],
+                sprite_sheet.get_sprite_at(3, 2),],
             # North
             (0, -1): [
                 sprite_sheet.get_sprite_at(6, 2),
-                sprite_sheet.get_sprite_at(7, 2)
-                ]
+                sprite_sheet.get_sprite_at(7, 2)]
         }
 
     def hunt_or_wander(self, mazegen: MazeGenerator, pacwoman: Pacwoman

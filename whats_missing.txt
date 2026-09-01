@@ -14,7 +14,7 @@ directions ??
 Bug of the ghosts being blocked at restart, also they move
 weirdly, BFS not finding the shortest path for some reason ??
 
-Configuration file is not used for level specific values          --> Only missing width & height
+Configuration file is not used for level specific values
 
 Bad arguments or bad config file -> Python traceback
    Must print a clear message instead, never crash                --> Done

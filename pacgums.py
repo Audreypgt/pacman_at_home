@@ -1,7 +1,8 @@
-import pygame  # type: ignore
+import pygame
 from pacwoman import PacSpriteSheet
-from mazegenerator import MazeGenerator  # type: ignore
+from mazegenerator import MazeGenerator
 from pacwoman import Pacwoman
+from parsing import Configuration
 
 MAZE_CELL = 50
 
@@ -24,7 +25,7 @@ class Pacgums:
             sprite_sheet.get_sprite_at(sp_gum_row, sp_gum_col), (40, 40))
 
     def init_gums(self, mazegen: MazeGenerator, pacwoman: Pacwoman,
-                  current_level, configuration) -> None:
+                  current_level: int, configuration: Configuration) -> None:
         # some variables en double, normal ?
         self.gums = set()
         self.super_gum = set()
@@ -61,7 +62,7 @@ class Pacgums:
 
         self.score = 0
 
-    def eat(self, pacwoman: Pacwoman, configuration: dict) -> None:
+    def eat(self, pacwoman: Pacwoman, configuration: Configuration) -> None:
         center_x = pacwoman.x + self.sprite_w // 2
         center_y = pacwoman.y + self.sprite_h // 2
         col = center_x // MAZE_CELL

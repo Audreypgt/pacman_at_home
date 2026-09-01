@@ -1,4 +1,1 @@
-- Change maze size with config file width/height for each level
-    + Change screen window size to a percentage of the screen
-
 - README

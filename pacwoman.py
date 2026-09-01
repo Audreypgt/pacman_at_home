@@ -1,5 +1,5 @@
-import pygame  # type: ignore
-from mazegenerator import MazeGenerator  # type: ignore
+import pygame
+from mazegenerator import MazeGenerator
 
 
 class PacSpriteSheet():
@@ -81,8 +81,8 @@ class Pacwoman:
         self.death_hold_duration = 30
 
     def is_death_animation_done(self) -> bool:
-        return (self.death_frame_index >= len(self.death_frame_sets) - 1
-                and self.death_hold_timer >= self.death_hold_duration)
+        return self.death_frame_index >= len(self.death_frame_sets) - 1 \
+            and self.death_hold_timer >= self.death_hold_duration
 
     def input(self, keys: pygame.key.ScancodeWrapper) -> None:
         requested = None
@@ -145,13 +145,13 @@ class Pacwoman:
 
         if cell & wall_bit[self.direction]:
             if dx == 1:
-                new_x = min(new_x, col * MAZE_CELL +
-                            (MAZE_CELL - self.sprite_w))
+                new_x = min(
+                    new_x, col * MAZE_CELL + (MAZE_CELL - self.sprite_w))
             elif dx == -1:
                 new_x = max(new_x, col * MAZE_CELL)
             elif dy == 1:
-                new_y = min(new_y, row * MAZE_CELL +
-                            (MAZE_CELL - self.sprite_w))
+                new_y = min(
+                    new_y, row * MAZE_CELL + (MAZE_CELL - self.sprite_w))
             elif dy == -1:
                 new_y = max(new_y, row * MAZE_CELL)
 
@@ -184,8 +184,7 @@ class Pacwoman:
                 self.frame_index = (self.frame_index + 1) % len(
                     self.frame_sets[self.direction])
             self.current_frame = self.frame_sets[
-                                                 self.direction][
-                                                 self.frame_index]
+                self.direction][self.frame_index]
         elif self.state == "idle":
             self.current_frame = self.frame_sets[self.direction][0]
 

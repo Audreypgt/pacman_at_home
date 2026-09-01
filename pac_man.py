@@ -1,9 +1,9 @@
-import pygame  # type: ignore
-from pygame_menu import widgets  # type: ignore
-from mazegenerator import MazeGenerator  # type: ignore
+import pygame
+from pygame_menu import widgets
+from mazegenerator import MazeGenerator
 from parsing import parse
 from pacwoman import PacSpriteSheet, Pacwoman
-from ghosts import Blinky, Pinky, Clyde, Inky
+from ghosts import Blinky, Pinky, Clyde, Inky, Ghosts
 from pacgums import Pacgums
 from typing import Callable, Any
 from functools import partial
@@ -44,8 +44,7 @@ class GameController(object):
             7: configuration.levels["level_7"].seed,
             8: configuration.levels["level_8"].seed,
             9: configuration.levels["level_9"].seed,
-            10: configuration.levels["level_10"].seed,
-            }
+            10: configuration.levels["level_10"].seed}
 
         pygame.init()
         self.screen = pygame.display.set_mode(SCREENSIZE, 0, 32)
@@ -57,7 +56,13 @@ class GameController(object):
         self.scatter = False
         self.over = False
         self.won = False
+        self.prev_eat_ghosts: bool = False
+        self.game_state: str = ""
+        self.respawn_delay = 0.0
+        self.time = 0.0
+        self.lives: int = configuration.lives
         self.player: widgets.TextInput = None
+        self.ghosts: dict[str, tuple[Ghosts, tuple[int, int]]] = {}
         self.dict_scores: dict[str, int] = {}
         self.sprite_w = 42
         self.sprite_h = 42
@@ -178,8 +183,7 @@ class GameController(object):
                         ghost.scatter_move, mazegen, spawn[0],
                         spawn[1]),
                     "scared": partial(
-                        ghost.move_random, mazegen),
-                    }
+                        ghost.move_random, mazegen)}
                 if ghost.ghost_state != "normal":
                     self.ghost_move[ghost.ghost_state]()
                 else:
@@ -386,7 +390,7 @@ class GameController(object):
         spawn_x: int = center_col * 50 + (50 - self.sprite_w) // 2
         spawn_y: int = center_row * 50 + (50 - self.sprite_h) // 2
         self.pacwoman_spawn = (spawn_x, spawn_y)
-        self.pacwoman = Pacwoman(
+        self.pacwoman: Pacwoman = Pacwoman(
             spawn_x, spawn_y, pac_sheet, GAME_WIDTH, GAME_HEIGHT)
 
         self.pacgums.init_gums(
@@ -402,7 +406,7 @@ class GameController(object):
             len(mazegen.maze) - 1) * 50 + (
                 50 - self.sprite_h) // 2
         self.blinky_spawn = (spawn_x_blky, spawn_y_blky)
-        self.blinky = Blinky(
+        self.blinky: Blinky = Blinky(
             spawn_x_blky, spawn_y_blky, pac_sheet,
             GAME_WIDTH, GAME_HEIGHT)
 
@@ -412,20 +416,20 @@ class GameController(object):
             len(mazegen.maze) - 1) * 50 + (
                 50 - self.sprite_h) // 2
         self.pinky_spawn = (spawn_x_pky, spawn_y_pky)
-        self.pinky = Pinky(
+        self.pinky: Pinky = Pinky(
             spawn_x_pky, spawn_y_pky, pac_sheet, GAME_WIDTH, GAME_HEIGHT)
 
         # Clyde
         self.clyde_spawn = (0, 0)
-        self.clyde = Clyde(
+        self.clyde: Clyde = Clyde(
             0, 0, pac_sheet, GAME_WIDTH, GAME_HEIGHT)
 
         # Inky
         spawn_x_inky = (len(mazegen.maze[0]) - 1) * 50 + (
-                50 - self.sprite_w) // 2
+            50 - self.sprite_w) // 2
         spawn_y_inky = (50 - self.sprite_h) // 2
         self.inky_spawn = (spawn_x_inky, spawn_y_inky)
-        self.inky = Inky(
+        self.inky: Inky = Inky(
             spawn_x_inky, spawn_y_inky, pac_sheet, GAME_WIDTH, GAME_HEIGHT)
 
         self.ghosts = {
@@ -580,6 +584,7 @@ class GameController(object):
 if __name__ == "__main__":
     # try:
     configuration = parse()
+    print(type(configuration))
     game = GameController()
     game.set_background()
     mazegen = MazeGenerator()
