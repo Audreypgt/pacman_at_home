@@ -2,9 +2,9 @@ from sys import argv
 from typing import Any, Annotated
 import json
 from collections.abc import Callable
-from pydantic import (  # type: ignore
+from pydantic import (
     BaseModel, Field, field_validator, ValidationInfo)
-from pydantic_core import PydanticUseDefault  # type: ignore
+from pydantic_core import PydanticUseDefault
 
 
 class ArgsError(Exception):
@@ -156,7 +156,7 @@ class Configuration(BaseModel):
 
 
 class JSONWithCommentsDecoder(json.JSONDecoder):
-    def init(self, **kw) -> None:
+    def __init__(self, **kw: Any) -> None:
         super().__init__(**kw)
 
     def decode(self, s: str, _: Callable[..., Any] = lambda: "") -> Any:

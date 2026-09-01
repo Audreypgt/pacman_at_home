@@ -1,5 +1,7 @@
 pygame
 pygame_menu
 pydantic
+pydantic-settings
 pydantic_core
 mazegenerator-2.1.0-py3-none-any.whl
+mypy

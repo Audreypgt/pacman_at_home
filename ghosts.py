@@ -11,14 +11,16 @@ class Ghosts(Pacwoman):
         super().__init__(x, y, sprite_sheet, screen_w, screen_y)
         self.direction: tuple[int, int] = (1, 0)
         self.state: str = "moving"
-        self.frame_sets: dict[tuple[int, int], pygame.Surface] = {}
+        self.frame_sets: dict[
+            tuple[int, int], list[pygame.Surface]] = {}
         # maybe replace self.scared with self.ghost_state from pac-man ?
         self.scared: bool = False
         self.warning: bool = False
         self.on_spawn = False
         self.dead: bool = False
         self.ghost_state = "normal"
-        self.scared_frame_sets: dict[tuple[int, int], pygame.Surface] = {
+        self.scared_frame_sets: dict[
+            tuple[int, int], list[pygame.Surface]] = {
             (-1, 0): [
                 sprite_sheet.get_sprite_at(15, 0),
                 sprite_sheet.get_sprite_at(16, 0)],
@@ -32,7 +34,8 @@ class Ghosts(Pacwoman):
                 sprite_sheet.get_sprite_at(17, 0),
                 sprite_sheet.get_sprite_at(18, 0)]
         }
-        self.flash_frame_sets: dict[tuple[int, int], pygame.Surface] = {
+        self.flash_frame_sets: dict[
+            tuple[int, int], list[pygame.Surface]] = {
             (-1, 0): [
                 sprite_sheet.get_sprite_at(15, 0),
                 sprite_sheet.get_sprite_at(16, 1)],
@@ -46,7 +49,8 @@ class Ghosts(Pacwoman):
                 sprite_sheet.get_sprite_at(17, 0),
                 sprite_sheet.get_sprite_at(18, 1)]
         }
-        self.dead_frame_sets: dict[tuple[int, int], pygame.Surface] = {
+        self.dead_frame_sets: dict[
+            tuple[int, int], list[pygame.Surface]] = {
             (-1, 0): [sprite_sheet.get_sprite_at(7, 6)],
             (1, 0): [sprite_sheet.get_sprite_at(5, 6)],
             (0, 1): [sprite_sheet.get_sprite_at(6, 6)],
@@ -201,8 +205,12 @@ class Ghosts(Pacwoman):
                     queue.append(((new_x), (new_y)))
 
         path: list[tuple[int, int]] = [target]
-        while parent.get(path[-1]) is not None:
-            path.append(parent[path[-1]])
+        while True:
+            next_step = parent[path[-1]]
+            if not next_step:
+                break
+            path.append(next_step)
+
         path = path[::-1]
 
         if len(path) >= 2:

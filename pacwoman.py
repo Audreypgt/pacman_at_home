@@ -41,7 +41,8 @@ class Pacwoman:
         self.move_timer = 0
         self.frame_index = 0
         self.state = "idle"
-        self.frame_sets = {
+        self.frame_sets: dict[
+            tuple[int, int], list[pygame.Surface]] = {
             (-1, 0): [sprite_sheet.get_sprite_at(8, 17),
                       sprite_sheet.get_sprite_at(7, 17),
                       sprite_sheet.get_sprite_at(6, 17)],

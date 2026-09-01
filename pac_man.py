@@ -50,8 +50,8 @@ class GameController(object):
         self.screen = pygame.display.set_mode(SCREENSIZE, 0, 32)
         self.game_surface = self.screen.subsurface(
             pygame.Rect(0, GUI_HEIGHT, GAME_WIDTH, GAME_HEIGHT))
-        self.background: pygame.surface.Surface = None
-        self.maze_surface: pygame.surface.Surface = None
+        self.background: pygame.surface.Surface | None = None
+        self.maze_surface: pygame.surface.Surface | None = None
         self.running = False
         self.scatter = False
         self.over = False
@@ -582,14 +582,13 @@ class GameController(object):
 
 
 if __name__ == "__main__":
-    # try:
-    configuration = parse()
-    print(type(configuration))
-    game = GameController()
-    game.set_background()
-    mazegen = MazeGenerator()
+    try:
+        configuration = parse()
+        game = GameController()
+        game.set_background()
+        mazegen = MazeGenerator()
 
-    # start from starting menu
-    game.menus.start_menu()
-    # except Exception as e:
-    #     print(e)
+        # start from starting menu
+        game.menus.start_menu()
+    except Exception as e:
+        print(e)
