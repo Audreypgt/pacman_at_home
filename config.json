@@ -4,7 +4,7 @@
     # googoogaga
     "levels": {
         "level_1": {
-            "seed": 42,
+            "seed": 24,
             "pacgum": 2
         },
         "level_2": {
@@ -35,7 +35,7 @@
             "pacgum": 207
         }
     },
-    "lives": 1,
+    "lives": 3,
     "points_per_pacgum": 10,
     "points_per_super_pacgum": 50,
     "points_per_ghost": 100,

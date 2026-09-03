@@ -563,8 +563,6 @@ class GameController(object):
                     break
                 short_name += str(letter)
             name = short_name
-            print(short_name)
-            print(name)
 
         try:
             self.dict_scores[name]
