@@ -205,6 +205,8 @@ class Ghosts(Pacwoman):
                     queue.append(((new_x), (new_y)))
 
         path: list[tuple[int, int]] = [target]
+        print(f"path: {path}")
+        print(f"parent: {parent}")
         while True:
             next_step = parent[path[-1]]
             if not next_step:

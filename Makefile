@@ -1,8 +1,6 @@
 NAME = pacman
 
-# .python_version only works with pyenv, so the file was never used,
-# we need to choose our python version here, when creating the venv
-P3 = python3.11
+P3 = python3
 
 run:
 	@source pacman_venv/bin/activate \
@@ -42,14 +40,14 @@ fclean: clean venv-clean
 lint:
 	@source pacman_venv/bin/activate \
 	&& flake8 parsing.py menu.py pac_man.py ghosts.py pacgums.py pacwoman.py \
-	&& python -m mypy parsing.py menu.py pac_man.py ghosts.py pacgums.py pacwoman.py \
+	&& mypy parsing.py menu.py pac_man.py ghosts.py pacgums.py pacwoman.py \
 	--warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs \
 	--check-untyped-defs
 
 lint-strict:
 	@source pacman_venv/bin/activate \
 	&& flake8 parsing.py menu.py pac_man.py ghosts.py pacgums.py pacwoman.py \
-	&& python -m mypy parsing.py menu.py pac_man.py ghosts.py pacgums.py pacwoman.py --strict
+	&& mypy parsing.py menu.py pac_man.py ghosts.py pacgums.py pacwoman.py --strict
 
 # build:
 # 	python -m build

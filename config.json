@@ -4,43 +4,34 @@
     # googoogaga
     "levels": {
         "level_1": {
-            "seed": 41,
+            "seed": 42,
             "pacgum": 2
         },
         "level_2": {
-            "seed": 42,
             "pacgum": 207
         },
         "level_3": {
-            "seed": 43,
             "pacgum": 207
         },
         "level_4": {
-            "seed": 44,
             "pacgum": 207
         },
         "level_5": {
-            "seed": 45,
             "pacgum": 207
         },
         "level_6": {
-            "seed": 46,
             "pacgum": 207
         },
         "level_7": {
-            "seed": 47,
             "pacgum": 207
         },
         "level_8": {
-            "seed": 48,
             "pacgum": 207
         },
         "level_9": {
-            "seed": 49,
             "pacgum": 207
         },
         "level_10": {
-            "seed": 50,
             "pacgum": 207
         }
     },

@@ -1,6 +1,6 @@
 MISSING COMPLETELY
 ------------------
-README.md
+README.md                                                         --> To finish
 Packaging: no itch.io/Steam upload
 Project management folder: timeline, progress vs plan,
 team organization
@@ -11,10 +11,9 @@ BROKEN (must fix)
 -----------------
 Sprite of dead ghosts doesn't change anymore depending on
 directions ??
-Bug of the ghosts being blocked at restart, also they move
-weirdly, BFS not finding the shortest path for some reason ??
+Bug of the ghosts being blocked at restart
 
-Configuration file is not used for level specific values
+Configuration file is not used for level specific values          --> Done
 
 Bad arguments or bad config file -> Python traceback
    Must print a clear message instead, never crash                --> Done
