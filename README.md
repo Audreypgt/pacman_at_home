@@ -19,7 +19,7 @@ https://stackoverflow.com/questions/73328115/pacman-ghost-movement
 AI was used to debug and for testing.
 
 ## Configuration
-Our configuration files can be used to choose the highscore file name, the number of lives, points earned, the game time and level specific settings such as a seed and the number of pacgums. There are default values if none or wrong ones are given, using pydantic.
+Our configuration file can be used to choose the highscore file name, the number of lives, the amount of points earned, the game duration and level specific settings such as a seed and the number of pacgums. There are default values if none or wrong ones are given. We use pydantic to parse this Json configuration file.
 
 ## Highscore
 Our highscore system is pretty straight forward, the new score is compared to already existing scores and sorted, then the first 10 scores will be shown. If a player name already exists, only the highest score will be kept, in order to not have doubles.
@@ -35,4 +35,6 @@ high-level overview of the software architecture (modules, classes, and their re
 
 ## Project Management
 We established a 4-week plan, with milestones for each week, and agreed on who would do what.
+
+> Link to project management directory
 <!-- brief overview of how you managed the activity and a link to the dedicated project management directory -->
