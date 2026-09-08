@@ -1,10 +1,10 @@
 MISSING COMPLETELY
 ------------------
-README.md                                                         --> To finish
+README.md                                                            --> To finish
 Packaging: no itch.io/Steam upload
 Project management folder: timeline, progress vs plan,
 team organization
-Clean error handling if the maze generator fails                  --> Done (added try/except in main)
+Clean error handling if the maze generator fails                     --> Done (added try/except in main)
 Clyde and Inky algos
 
 BROKEN (must fix)
@@ -13,22 +13,22 @@ Sprite of dead ghosts doesn't change anymore depending on
 directions ??
 Bug of the ghosts being blocked at restart
 
-Configuration file is not used for level specific values          --> Done
+Configuration file is not used for level specific values             --> Done
 
-Bad arguments or bad config file -> Python traceback
-   Must print a clear message instead, never crash                --> Done
-lvl_max_time from config is never used, time is hardcoded 120s    --> fixed
-Highscore: names not validated                                    --> can't be longer than 9 chars
-Scores with the same name overwrite each other in the score file  --> now we keep only the highestscore
-When eating a ghost, points are added several times, not just
-once, so score is wrong (if you collide with the ghost you keep   --> fixed
+- Bad arguments or bad config file -> Python traceback
+   Must print a clear message instead, never crash                   --> Done
+lvl_max_time from config is never used, time is hardcoded 120s       --> fixed
+- Highscore: names not validated                                     --> can't be longer than 9 chars
+- Scores with the same name overwrite each other in the score file   --> now we keep only the highestscore
+- When eating a ghost, points are added several times, not just
+once, so score is wrong (if you collide with the ghost you keep      --> fixed
 getting points until it resuscitates)
 
 PARTIAL / TO CHECK
 ------------------
-All 10 levels use seed 42. After level 1, mazes must be random
+All 10 levels use seed 42. After level 1, mazes must be random       --> Done
 
 GOOD IF ADDED
 -------------
-Cheat mode menu: just like instructions menu                      --> Done
+Cheat mode menu: just like instructions menu                         --> Done
 Make the instruction page prettier
