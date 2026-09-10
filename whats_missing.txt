@@ -1,16 +1,18 @@
 MISSING COMPLETELY
 ------------------
-README.md                                                            --> To finish
-Packaging: no itch.io/Steam upload
-Project management folder: timeline, progress vs plan,
+- Docstrings
+- Packaging: no itch.io/Steam upload
+- Project management folder: timeline, progress vs plan,
 team organization
+- Clyde and Inky algos
+
+README.md                                                            --> Done
 Clean error handling if the maze generator fails                     --> Done (added try/except in main)
-Clyde and Inky algos
 
 BROKEN (must fix)
 -----------------
 Sprite of dead ghosts doesn't change anymore depending on
-directions ??
+directions ??k
 Bug of the ghosts being blocked at restart
 
 Configuration file is not used for level specific values             --> Done
