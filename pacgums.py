@@ -8,9 +8,15 @@ MAZE_CELL = 50
 
 
 class Pacgums:
+    """Handle everything linked to pacgums: create them, display them on
+    screen, give possibility to PacWoman to eat ghosts, handle the related
+    timer
+    """
     def __init__(self, sprite_sheet: PacSpriteSheet, gum_row: int,
                  gum_col: int, sp_gum_row: int, sp_gum_col: int,
                  scared_duration: float = 10.0) -> None:
+        """Initialize needed values and values related to the Pacgums and load
+        sprites"""
         self.gums: set[tuple[int, int]] = set()
         self.score: int = 0
         self.eat_ghosts: bool = False
@@ -26,7 +32,8 @@ class Pacgums:
 
     def init_gums(self, mazegen: MazeGenerator, pacwoman: Pacwoman,
                   current_level: int, configuration: Configuration) -> None:
-        # some variables en double, normal ?
+        """Add pacgums and superpacgums to maze"""
+        # some variables en double, normal ? used to reinitialize values ?
         self.gums = set()
         self.super_gum = set()
         self.eat_ghosts = False
@@ -63,6 +70,9 @@ class Pacgums:
         self.score = 0
 
     def eat(self, pacwoman: Pacwoman, configuration: Configuration) -> None:
+        """Check location of PacWoman, if she's on a pacgum, it is discarded,
+        if a superpacgum was eaten, a boolean is set to true and allows her
+        to eat ghosts in game_controller"""
         center_x = pacwoman.x + self.sprite_w // 2
         center_y = pacwoman.y + self.sprite_h // 2
         col = center_x // MAZE_CELL
@@ -78,6 +88,8 @@ class Pacgums:
             self.scared_timer = self.scared_duration
 
     def update(self, dt: float) -> None:
+        """Handle the timer for the effect of the superpacgum, decrement it
+        or set it back to default value (0.0) when the effect is over"""
         if self.eat_ghosts:
             self.scared_timer -= dt
         if self.scared_timer <= 0:
@@ -85,6 +97,7 @@ class Pacgums:
             self.scared_timer = 0.0
 
     def draw(self, screen: pygame.surface.Surface) -> None:
+        """Use blit function to display the pacgums on the screen"""
         gum_size = self.pacgum_img.get_width()
         gum_offset = (MAZE_CELL - gum_size) / 2
         for row, col in self.gums:

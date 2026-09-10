@@ -13,76 +13,59 @@ class ArgsError(Exception):
 
 
 class LevelConfiguration(BaseModel):
-    width_lvl: int = Field(ge=12, le=50, default=13)
-    height_lvl: int = Field(ge=12, le=50, default=13)
-    pacgum: int = Field(default=42)
-    seed: int = Field(default=42)
+    """Use BaseModel to implement a default value in case of incorrect value
+    for level specific attributes
+    """
+    seed: int = Field(default=0)
+    pacgum: int = Field(default=207)
 
 
 class Configuration(BaseModel):
+    """Use BaseModel to implement a default value if value is incorrect"""
     highscore_filename: str = Field(default="highscore.txt")
-    # randomize levels (same for 1st level then different)
     levels: dict[str, LevelConfiguration] = Field(default={
         "level_1": LevelConfiguration(),
         "level_2": LevelConfiguration(
-            width_lvl=17,
-            height_lvl=17,
-            seed=42,
-            pacgum=42
+            seed=0,
+            pacgum=207
         ),
         "level_3": LevelConfiguration(
-            width_lvl=20,
-            height_lvl=20,
-            seed=42,
-            pacgum=42
+            seed=0,
+            pacgum=207
         ),
         "level_4": LevelConfiguration(
-            width_lvl=22,
-            height_lvl=22,
-            seed=42,
-            pacgum=42
+            seed=0,
+            pacgum=207
         ),
         "level_5": LevelConfiguration(
-            width_lvl=25,
-            height_lvl=25,
-            seed=42,
-            pacgum=42
+            seed=0,
+            pacgum=207
         ),
         "level_6": LevelConfiguration(
-            width_lvl=27,
-            height_lvl=27,
-            seed=42,
-            pacgum=42
+            seed=0,
+            pacgum=207
         ),
         "level_7": LevelConfiguration(
-            width_lvl=30,
-            height_lvl=30,
-            seed=42,
-            pacgum=42
+            seed=0,
+            pacgum=207
         ),
         "level_8": LevelConfiguration(
-            width_lvl=32,
-            height_lvl=32,
-            seed=42,
-            pacgum=42
+            seed=0,
+            pacgum=207
         ),
         "level_9": LevelConfiguration(
-            width_lvl=35,
-            height_lvl=35,
-            seed=42,
-            pacgum=42
+            seed=0,
+            pacgum=207
         ),
         "level_10": LevelConfiguration(
-            width_lvl=40,
-            height_lvl=40,
-            seed=42,
-            pacgum=42
+            seed=0,
+            pacgum=207
         )})
     lives: int = Field(le=999, default=3)
     points_per_pacgum: int = Field(default=10)
     points_per_super_pacgum: int = Field(default=50)
     points_per_ghost: int = Field(default=200)
-    lvl_max_time: int = Field(default=90)
+    lvl_max_time: int = Field(default=120)
 
     @field_validator("*", mode="before")
     @classmethod
@@ -99,8 +82,7 @@ class Configuration(BaseModel):
                 cls.model_fields[str(field.field_name)].asdict())
 
             class TestValues(BaseModel):
-                # Annotated[type, x, y] adds metadata y to x,
-                """type test_fields (which is our value) as Any, give it the
+                """Type test_fields (which is our value) as Any, give it the
                 metadata (for ex ge=12, le=50) and the field attributes
                 (for ex default=13), the value is therefore being tested with
                 the same conditions as the fields defined in Configuration
@@ -108,25 +90,11 @@ class Configuration(BaseModel):
                 return the default value we put in the Field default in our
                 Configuration BaseModel
                 """
+                # Annotated[type, x, y] adds metadata y to x,
                 test_field: Annotated[
                     Any, *field_info["metadata"],
                     Field(**field_info["attributes"])]
             TestValues(test_field=value)
-
-            # --------------- TEST PARSER ---------------
-            # test = TestValues(test_field=value)
-            # print("field_info")
-            # print(field_info)
-            # print()
-            # print("test")
-            # print(test)
-            # print()
-            # print("metadata")
-            # print(field_info["metadata"])
-            # print()
-            # print("attributes")
-            # print(field_info["attributes"])
-            # print()
 
             return value
         except Exception:
@@ -135,6 +103,9 @@ class Configuration(BaseModel):
     @field_validator("levels", mode="before")
     @classmethod
     def validation_level(cls, value: Any) -> Any:
+        """create a dictionary containing each level and validating them
+        using LevelConfiguration class
+        """
         levels: dict[str, LevelConfiguration] = {}
         try:
             for index, level in enumerate(value.values(), start=1):
@@ -146,6 +117,9 @@ class Configuration(BaseModel):
     @field_validator("highscore_filename", mode="before")
     @classmethod
     def validation(cls, value: Any) -> Any:
+        """validate field highscore_filename, must be a string with .txt
+        extension
+        """
         try:
             str(value)
             if not value.endswith(".txt"):
@@ -156,10 +130,14 @@ class Configuration(BaseModel):
 
 
 class JSONWithCommentsDecoder(json.JSONDecoder):
+    """Ignore comments in json configuration file"""
     def __init__(self, **kw: Any) -> None:
+        """"Initialize class that inherits from JSONDecoder"""
         super().__init__(**kw)
 
     def decode(self, s: str, _: Callable[..., Any] = lambda: "") -> Any:
+        """Create a string with the configuration, removing the lines
+        starting with # or //"""
         s = '\n'.join(
             line if not line.lstrip().startswith(('//', '#'))
             else '' for line in s.split('\n'))
@@ -167,9 +145,10 @@ class JSONWithCommentsDecoder(json.JSONDecoder):
 
 
 def parse() -> Configuration:
-    """return dict with width, length... as key and the values given in the
+    """Check that given command line arguments are correct and return
+    dict with varibale names as keys and the values given in the
+    configuration file in order to use it in our program
     """
-
     if not len(argv) == 2:
         raise ArgsError("Wrong amount of arguments, parameters should be "
                         "excactly: python file - configuration file\n")
@@ -180,13 +159,7 @@ def parse() -> Configuration:
     with open(argv[1], "r") as file:
         parse_file = json.load(file, cls=JSONWithCommentsDecoder)
 
-    # return an object made of each value and key of the json file as variables
     return Configuration(**parse_file)
-
-
-if __name__ == "__main__":
-    config = parse()
-    # print(config)
 
 
 # example of dict unpacking:

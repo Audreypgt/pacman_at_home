@@ -3,16 +3,22 @@ from mazegenerator import MazeGenerator
 
 
 class PacSpriteSheet():
-
+    """Handle spritesheet for the game"""
     CELL = 47
 
     def __init__(self, filename: str, sprite_w: int = 42, sprite_h: int = 42
                  ) -> None:
+        """Initialize the class with the size received in parameters and load
+        the sprite sheet image
+        """
         self.sheet = pygame.image.load(filename).convert_alpha()
         self.sprite_w = sprite_w
         self.sprite_h = sprite_h
 
     def get_sprite(self, x: int, y: int, w: int, h: int) -> pygame.Surface:
+        """Return a surface object used as the sprite at the coordinates
+        received in parameters
+        """
         sprite = pygame.Surface((w, h), pygame.SRCALPHA)
         sprite.blit(self.sheet, (0, 0), (x, y, w, h))
         return sprite
@@ -20,14 +26,20 @@ class PacSpriteSheet():
     def get_sprite_at(
             self, row: int, col: int, w: int | None = None,
             h: int | None = None) -> pygame.Surface:
+        """Call the get_sprite function and passes it the received parameters
+        """
         w = w or self.sprite_w
         h = h or self.sprite_h
         return self.get_sprite(col * self.CELL, row * self.CELL, w, h)
 
 
 class Pacwoman:
+    """Handle everything related to pacwoman"""
     def __init__(self, x: int, y: int, sprite_sheet: PacSpriteSheet,
                  screen_w: int, screen_y: int) -> None:
+        """Initialize all needed variables and create dictionaries of sprites
+        depending on direction and state of pacwoman
+        """
         self.x = x
         self.y = y
         self.screen_w = screen_w
@@ -75,6 +87,9 @@ class Pacwoman:
         self.death_timer = 0
 
     def start_death_animation(self) -> None:
+        """Handle variables for the animation when pacwoman dies,
+        used in game_controller to launch the animation
+        """
         self.state = "dying"
         self.death_frame_index = 0
         self.death_timer = 0
@@ -82,6 +97,10 @@ class Pacwoman:
         self.death_hold_duration = 30
 
     def is_death_animation_done(self) -> bool:
+        """Return a boolean, true if the animation is over, false if not,
+        used in game_controller to respawn pacwoman and ghosts after animation
+        is done
+        """
         return self.death_frame_index >= len(self.death_frame_sets) - 1 \
             and self.death_hold_timer >= self.death_hold_duration
 
@@ -101,12 +120,17 @@ class Pacwoman:
             self.state = "moving"
 
     def current_cell(self) -> tuple[int, int]:
-        """position in maze cells as (column, row)"""
+        """return the position of pacwoman in maze cells as a tuple
+        (column, row), used by the ghosts to chase pacwoman
+        """
         MAZE_CELL = 50
         return ((self.x + self.sprite_w // 2) // MAZE_CELL,
                 (self.y + self.sprite_h // 2) // MAZE_CELL)
 
     def move(self, mazegen: MazeGenerator) -> None:
+        """Handle the movements for pacwoman, center her and make sure she
+        doesn't get stuck against a wall
+        """
         if self.state != "moving":
             return
 
@@ -165,6 +189,7 @@ class Pacwoman:
             self.x, self.y = clamped_x, clamped_y
 
     def update(self) -> None:
+        """Handle the sprites used depending on pacwoman's state"""
         if self.state == "dying":
             self.current_frame = self.death_frame_sets[self.death_frame_index]
 
@@ -190,4 +215,5 @@ class Pacwoman:
             self.current_frame = self.frame_sets[self.direction][0]
 
     def draw(self, surface: pygame.surface.Surface) -> None:
+        """Display PacWoman on the screen"""
         surface.blit(self.current_frame, (self.x, self.y))

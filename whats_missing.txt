@@ -1,10 +1,13 @@
 MISSING COMPLETELY
 ------------------
-- Docstrings
+- Docstrings                                                         --> OK in parsing, pacgums, pacwoman, ghosts (check Luka)
+- Check comments (in ghosts (173, 256) and pacgums (36) mainly)
 - Packaging: no itch.io/Steam upload
 - Project management folder: timeline, progress vs plan,
 team organization
-- Clyde and Inky algos
+
+
+- Clyde and Inky algos                                               --> Done
 
 README.md                                                            --> Done
 Clean error handling if the maze generator fails                     --> Done (added try/except in main)
@@ -12,10 +15,11 @@ Clean error handling if the maze generator fails                     --> Done (a
 BROKEN (must fix)
 -----------------
 Sprite of dead ghosts doesn't change anymore depending on
-directions ??k
+directions ??
 Bug of the ghosts being blocked at restart
-Pinky Bug                                                            --> Fixed
 
+
+Pinky Bug                                                            --> Fixed
 Configuration file is not used for level specific values             --> Done
 
 - Bad arguments or bad config file -> Python traceback

@@ -1,4 +1,3 @@
-
 import os
 from functools import partial
 from typing import Callable, Any
@@ -418,7 +417,7 @@ class GameController(object):
         saved_score = self.pacgums.score
         self.mazegen.generate(self.level_seeds[self.current_level])
         # to reset the walls between each levels, so that in level 2 you dont
-        # get level 1 walls, its cache.
+        # get level 1 walls, its cache
         self.maze_surface = None
 
         # Pacwoman
