@@ -172,7 +172,7 @@ class Ghosts(Pacwoman):
             self.ghost_state = "normal"
             self.move_speed = 1
             return True
-
+        print("scatter_mode")
         self.bfs_direction(mazegen, spawn_cell)
         return False
 
@@ -207,13 +207,15 @@ class Ghosts(Pacwoman):
         path: list[tuple[int, int]] = [target]
         print(f"path: {path}")
         print(f"parent: {parent}")
-        print(f"location: {self.current_cell()}")
+        print(f"location: {self.current_cell()}\n")
         while True:
             if not parent[path[-1]]:
                 break
                 # next_step = parent[path[-1]]
             else:
-                path.append(parent[path[-1]])
+                maze_x, maze_y = parent[path[-1]]
+                if mazegen.maze[maze_y][maze_x] != 15:
+                    path.append(parent[path[-1]])
 
     #  prints:
     #     path: [(4, 7)]
@@ -325,12 +327,22 @@ class Ghosts(Pacwoman):
 
         if pinky:
             pw_dir_x, pw_dir_y = pacwoman.direction
-            pw_x += pw_dir_x * 4
-            pw_y += pw_dir_y * 4
+            # we add the direction 1 to 4 times to the the location goal
+            # (which is pacwoman's location) if the location goal is a
+            # 4 wall cell so not accessible, we add until their is an
+            # accessible cell which will be our new goal
+            for _ in range(4):
+                if mazegen.maze[pw_y][pw_x + pw_dir_x] == 15:
+                    break
+                pw_x += pw_dir_x
+            for _ in range(4):
+                if mazegen.maze[pw_y + pw_dir_y][pw_x] == 15:
+                    break
+                pw_y += pw_dir_y
 
         pw_x = max(0, min(pw_x, len(mazegen.maze[0]) - 1))
         pw_y = max(0, min(pw_y, len(mazegen.maze) - 1))
-
+        print("choose bfs_direction")
         self.bfs_direction(mazegen, (pw_x, pw_y))
 
 
@@ -443,6 +455,7 @@ class Clyde(Ghosts):
         corner = ((spawn_x + self.sprite_w // 2) // 50,
                   (spawn_y + self.sprite_w // 2) // 50)
         if self.distance_to(pacwoman) < Clyde.SHY_RADIUS:
+            print("chase or retreat")
             self.bfs_direction(mazegen, corner)
         else:
             self.choose_bfs_direction(mazegen, pacwoman, False)
