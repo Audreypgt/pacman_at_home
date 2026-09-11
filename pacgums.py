@@ -22,8 +22,8 @@ class Pacgums:
         self.eat_ghosts: bool = False
         self.scared_duration: float = scared_duration
         self.scared_timer: float = 0.0
-        self.sprite_h = 42
-        self.sprite_w = 42
+        self.sprite_h = sprite_sheet.sprite_h
+        self.sprite_w = sprite_sheet.sprite_w
 
         self.pacgum_img = pygame.transform.scale(
             sprite_sheet.get_sprite_at(gum_row, gum_col), (25, 25))

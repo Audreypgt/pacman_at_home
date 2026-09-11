@@ -159,11 +159,12 @@ class Pacwoman:
 
         dx, dy = self.direction
 
-        offset = (MAZE_CELL - self.sprite_w) // 2
+        offset_x = (MAZE_CELL - self.sprite_w) // 2
+        offset_y = (MAZE_CELL - self.sprite_h) // 2
         if dx != 0:
-            self.y = row * MAZE_CELL + offset
+            self.y = row * MAZE_CELL + offset_y
         elif dy != 0:
-            self.x = col * MAZE_CELL + offset
+            self.x = col * MAZE_CELL + offset_x
 
         new_x = self.x + dx * self.move_speed
         new_y = self.y + dy * self.move_speed
