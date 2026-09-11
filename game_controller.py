@@ -166,7 +166,7 @@ class GameController(object):
 
         keys: pygame.key.ScancodeWrapper = pygame.key.get_pressed()
         self.pacwoman.input(keys)
-        self.pacwoman.move(self.mazegen)
+        self.pacwoman.move(self.mazegen, self.pacwoman.pw_move_state)
         self.pacwoman.update()
         self.pacgums.eat(self.pacwoman, self.configuration)
         self.pacgums.update(dt)
@@ -175,6 +175,8 @@ class GameController(object):
             self.pacgums.eat_ghosts and not self.prev_eat_ghosts)
         self.prev_eat_ghosts = self.pacgums.eat_ghosts
 
+        for _, (ghost, _) in self.ghosts.items():
+            print({ghost}, {ghost.g_move_state})
         for _, (ghost, _) in self.ghosts.items():
             if pellet_just_activate and not ghost.dead:
                 ghost.scared = True
@@ -595,7 +597,7 @@ class GameController(object):
 
     def respawn_all(self) -> None:
         self.pacwoman.x, self.pacwoman.y = self.pacwoman_spawn
-        self.pacwoman.state = "idle"
+        self.pacwoman.pw_move_state = "idle"
         self.pacwoman.direction = (1, 0)
         self.pacwoman.next_direction = (1, 0)
         self.pacwoman.frame_index = 0

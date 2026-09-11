@@ -16,7 +16,7 @@ class Ghosts(Pacwoman):
         """
         super().__init__(x, y, sprite_sheet, screen_w, screen_y)
         self.direction: tuple[int, int] = (1, 0)
-        self.state: str = "moving"
+        self.g_move_state: str = "moving"
         self.frame_sets: dict[
             tuple[int, int], list[pygame.Surface]] = {}
         # maybe replace self.scared with self.ghost_state from pac-man ?
@@ -86,7 +86,7 @@ class Ghosts(Pacwoman):
         else:
             active_frames = self.frame_sets
 
-        if self.state == "moving":
+        if self.g_move_state == "moving":
             self.move_timer += 1
             if self.move_timer >= self.flash_animation_speed:
                 self.move_timer = 0
@@ -135,7 +135,7 @@ class Ghosts(Pacwoman):
         row = center_y // MAZE_CELL
 
         if not (0 <= row < maze_height and 0 <= col < maze_width):
-            self.state = "idle"
+            self.g_move_state = "idle"
             return
 
         cell = mazegen.maze[row][col]
@@ -158,21 +158,21 @@ class Ghosts(Pacwoman):
         if possible_directions:
             self.direction = random.choice(possible_directions)
             self.next_direction = self.direction
-            self.state = "moving"
+            self.g_move_state = "moving"
 
     def move_random(self, mazegen: MazeGenerator) -> None:
         """Call the function to find a random direction for the ghosts to go"""
-        if self.state != "moving":
+        if self.g_move_state != "moving":
             self.choose_random_direction(mazegen)
 
-        super().move(mazegen)
+        super().move(mazegen, self.g_move_state)
 
         ####################################################################################
         # Couldn't we join these 2 conditions ??
-        if self.is_centered() and self.state == "moving":
+        if self.is_centered() and self.g_move_state == "moving":
             self.choose_random_direction(mazegen)
 
-        if self.state == "idle":
+        if self.g_move_state == "idle":
             self.choose_random_direction(mazegen)
 
     def distance_to(self, other: Pacwoman) -> int:
@@ -234,16 +234,16 @@ class Ghosts(Pacwoman):
         """
         self.on_spawn = False
 
-        if self.state != "moving":
+        if self.g_move_state != "moving":
             self.snap_to_cell_center()
             self.on_spawn = self.scatter_mode(mazegen, spawn_x, spawn_y)
 
         if not self.on_spawn:
             old_x, old_y = self.x, self.y
-            super().move(mazegen)
+            super().move(mazegen, self.g_move_state)
 
             if (self.crossed_cell_center(
-                    old_x, old_y) and self.state == "moving"):
+                    old_x, old_y) and self.g_move_state == "moving"):
                 self.snap_to_cell_center()
                 self.on_spawn = self.scatter_mode(mazegen, spawn_x, spawn_y)
 
@@ -369,7 +369,7 @@ class Ghosts(Pacwoman):
                             float("inf")))
             self.direction = next_dir
             self.next_direction = next_dir
-            self.state = "moving"
+            self.g_move_state = "moving"
         else:
             self.choose_random_direction(mazegen)
 
@@ -404,11 +404,11 @@ class Blinky(Ghosts):
         """Call function to move Blinky depending on the ghost's state and set
         new current location
         """
-        if self.state != "moving":
+        if self.g_move_state != "moving":
             self.choose_bfs_direction(mazegen, pacwoman, False)
-        super().move(mazegen)
+        super().move(mazegen, self.g_move_state)
 
-        if self.is_centered() and self.state == "moving":
+        if self.is_centered() and self.g_move_state == "moving":
             self.choose_bfs_direction(mazegen, pacwoman, False)
 
         curr_x = (self.x + self.sprite_w // 2) // 50
@@ -447,11 +447,11 @@ class Pinky(Ghosts):
         """Call function to move Blinky depending on the ghost's state and set
         new current location
         """
-        if self.state != "moving":
+        if self.g_move_state != "moving":
             self.choose_bfs_direction(mazegen, pacwoman, True)
-        super().move(mazegen)
+        super().move(mazegen, self.g_move_state)
 
-        if self.is_centered() and self.state == "moving":
+        if self.is_centered() and self.g_move_state == "moving":
             self.choose_bfs_direction(mazegen, pacwoman, True)
 
         curr_x = (self.x + self.sprite_w // 2) // 50
@@ -505,11 +505,11 @@ class Clyde(Ghosts):
     def clyde_move(self, mazegen: MazeGenerator, pacwoman: Pacwoman,
                    spawn_x: int, spawn_y: int) -> None:
         """Call function to move Clyde depending on the ghost's state"""
-        if self.state != "moving":
+        if self.g_move_state != "moving":
             self.chase_or_retreat(mazegen, pacwoman, spawn_x, spawn_y)
-        super().move(mazegen)
+        super().move(mazegen, self.g_move_state)
 
-        if self.is_centered() and self.state == "moving":
+        if self.is_centered() and self.g_move_state == "moving":
             self.chase_or_retreat(mazegen, pacwoman, spawn_x, spawn_y)
 
 
@@ -556,9 +556,9 @@ class Inky(Ghosts):
 
     def inky_move(self, mazegen: MazeGenerator, pacwoman: Pacwoman) -> None:
         """Call function to move Inky depending on the ghost's state"""
-        if self.state != "moving":
+        if self.g_move_state != "moving":
             self.hunt_or_wander(mazegen, pacwoman)
-        super().move(mazegen)
+        super().move(mazegen, self.g_move_state)
 
-        if self.is_centered() and self.state == "moving":
+        if self.is_centered() and self.g_move_state == "moving":
             self.hunt_or_wander(mazegen, pacwoman)

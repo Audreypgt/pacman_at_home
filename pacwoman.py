@@ -52,7 +52,7 @@ class Pacwoman:
         self.animation_speed = 3.5
         self.move_timer = 0
         self.frame_index = 0
-        self.state = "idle"
+        self.pw_move_state = "idle"
         self.frame_sets: dict[
             tuple[int, int], list[pygame.Surface]] = {
             (-1, 0): [sprite_sheet.get_sprite_at(8, 17),
@@ -90,7 +90,7 @@ class Pacwoman:
         """Handle variables for the animation when pacwoman dies,
         used in game_controller to launch the animation
         """
-        self.state = "dying"
+        self.pw_move_state = "dying"
         self.death_frame_index = 0
         self.death_timer = 0
         self.death_hold_timer = 0
@@ -117,7 +117,7 @@ class Pacwoman:
 
         if requested is not None:
             self.next_direction = requested
-            self.state = "moving"
+            self.pw_move_state = "moving"
 
     def current_cell(self) -> tuple[int, int]:
         """return the position of pacwoman in maze cells as a tuple
@@ -127,11 +127,11 @@ class Pacwoman:
         return ((self.x + self.sprite_w // 2) // MAZE_CELL,
                 (self.y + self.sprite_h // 2) // MAZE_CELL)
 
-    def move(self, mazegen: MazeGenerator) -> None:
+    def move(self, mazegen: MazeGenerator, move_state: str) -> None:
         """Handle the movements for pacwoman, center her and make sure she
         doesn't get stuck against a wall
         """
-        if self.state != "moving":
+        if move_state != "moving":
             return
 
         MAZE_CELL = 50
@@ -144,7 +144,7 @@ class Pacwoman:
         row = center_y // MAZE_CELL
 
         if not (0 <= row < maze_height and 0 <= col < maze_width):
-            self.state = "idle"
+            move_state = "idle"
             return
 
         cell = mazegen.maze[row][col]
@@ -185,13 +185,13 @@ class Pacwoman:
         clamped_y = max(0, min(self.screen_y - self.sprite_h, new_y))
 
         if clamped_x == self.x and clamped_y == self.y:
-            self.state = "idle"
+            move_state = "idle"
         else:
             self.x, self.y = clamped_x, clamped_y
 
     def update(self) -> None:
         """Handle the sprites used depending on pacwoman's state"""
-        if self.state == "dying":
+        if self.pw_move_state == "dying":
             self.current_frame = self.death_frame_sets[self.death_frame_index]
 
             if self.death_frame_index >= len(self.death_frame_sets) - 1:
@@ -204,7 +204,7 @@ class Pacwoman:
                 self.death_frame_index += 1
             return
 
-        if self.state == "moving":
+        if self.pw_move_state == "moving":
             self.move_timer += 1
             if self.move_timer >= self.animation_speed:
                 self.move_timer = 0
@@ -212,7 +212,7 @@ class Pacwoman:
                     self.frame_sets[self.direction])
             self.current_frame = self.frame_sets[
                 self.direction][self.frame_index]
-        elif self.state == "idle":
+        elif self.pw_move_state == "idle":
             self.current_frame = self.frame_sets[self.direction][0]
 
     def draw(self, surface: pygame.surface.Surface) -> None:
