@@ -1,9 +1,8 @@
 MISSING COMPLETELY
 ------------------
-- Docstrings                                                         --> OK in parsing, pacgums, pacwoman, ghosts (check Luka)
-- Check comments (in ghosts (22, 173, 256) and pacgums (36))
+- Docstrings                                                        --> TODO game_controller
 - Packaging: no itch.io/Steam upload
-- Project management folder: timeline, progress vs plan,
+- Project management folder: timeline, progress vs plan,             --> DOne
 team organization
 
 
@@ -14,10 +13,10 @@ Clean error handling if the maze generator fails                     --> Done (a
 
 BROKEN (must fix)
 -----------------
-Sprite of dead ghosts doesn't change anymore depending on
+Sprite of dead ghosts doesn't change anymore depending on            --> DOne
 directions ??
-- Bug of the ghosts being blocked at restart                         --> Now INky and BLinky are ALWAYS stuck
-- When you eat a pacgum right after the timer           
+- Bug of the ghosts being blocked at restart                         --> DOne
+- When you eat a pacgum right after the timer
 of the last pacgum ends, ghosts won't get scared
 
 - When you eat a super pacgum and the ghost that you just            Theory: maybe these are all cause because eaten ghosts won't become scared again until all ghosts

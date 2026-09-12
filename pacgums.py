@@ -33,11 +33,7 @@ class Pacgums:
     def init_gums(self, mazegen: MazeGenerator, pacwoman: Pacwoman,
                   current_level: int, configuration: Configuration) -> None:
         """Add pacgums and superpacgums to maze"""
-        # some variables en double, normal ? used to reinitialize values ?
-        self.gums = set()
         self.super_gum = set()
-        self.eat_ghosts = False
-        self.scared_timer = 0.0
 
         pac_col = (pacwoman.x + self.sprite_w // 2) // MAZE_CELL
         pac_row = (pacwoman.y + self.sprite_h // 2) // MAZE_CELL

@@ -19,7 +19,6 @@ class Ghosts(Pacwoman):
         self.g_move_state: str = "idle"
         self.frame_sets: dict[
             tuple[int, int], list[pygame.Surface]] = {}
-        # maybe replace self.scared with self.ghost_state from pac-man ?
         self.scared: bool = False
         self.warning: bool = False
         self.on_spawn = False
@@ -263,7 +262,7 @@ class Ghosts(Pacwoman):
     def bfs_distances(
             self, mazegen: MazeGenerator,
             target: tuple[int, int]) -> dict[tuple[int, int], int]:
-        """BFS from target: BFS distance of every reachable cell"""
+        """Calculate distance to reachable cell using BFS"""
         maze_width = len(mazegen.maze[0])
         maze_height = len(mazegen.maze)
         if not (0 <= target[0] < maze_width and 0 <= target[1] < maze_height):
