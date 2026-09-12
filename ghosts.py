@@ -16,7 +16,7 @@ class Ghosts(Pacwoman):
         """
         super().__init__(x, y, sprite_sheet, screen_w, screen_y)
         self.direction: tuple[int, int] = (1, 0)
-        self.g_move_state: str = "moving"
+        self.g_move_state: str = "idle"
         self.frame_sets: dict[
             tuple[int, int], list[pygame.Surface]] = {}
         # maybe replace self.scared with self.ghost_state from pac-man ?
@@ -63,7 +63,7 @@ class Ghosts(Pacwoman):
             (0, -1): [sprite_sheet.get_sprite_at(8, 6)]
         }
 
-        self.move_speed = 1
+        self.move_speed = 2
         self.animation_speed = 1.5
         self.flash_animation_speed = 8
         self.coord_x = (self.x + self.sprite_w // 2) // 50
@@ -93,6 +93,16 @@ class Ghosts(Pacwoman):
                 self.frame_index = (self.frame_index + 1) % len(
                     active_frames[self.direction])
         self.current_frame = active_frames[self.direction][self.frame_index]
+
+    def move(self, mazegen: MazeGenerator, move_state: str) -> bool:
+        """Move like pacwoman, but when the ghost bumps into a wall, fall
+        back to the idle state so a new direction is chosen on the next
+        frame instead of staying stuck facing the wall
+        """
+        moved = super().move(mazegen, move_state)
+        if not moved and move_state == "moving":
+            self.g_move_state = "idle"
+        return moved
 
     def is_centered(self) -> bool:
         """Make sure the sprite is centered between the maze's walls"""
@@ -165,7 +175,7 @@ class Ghosts(Pacwoman):
         if self.g_move_state != "moving":
             self.choose_random_direction(mazegen)
 
-        super().move(mazegen, self.g_move_state)
+        self.move(mazegen, self.g_move_state)
 
         ####################################################################################
         # Couldn't we join these 2 conditions ??
@@ -224,7 +234,7 @@ class Ghosts(Pacwoman):
             self.ghost_state = "normal"
             self.move_speed = 1
             return True
-        self.bfs_direction(mazegen, spawn_cell)
+        self.bfs_direction(mazegen, spawn_cell, allow_reverse=self.dead)
         return False
 
     def scatter_move(self, mazegen: MazeGenerator, spawn_x: int, spawn_y: int
@@ -240,7 +250,7 @@ class Ghosts(Pacwoman):
 
         if not self.on_spawn:
             old_x, old_y = self.x, self.y
-            super().move(mazegen, self.g_move_state)
+            self.move(mazegen, self.g_move_state)
 
             if (self.crossed_cell_center(
                     old_x, old_y) and self.g_move_state == "moving"):
@@ -311,11 +321,12 @@ class Ghosts(Pacwoman):
         self.bfs_direction(mazegen, (pw_x, pw_y))
 
     def bfs_direction(self, mazegen: MazeGenerator,
-                      target: tuple[int, int]) -> None:
+                      target: tuple[int, int],
+                      allow_reverse: bool = False) -> None:
         """Use BFS algorithm to find the shortest path to the target cell,
         (x, y) then set the direction to its first step, falls back to a
         random direction if no path is found, also prevent ghosts from
-        making U-turns
+        making U-turns unless allow_reverse is received as True
         """
         self.coord_x, self.coord_y = self.current_cell()
         queue: deque[tuple[int, int]] = deque()
@@ -354,8 +365,10 @@ class Ghosts(Pacwoman):
             next_x, next_y = path[1]
             next_dir = (next_x - self.coord_x), (next_y - self.coord_y)
             # classic rule: no immediate U-turn unless it is the only way
+            # (dropped for dead ghosts: their spawn is often in a corner,
+            # so reaching it requires reversing to enter it)
             reverse = (-self.direction[0], -self.direction[1])
-            if next_dir == reverse:
+            if next_dir == reverse and not allow_reverse:
                 alternatives = [
                     d for d in self.find_neighbors(
                         mazegen, self.coord_x, self.coord_y)

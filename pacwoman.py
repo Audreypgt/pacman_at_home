@@ -1,4 +1,5 @@
 import pygame
+
 from mazegenerator import MazeGenerator
 
 
@@ -48,7 +49,7 @@ class Pacwoman:
         self.sprite_h = sprite_sheet.sprite_h
         self.direction = (1, 0)
         self.next_direction = (1, 0)
-        self.move_speed = 3
+        self.move_speed = 4
         self.animation_speed = 3.5
         self.move_timer = 0
         self.frame_index = 0
@@ -127,12 +128,15 @@ class Pacwoman:
         return ((self.x + self.sprite_w // 2) // MAZE_CELL,
                 (self.y + self.sprite_h // 2) // MAZE_CELL)
 
-    def move(self, mazegen: MazeGenerator, move_state: str) -> None:
+    def move(self, mazegen: MazeGenerator, move_state: str) -> bool:
         """Handle the movements for pacwoman, center her and make sure she
-        doesn't get stuck against a wall
+        doesn't get stuck against a wall. Return True when the sprite
+        actually moved this frame, False when the requested state was not
+        'moving' or when she bumped into a wall (her state then falls back
+        to idle so the animation stops on the closed-mouth frame)
         """
         if move_state != "moving":
-            return
+            return False
 
         MAZE_CELL = 50
         maze_height = len(mazegen.maze)
@@ -144,8 +148,8 @@ class Pacwoman:
         row = center_y // MAZE_CELL
 
         if not (0 <= row < maze_height and 0 <= col < maze_width):
-            move_state = "idle"
-            return
+            self.pw_move_state = "idle"
+            return False
 
         cell = mazegen.maze[row][col]
         wall_bit = {(0, -1): 1,
@@ -185,9 +189,10 @@ class Pacwoman:
         clamped_y = max(0, min(self.screen_y - self.sprite_h, new_y))
 
         if clamped_x == self.x and clamped_y == self.y:
-            move_state = "idle"
-        else:
-            self.x, self.y = clamped_x, clamped_y
+            self.pw_move_state = "idle"
+            return False
+        self.x, self.y = clamped_x, clamped_y
+        return True
 
     def update(self) -> None:
         """Handle the sprites used depending on pacwoman's state"""
