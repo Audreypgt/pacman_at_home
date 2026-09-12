@@ -1,3 +1,2 @@
-LOOSER: 2690
-Luka: 2620
-jauline: 2260
+Player: 410
+looser: 0

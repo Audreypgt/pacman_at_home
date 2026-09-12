@@ -1,0 +1,50 @@
+MISSING COMPLETELY
+------------------
+- Docstrings                                                         --> TODO game_controller
+- Packaging: no itch.io/Steam upload
+
+
+- Project management folder: timeline, progress vs plan,             --> DOne
+team organization
+- Clyde and Inky algos                                               --> Done
+- README.md                                                          --> Done
+- Clean error handling if the maze generator fails                   --> Done (added try/except in main)
+
+BROKEN (must fix)
+-----------------
+- Sprite of dead ghosts doesn't change anymore depending on          --> DOne
+directions ??
+- Bug of the ghosts being blocked at restart                         --> DOne
+- When you eat a pacgum right after the timer1                       --> Fixeddeded
+of the last pacgum ends, ghosts won't get scared
+
+- When you eat a super pacgum and the ghost that you just            --> FIxed
+eaten is next to you, it doesnt get scared                           
+- Bug of the ghosts being blocked at respawn loc after being eaten   --> FIxed (might happen because of scatter mode but is okay)
+                                                                     --> theory: when i eat inky he goes back to beginning and state becomes
+                                                                     idle so he doesn't move anymore, but i don't understand where state is changed to idle
+                                                                     The "stuck after being eaten" state doesnt always happen, and not with to all ghosts
+                                                                     BUT it also happens when ghosts are just moving normaly and pacman doesnt move
+                                                                     Maybe check line 138 in ghosts.py
+
+
+- Pinky Bug                                                          --> Fixed
+- Configuration file is not used for level specific values           --> Done
+
+- Bad arguments or bad config file -> Python traceback
+   Must print a clear message instead, never crash                   --> Done
+lvl_max_time from config is never used, time is hardcoded 120s       --> fixed
+- Highscore: names not validated                                     --> can't be longer than 9 chars
+- Scores with the same name overwrite each other in the score file   --> now we keep only the highestscore
+- When eating a ghost, points are added several times, not just
+once, so score is wrong (if you collide with the ghost you keep      --> fixed
+getting points until it resuscitates)
+
+PARTIAL / TO CHECK
+------------------
+All 10 levels use seed 42. After level 1, mazes must be random       --> Done
+
+GOOD IF ADDED
+-------------
+Cheat mode menu: just like instructions menu                         --> Done
+Make the instruction page prettier
