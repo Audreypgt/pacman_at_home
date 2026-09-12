@@ -91,6 +91,7 @@ class GameController(object):
         self.scatter = False
         self.over = False
         self.won = False
+        self.prev_eat_ghosts: bool = False
         self.game_state: str = ""
         self.respawn_delay = 0.0
         self.time = 0.0
@@ -170,9 +171,16 @@ class GameController(object):
         self.pacgums.eat(self.pacwoman, self.configuration)
         self.pacgums.update(dt)
 
+        pellet_just_activate = (
+            self.pacgums.eat_ghosts and not self.prev_eat_ghosts)
+        self.prev_eat_ghosts = self.pacgums.eat_ghosts
+
         for _, (ghost, _) in self.ghosts.items():
-            if not ghost.dead:
-                ghost.scared = self.pacgums.eat_ghosts
+            # ghosts already dead (eyes on their way home) are left out on
+            # purpose: a ghost eaten before a super pacgum respawns unscared,
+            # even if the effect is still active when it comes back
+            if pellet_just_activate and not ghost.dead:
+                ghost.scared = True
             if not self.pacgums.eat_ghosts:
                 ghost.scared = False
             if ghost.ghost_state != "scared" and ghost.scared:
@@ -398,6 +406,7 @@ class GameController(object):
         self.running = True
         self.won = False
         self.invulnerable_timer = 0
+        self.prev_eat_ghosts = False
         self.score_font = pygame.font.Font(None, 36)
         self.timer_font = pygame.font.Font(None, 36)
         self.lives_font = pygame.font.Font(None, 36)
