@@ -1,7 +1,5 @@
 {
     "highscore_filename": "highscore.txt",
-    // googoogaga
-    # googoogaga
     "levels": {
         "level_1": {
             "seed": 24,

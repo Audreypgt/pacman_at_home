@@ -171,24 +171,29 @@ class GameController(object):
         self.pacgums.eat(self.pacwoman, self.configuration)
         self.pacgums.update(dt)
 
-        pellet_just_activate = (
-            self.pacgums.eat_ghosts and not self.prev_eat_ghosts)
-        self.prev_eat_ghosts = self.pacgums.eat_ghosts
-
         for _, (ghost, _) in self.ghosts.items():
             # ghosts already dead (eyes on their way home) are left out on
             # purpose: a ghost eaten before a super pacgum respawns unscared,
             # even if the effect is still active when it comes back
-            if pellet_just_activate and not ghost.dead:
+            if self.pacgums.sup_pg_eaten and not ghost.dead:
                 ghost.scared = True
-            if not self.pacgums.eat_ghosts:
-                ghost.scared = False
-            if ghost.ghost_state != "scared" and ghost.scared:
                 ghost.ghost_state = "scared"
-            elif ghost.ghost_state == "scared" and not ghost.scared:
-                ghost.ghost_state = "normal"
+            if ghost.dead:
+                ghost.prev_died = True
+            if (self.pacgums.sup_pg_eaten and ghost.prev_died
+               and not ghost.dead):
+                ghost.scared = True
+            if ghost.dead:
+                self.prev_eat_ghosts = True
             ghost.warning = (
                 self.pacgums.eat_ghosts and self.pacgums.scared_timer <= 4)
+            if self.pacgums.scared_timer <= 0:
+                ghost.ghost_state = "normal"
+                ghost.scared = False
+                ghost.prev_died = False
+
+        if self.pacgums.sup_pg_eaten:
+            self.pacgums.sup_pg_eaten = False
 
         if self.scatter:
             for _, (ghost, _) in self.ghosts.items():
@@ -707,7 +712,7 @@ class Gamemenus:
             "", SCREENWIDTH, SCREENHEIGHT,
             theme=pacwoman_theme(SCREENWIDTH, SCREENHEIGHT))
         cheat_menu .add.image(self.logo)
-        cheat_menu.add.label("Cheat codes:")
+        cheat_menu.add.label("Cheat modes:")
         cheat_menu.add.label("Press i to be invicible")
         cheat_menu.add.label("Press p to freeze time")
         cheat_menu.add.button("Back", self.over_menu)
@@ -740,7 +745,6 @@ class Gamemenus:
             "", SCREENWIDTH, SCREENHEIGHT,
             theme=pacwoman_theme(SCREENWIDTH, SCREENHEIGHT))
 
-        # instructions_page.add.image(self.logo, scale=(0.4, 0.4))
         instructions_page.add.vertical_margin(20)
         instructions_page.add.label("How to Play:")
         instructions_page.add.vertical_margin(self.sprite_h)

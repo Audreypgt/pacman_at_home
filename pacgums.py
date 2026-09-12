@@ -22,6 +22,7 @@ class Pacgums:
         self.eat_ghosts: bool = False
         self.scared_duration: float = scared_duration
         self.scared_timer: float = 0.0
+        self.sup_pg_eaten = False
         self.sprite_h = sprite_sheet.sprite_h
         self.sprite_w = sprite_sheet.sprite_w
 
@@ -79,6 +80,7 @@ class Pacgums:
             self.score += configuration.points_per_pacgum
         elif (row, col) in self.super_gum:
             self.super_gum.discard((row, col))
+            self.sup_pg_eaten = True
             self.score += configuration.points_per_super_pacgum
             self.eat_ghosts = True
             self.scared_timer = self.scared_duration

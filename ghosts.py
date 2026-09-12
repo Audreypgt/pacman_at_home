@@ -21,6 +21,7 @@ class Ghosts(Pacwoman):
             tuple[int, int], list[pygame.Surface]] = {}
         self.scared: bool = False
         self.warning: bool = False
+        self.prev_died = False
         self.on_spawn = False
         self.dead: bool = False
         self.ghost_state = "normal"
