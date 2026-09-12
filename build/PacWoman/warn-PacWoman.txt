@@ -1,0 +1,69 @@
+
+This file lists modules PyInstaller was not able to find. This does not
+necessarily mean these modules are required for running your program. Both
+Python's standard library and 3rd-party Python packages often conditionally
+import optional modules, some of which may be available only on certain
+platforms.
+
+Types of import:
+* top-level: imported at the top-level - look at these first
+* conditional: imported within an if-statement
+* delayed: imported within a function
+* optional: imported within a try-except-statement
+
+IMPORTANT: Do NOT post this list to the issue-tracker. Use it as a basis for
+            tracking down the missing module yourself. Thanks!
+
+missing module named 'collections.abc' - imported by tracemalloc (top-level), typing (top-level), _colorize (top-level), traceback (top-level), selectors (top-level), logging (top-level), http.client (top-level), importlib.resources.readers (top-level), inspect (top-level), parsing (top-level), typing_extensions (top-level), asyncio.base_events (top-level), multiprocessing.managers (top-level), asyncio.coroutines (top-level), pydantic_core._pydantic_core (top-level), pydantic_core.core_schema (top-level), typing_inspection.introspection (top-level), typing_inspection.typing_objects (top-level), pydantic._internal._repr (top-level), pydantic._internal._typing_extra (top-level), pydantic._internal._namespace_utils (top-level), pydantic.fields (top-level), annotated_types (top-level), pydantic.types (top-level), pydantic._internal._fields (top-level), pydantic._internal._generics (top-level), pydantic._internal._core_utils (top-level), pydantic._internal._generate_schema (top-level), pydantic.json_schema (top-level), pydantic._internal._decorators (top-level), pydantic._internal._utils (top-level), pydantic.main (top-level), pydantic._internal._mock_val_ser (top-level), pydantic.plugin._schema_validator (top-level), pydantic.plugin._loader (top-level), pydantic.type_adapter (top-level), pydantic._internal._dataclasses (top-level), pydantic._internal._discriminated_union (top-level), pydantic._internal._known_annotated_metadata (top-level), pydantic._internal._validators (top-level), pydantic._internal._serializers (top-level), pydantic.v1.typing (top-level), pydantic.v1.fields (top-level), pydantic.v1.validators (top-level), pydantic._internal._validate_call (top-level), pygame.rect (conditional), pygame.color (conditional), pygame.math (conditional), pygame.scrap (top-level), pydantic.deprecated.decorator (top-level), pydantic.experimental.arguments_schema (top-level), pydantic.experimental.pipeline (top-level), pydantic.mypy (top-level), configparser (top-level), mypy.types (top-level), mypy.nodes (top-level), mypy.strconv (top-level), mypy.options (top-level), mypy.cache (top-level), mypy.util (top-level), mypy.state (top-level), mypy.type_visitor (top-level), mypy.expandtype (top-level), mypy.typevartuples (top-level), mypy.plugin (top-level), mypy.errors (top-level), mypy.scope (top-level), _pyrepl.types (top-level), mypy.messages (top-level), mypy.typeops (top-level), mypy.checker_state (top-level), mypy.checker_shared (top-level), mypy.erasetype (top-level), mypy.typetraverser (top-level), mypy.subtypes (top-level), mypy.applytype (top-level), mypy.constraints (top-level), mypy.argmap (top-level), mypy.infer (top-level), mypy.solve (top-level), mypy.graph_utils (top-level), mypy.join (top-level), mypy.meet (top-level), mypy.types_utils (top-level), mypy.checkmember (top-level), mypy.tvar_scope (top-level), mypy.semanal_shared (top-level), mypy.semanal (top-level), mypy.exprtotype (top-level), mypy.fastparse (top-level), mypy.literals (top-level), mypy.mro (top-level), mypy.plugins.dataclasses (top-level), mypy.checker (top-level), mypy.checkexpr (top-level), mypy.checkstrformat (top-level), mypy.typeanal (top-level), mypy.binder (top-level), mypy.treetransform (top-level), mypy.semanal_namedtuple (top-level), mypy.semanal_typeddict (top-level), tomllib._parser (conditional), setuptools (top-level), setuptools._distutils.filelist (top-level), setuptools._distutils.util (top-level), setuptools._vendor.jaraco.functools (top-level), setuptools._vendor.more_itertools.more (top-level), setuptools._distutils._modified (top-level), setuptools._distutils.compilers.platform.macos (top-level), setuptools._distutils.spawn (top-level), packaging.markers (top-level), packaging._parser (top-level), packaging._ranges (conditional), packaging.tags (top-level), packaging._manylinux (conditional), packaging._musllinux (conditional), packaging.specifiers (conditional), packaging.ranges (conditional), packaging._tokenizer (conditional), packaging.requirements (conditional), setuptools._reqs (top-level), setuptools._vendor.jaraco.context (top-level), setuptools.discovery (top-level), setuptools.dist (top-level), setuptools._distutils.command.bdist (top-level), setuptools._distutils.core (top-level), setuptools._distutils.cmd (top-level), setuptools._distutils.archive_util (top-level), setuptools._distutils.dist (top-level), setuptools._distutils.fancy_getopt (top-level), setuptools._distutils.extension (top-level), setuptools._distutils.compat.py310 (top-level), setuptools._distutils.compilers.C.base (top-level), setuptools._distutils.compilers._modified (top-level), setuptools._distutils.compilers.C.unix (top-level), setuptools._distutils.compilers.C.msvc (top-level), setuptools.config (top-level), setuptools.config.setupcfg (top-level), setuptools.config.expand (top-level), setuptools.config.pyprojecttoml (top-level), setuptools.config._apply_pyprojecttoml (top-level), setuptools.extension (top-level), setuptools.wheel (top-level), setuptools.command.egg_info (top-level), setuptools.command.bdist_egg (top-level), setuptools.command.sdist (top-level), setuptools._distutils.command.build (top-level), setuptools._distutils.command.sdist (top-level), setuptools.glob (top-level), setuptools.command._requirestxt (top-level), setuptools.command.bdist_wheel (top-level), setuptools._shutil (top-level), setuptools.compat.py311 (top-level), setuptools._vendor.tomli._parser (conditional), setuptools._distutils.command.build_ext (top-level), _pyrepl.readline (top-level)
+missing module named winreg - imported by importlib._bootstrap_external (conditional), mimetypes (optional), urllib.request (delayed, conditional, optional), platform (delayed, optional), pygame.sysfont (conditional), setuptools._distutils.compilers.C.msvc (top-level), setuptools.msvc (conditional)
+missing module named _scproxy - imported by urllib.request (conditional)
+missing module named _winapi - imported by ntpath (optional), subprocess (conditional), shutil (conditional), pathlib._os (optional), mimetypes (optional), multiprocessing.connection (optional), multiprocessing.spawn (delayed, conditional), multiprocessing.reduction (conditional), multiprocessing.shared_memory (conditional), multiprocessing.heap (conditional), sysconfig (delayed), multiprocessing.popen_spawn_win32 (top-level), asyncio.windows_events (top-level), asyncio.windows_utils (top-level)
+missing module named nt - imported by os (delayed, conditional, optional), ntpath (optional), _colorize (delayed, conditional, optional), shutil (conditional), importlib._bootstrap_external (conditional), ctypes (delayed, conditional), _pyrepl.windows_console (optional)
+missing module named _frozen_importlib_external - imported by importlib._bootstrap (delayed), importlib (optional), importlib.abc (optional), zipimport (top-level)
+excluded module named _frozen_importlib - imported by importlib (optional), importlib.abc (optional), zipimport (top-level)
+missing module named msvcrt - imported by subprocess (optional), multiprocessing.spawn (delayed, conditional), multiprocessing.popen_spawn_win32 (top-level), asyncio.windows_events (top-level), asyncio.windows_utils (top-level)
+missing module named _overlapped - imported by asyncio.windows_events (top-level)
+missing module named multiprocessing.set_start_method - imported by multiprocessing (top-level), multiprocessing.spawn (top-level)
+missing module named multiprocessing.get_start_method - imported by multiprocessing (top-level), multiprocessing.spawn (top-level)
+missing module named multiprocessing.AuthenticationError - imported by multiprocessing (top-level), multiprocessing.forkserver (top-level), multiprocessing.connection (top-level)
+missing module named multiprocessing.get_context - imported by multiprocessing (top-level), multiprocessing.pool (top-level), multiprocessing.managers (top-level), multiprocessing.sharedctypes (top-level)
+missing module named multiprocessing.TimeoutError - imported by multiprocessing (top-level), multiprocessing.pool (top-level)
+missing module named multiprocessing.BufferTooShort - imported by multiprocessing (top-level), multiprocessing.connection (top-level)
+missing module named importlib_resources - imported by setuptools._vendor.jaraco.text (optional)
+missing module named _typeshed - imported by pydantic_core._pydantic_core (top-level), pydantic._internal._dataclasses (conditional), setuptools._distutils.dist (conditional), setuptools.command.bdist_egg (conditional), setuptools.glob (conditional), setuptools._vendor.wheel.wheelfile (conditional), setuptools.compat.py311 (conditional)
+missing module named vms_lib - imported by platform (delayed, optional)
+missing module named 'java.lang' - imported by platform (delayed, optional)
+missing module named java - imported by platform (delayed)
+missing module named _wmi - imported by platform (optional)
+missing module named usercustomize - imported by site (delayed, optional)
+missing module named sitecustomize - imported by site (delayed, optional)
+missing module named trove_classifiers - imported by setuptools.config._validate_pyproject.formats (optional)
+missing module named _manylinux - imported by setuptools._vendor.packaging._manylinux (delayed, optional)
+missing module named pyimod02_importers - imported by /home/aupeuget/common_core/2_object_oriented_programming/2.12_pacman/pacman_at_home/pacman_venv/lib/python3.14/site-packages/PyInstaller/hooks/rthooks/pyi_rth_pkgutil.py (delayed)
+missing module named pygame._common - imported by pygame.rect (top-level), pygame.rwobject (top-level), pygame.color (top-level), pygame.surface (top-level), pygame.display (top-level), pygame.draw (top-level), pygame.image (top-level), pygame.key (top-level), pygame.mask (top-level), pygame.transform (top-level), pygame.pixelcopy (top-level), pygame.pixelarray (top-level), pygame.font (top-level), pygame.mixer_music (top-level), pygame.mixer (top-level), pygame.gfxdraw (top-level)
+missing module named pygame.AUDIO_ALLOW_FREQUENCY_CHANGE - imported by pygame (optional), pygame_menu.sound (optional)
+missing module named pygame.AUDIO_ALLOW_CHANNELS_CHANGE - imported by pygame (optional), pygame_menu.sound (optional)
+missing module named numpy - imported by pygame.pixelcopy (top-level), pygame.mixer (top-level), pygame.surfarray (top-level), pygame.sndarray (top-level), pygame (delayed)
+missing module named AppKit - imported by pyperclip (delayed, conditional, optional)
+missing module named Foundation - imported by pyperclip (delayed, conditional, optional)
+missing module named PyQt5 - imported by pyperclip (delayed, conditional, optional)
+missing module named qtpy - imported by pyperclip (delayed, conditional, optional)
+missing module named PIL - imported by pygame_menu.utils (delayed, conditional, optional)
+missing module named OpenGL - imported by pygame (delayed)
+missing module named pkg_resources - imported by pygame.pkgdata (optional)
+missing module named 'pygame.overlay' - imported by pygame (optional)
+missing module named 'pygame.cdrom' - imported by pygame (conditional, optional)
+missing module named pydantic.BaseModel - imported by pydantic (conditional), pydantic._internal._typing_extra (conditional), pydantic._internal._core_utils (delayed), pydantic._internal._import_utils (delayed, conditional), pydantic.deprecated.copy_internals (delayed, conditional), parsing (top-level)
+missing module named cython - imported by pydantic.v1.version (optional)
+missing module named email_validator - imported by pydantic.networks (delayed, conditional, optional), pydantic.v1.networks (delayed, conditional, optional), pydantic.v1._hypothesis_plugin (optional)
+missing module named toml - imported by pydantic.v1.mypy (delayed, conditional, optional)
+missing module named psutil - imported by mypy.util (optional)
+missing module named orjson - imported by mypy.util (optional)
+missing module named 'IPython.core' - imported by dotenv.ipython (top-level)
+missing module named IPython - imported by dotenv.ipython (top-level)
+missing module named hypothesis - imported by pydantic.v1._hypothesis_plugin (top-level)
+missing module named eval_type_backport - imported by pydantic._internal._typing_extra (delayed, optional)
+missing module named 'rich.pretty' - imported by pydantic._internal._core_utils (delayed)
+missing module named rich - imported by pydantic._internal._core_utils (conditional)
+missing module named pydantic.PydanticSchemaGenerationError - imported by pydantic (delayed), pydantic.functional_validators (delayed)
+missing module named pydantic.PydanticUserError - imported by pydantic (top-level), pydantic.root_model (top-level)
