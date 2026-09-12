@@ -39,15 +39,15 @@ fclean: clean venv-clean
 
 lint:
 	@source pacman_venv/bin/activate \
-	&& flake8 parsing.py menu.py pac_man.py ghosts.py pacgums.py pacwoman.py \
-	&& mypy parsing.py menu.py pac_man.py ghosts.py pacgums.py pacwoman.py \
+	&& flake8 parsing.py game_controller.py pac_man.py ghosts.py pacgums.py pacwoman.py \
+	&& mypy parsing.py game_controller.py pac_man.py ghosts.py pacgums.py pacwoman.py \
 	--warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs \
 	--check-untyped-defs
 
 lint-strict:
 	@source pacman_venv/bin/activate \
-	&& flake8 parsing.py menu.py pac_man.py ghosts.py pacgums.py pacwoman.py \
-	&& mypy parsing.py menu.py pac_man.py ghosts.py pacgums.py pacwoman.py --strict
+	&& flake8 parsing.py game_controller.py pac_man.py ghosts.py pacgums.py pacwoman.py \
+	&& mypy parsing.py game_controller.py pac_man.py ghosts.py pacgums.py pacwoman.py --strict
 
 # build:
 # 	python -m build

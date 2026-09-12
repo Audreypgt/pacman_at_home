@@ -177,8 +177,6 @@ class Ghosts(Pacwoman):
 
         self.move(mazegen, self.g_move_state)
 
-        ####################################################################################
-        # Couldn't we join these 2 conditions ??
         if self.is_centered() and self.g_move_state == "moving":
             self.choose_random_direction(mazegen)
 
@@ -265,7 +263,7 @@ class Ghosts(Pacwoman):
     def bfs_distances(
             self, mazegen: MazeGenerator,
             target: tuple[int, int]) -> dict[tuple[int, int], int]:
-        """BFS from target: BFS distance of every reachable cell""" # ?? a reformuler
+        """BFS from target: BFS distance of every reachable cell"""
         maze_width = len(mazegen.maze[0])
         maze_height = len(mazegen.maze)
         if not (0 <= target[0] < maze_width and 0 <= target[1] < maze_height):
@@ -354,12 +352,12 @@ class Ghosts(Pacwoman):
 
         path: list[tuple[int, int]] = [target]
         while True:
-            if not parent[path[-1]]:
+            step = parent[path[-1]]
+            if step is None:
                 break
-            else:
-                maze_x, maze_y = parent[path[-1]]
-                if mazegen.maze[maze_y][maze_x] != 15:
-                    path.append(parent[path[-1]])
+            maze_x, maze_y = step
+            if mazegen.maze[maze_y][maze_x] != 15:
+                path.append(step)
 
         path = path[::-1]
 
