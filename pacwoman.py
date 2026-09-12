@@ -49,7 +49,7 @@ class Pacwoman:
         self.sprite_h = sprite_sheet.sprite_h
         self.direction = (1, 0)
         self.next_direction = (1, 0)
-        self.move_speed = 4
+        self.move_speed = 3
         self.animation_speed = 3.5
         self.move_timer = 0
         self.frame_index = 0

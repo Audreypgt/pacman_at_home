@@ -76,7 +76,7 @@ class Ghosts(Pacwoman):
             active_frames = self.dead_frame_sets
             self.frame_index = (self.frame_index + 1) % len(
                 active_frames[self.direction])
-            self.move_speed = 2
+            self.move_speed = 5
         elif self.scared and self.warning:
             flash_on = (pygame.time.get_ticks() // 200) % 2 == 0
             active_frames = (
@@ -232,7 +232,9 @@ class Ghosts(Pacwoman):
             self.scared = False
             self.warning = False
             self.ghost_state = "normal"
-            self.move_speed = 1
+            # back to the normal speed: the 1-speed slow exit made the
+            # revived ghost keep crawling forever
+            self.move_speed = 2
             return True
         self.bfs_direction(mazegen, spawn_cell, allow_reverse=self.dead)
         return False
