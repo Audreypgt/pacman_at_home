@@ -51,3 +51,5 @@ lint-strict:
 
 # build:
 # 	python -m build
+
+pyinstaller --onedir --clean --name "PacWoman" --icon="icon/pacwoman_icon.png" --add-data "sprites/*.png:sprites" .py
