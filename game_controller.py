@@ -35,7 +35,7 @@ WHITE = (255, 255, 255)
 WALL_WIDTH = 12
 WALL_INNER_WIDTH = 4
 
-SPRITES_DIR = pygame.image.load(resourse_path("sprites"))
+SPRITES_DIR = resourse_path("sprites")
 
 PAC_YELLOW = (255, 242, 0)
 PAC_PINK = (255, 100, 175)
@@ -104,7 +104,7 @@ class GameController(object):
         self.sprite_w = 42
         self.sprite_h = 42
         self.pac_sheet = PacSpriteSheet(
-            "sprites/pac_sheet.png",
+            resourse_path("sprites/pac_sheet.png"),
             sprite_w=self.sprite_w, sprite_h=self.sprite_h)
         self.pacgums = Pacgums(
             self.pac_sheet, gum_row=5, gum_col=8, sp_gum_row=6, sp_gum_col=8)
@@ -623,13 +623,22 @@ class GameController(object):
         self.invulnerable_timer = 90
         self.time_interval_scatter = 40.0
 
+        # when dying while the super pacgums effect are still on
+        self.pacgums.eat_ghosts = False
+        self.pacgums.scared_timer = 0.0
+        self.pacgums.sup_pg_eaten = False
+        for ghost in (self.pinky, self.inky, self.blinky, self.clyde):
+            ghost.scared = False
+            ghost.prev_died = False
+            ghost.ghost_state = "normal"
+
 
 class Gamemenus:
     """Holds all the game menus."""
     def __init__(self, game: GameController):
         """Loads the menu sprites and stores the game."""
         self.game = game
-        self.logo = "sprites/pacwoman_logo.png"
+        self.logo = resourse_path("sprites/pacwoman_logo.png")
         self.num_frames = 41
         self.sprite_w = 322
         self.sprite_h = 119
