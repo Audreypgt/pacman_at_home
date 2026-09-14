@@ -43,22 +43,22 @@ fclean: clean venv-clean
 
 lint:
 	@source pacman_venv/bin/activate \
-	&& flake8 parsing.py game_controller.py pac_man.py ghosts.py pacgums.py pacwoman.py \
+	&& flake8 parsing.py game_controller.py pac_man.py ghosts.py pacgums.py pacwoman.py utils.py \
 	&& mypy parsing.py game_controller.py pac_man.py ghosts.py pacgums.py pacwoman.py utils.py \
 	--warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs \
 	--check-untyped-defs
 
 lint-strict:
 	@source pacman_venv/bin/activate \
-	&& flake8 parsing.py game_controller.py pac_man.py ghosts.py pacgums.py pacwoman.py \
+	&& flake8 parsing.py game_controller.py pac_man.py ghosts.py pacgums.py pacwoman.py utils.py \
 	&& mypy parsing.py game_controller.py pac_man.py ghosts.py pacgums.py pacwoman.py utils.py --strict
 
 build:
-	python -m venv build_env &&\
-	source build_env/bin/activate &&\
-	python -m pip install -r requirements.txt &&\
-	python -m pip install pyinstaller &&\
-	pyinstaller --onedir --clean --name "PacWoman" --add-data "sprites/*.png:sprites" pac_man.py
+	@$(P3) -m venv build_env \
+	&& source build_env/bin/activate \
+	&& $(P3) -m pip install -r requirements.txt \
+	&& $(P3) -m pip install pyinstaller \
+	&& pyinstaller --onedir --clean --name "PacWoman" --add-data "sprites/*.png:sprites" pac_man.py
 
 
 

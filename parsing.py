@@ -8,7 +8,8 @@ from pydantic_core import PydanticUseDefault
 
 
 class ArgsError(Exception):
-    """Raise an error during parsing if command line arguments are incorrect."""
+    """Raise an error during parsing if command line arguments
+        are incorrect."""
     pass
 
 
@@ -98,6 +99,7 @@ class Configuration(BaseModel):
 
             return value
         except Exception:
+            print(f"{TestValues.test_field} is not valid.")
             raise PydanticUseDefault
 
     @field_validator("levels", mode="before")
@@ -112,6 +114,7 @@ class Configuration(BaseModel):
                 levels["level_" + str(index)] = LevelConfiguration(**level)
             return levels
         except Exception:
+            print(f"Level_{str(index)} has invalid value.")
             raise PydanticUseDefault
 
     @field_validator("highscore_filename", mode="before")
@@ -126,6 +129,7 @@ class Configuration(BaseModel):
                 raise ValueError
             return value
         except ValueError:
+            print("Score file should end with '.txt'")
             return "highscore.txt"
 
 

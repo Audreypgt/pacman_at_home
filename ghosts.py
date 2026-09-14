@@ -171,7 +171,8 @@ class Ghosts(Pacwoman):
             self.g_move_state = "moving"
 
     def move_random(self, mazegen: MazeGenerator) -> None:
-        """Call the function to find a random direction for the ghosts to go."""
+        """Call the function to find a random direction for
+            the ghosts to go."""
         if self.g_move_state != "moving":
             self.choose_random_direction(mazegen)
 
