@@ -13,7 +13,7 @@ from mazegenerator import MazeGenerator
 from ghosts import Blinky, Pinky, Clyde, Inky, Ghosts
 from pacgums import Pacgums
 from parsing import Configuration
-from utils import resourse_path
+from utils import resource_path
 
 
 MAZE_CELL = 50
@@ -35,7 +35,7 @@ WHITE = (255, 255, 255)
 WALL_WIDTH = 12
 WALL_INNER_WIDTH = 4
 
-SPRITES_DIR = resourse_path("sprites")
+SPRITES_DIR = resource_path("sprites")
 
 PAC_YELLOW = (255, 242, 0)
 PAC_PINK = (255, 100, 175)
@@ -65,9 +65,9 @@ def pacwoman_theme(width: int = 600, height: int = 700) -> themes.Theme:
 
 
 class GameController(object):
-    """Controls the whole game: maze, pacwoman, ghosts and menus."""
+    """Control the whole game: maze, pacwoman, ghosts and menus."""
     def __init__(self, configuration: Configuration) -> None:
-        """Sets up the game with its configuration."""
+        """Set up the game with its configuration."""
         self.configuration: Configuration = configuration
         self.mazegen: MazeGenerator = MazeGenerator((MAZE_COLS, MAZE_ROWS))
 
@@ -104,7 +104,7 @@ class GameController(object):
         self.sprite_w = 42
         self.sprite_h = 42
         self.pac_sheet = PacSpriteSheet(
-            resourse_path("sprites/pac_sheet.png"),
+            resource_path("sprites/pac_sheet.png"),
             sprite_w=self.sprite_w, sprite_h=self.sprite_h)
         self.pacgums = Pacgums(
             self.pac_sheet, gum_row=5, gum_col=8, sp_gum_row=6, sp_gum_col=8)
@@ -119,7 +119,7 @@ class GameController(object):
         self.beat_the_game = False
 
     def set_background(self) -> None:
-        """Creates the black background surface."""
+        """Create the black background surface."""
         self.background = pygame.Surface(SCREENSIZE).convert()
         self.background.fill(BLACK)
 
@@ -236,7 +236,7 @@ class GameController(object):
             self.level_complete()
 
     def check_events(self) -> None:
-        """Checks user keyboard input."""
+        """Check user keyboard input."""
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -259,7 +259,7 @@ class GameController(object):
                     return
 
     def render(self) -> None:
-        """Draws the HUD, maze, pacgums and sprites to the screen."""
+        """Draw the HUD, maze, pacgums and sprites to the screen."""
         # draw background
         self.screen.fill(BLACK, pygame.Rect(0, 0, SCREENWIDTH, GUI_HEIGHT))
         self.game_surface.fill(BLACK)
@@ -334,7 +334,7 @@ class GameController(object):
             color: tuple[int, int, int],
             seg: tuple[tuple[int, int], tuple[int, int]],
             width: int) -> None:
-        """Draws one wall segment as a capsule (rounded-ended line)."""
+        """Draw one wall segment as a capsule (rounded-ended line)."""
         (x1, y1), (x2, y2) = seg
         r = width // 2
         if y1 == y2:
@@ -346,7 +346,7 @@ class GameController(object):
         pygame.draw.circle(surface, color, (x2, y2), r)
 
     def build_maze_surface(self) -> None:
-        """Builds the maze image once and caches it in maze_surface."""
+        """Build the maze image once and caches it in maze_surface."""
         surface = pygame.Surface((GAME_WIDTH, GAME_HEIGHT))
         segments = self.get_wall_segments()
 
@@ -361,7 +361,7 @@ class GameController(object):
         self.maze_surface = surface
 
     def draw_maze(self) -> None:
-        """Draws the maze."""
+        """Draw the maze."""
         if self.maze_surface is None:
             self.build_maze_surface()
         if self.maze_surface:
@@ -369,7 +369,7 @@ class GameController(object):
             self.game_surface.blit(maze_temp, (0, 0))
 
     def set_up_game(self) -> None:
-        """Sets up the game's level and states."""
+        """Set up the game's level and states."""
         self.time_interval_scatter = 40.0
         self.current_level = 1
         self.load_level(reset_progress=True)
@@ -378,17 +378,18 @@ class GameController(object):
         self.beat_the_game = False
 
     def restart_game(self) -> None:
-        """Restarts the game from level 1 when the button is pressed."""
+        """Restart the game from level 1 when the button is pressed."""
         self.set_up_game()
 
     def next_level(self) -> None:
-        """Advances the game to the next level."""
+        """Advance the game to the next level."""
         self.current_level += 1
         self.load_level(reset_progress=False)
 
     def level_complete(self) -> None:
-        """Triggers when a level is complete and checks if there is still a
-        level to load"""
+        """Trigger when a level is complete and checks if there is still a
+        level to load
+        """
         self.running = False
         self.won = True
         if self.current_level >= self.max_level:
@@ -396,7 +397,7 @@ class GameController(object):
         self.menus.over_menu()
 
     def load_level(self, reset_progress: bool) -> None:
-        """Loads the current level: maze, pacwoman, ghosts and timers."""
+        """Load the current level: maze, pacwoman, ghosts and timers."""
         if self.over and self.won and self.current_level == self.max_level:
             with open(self.configuration.highscore_filename, 'a') as f:
                 if self.player:
@@ -490,7 +491,7 @@ class GameController(object):
         self.start_game()
 
     def start_game(self) -> None:
-        """Runs the main loop: update and render 60 times per second."""
+        """Run the main loop: update and render 60 times per second."""
         self.paused = False
         # Reset the clock so the first update() after a long pause
         # doesn't see a huge dt and drain the timer.
@@ -501,7 +502,7 @@ class GameController(object):
             self.render()
 
     def sort_score_file(self) -> None:
-        """Sorts the highscore file from highest to lowest score."""
+        """Sort the highscore file from highest to lowest score."""
         with open(self.configuration.highscore_filename, 'r') as f:
             txt = f.read()
         scores_list = txt.split("\n")
@@ -522,7 +523,7 @@ class GameController(object):
                     f"{name}: {score}\n")
 
     def check_collisions(self) -> None:
-        """Checks collisions between pacwoman and the ghosts."""
+        """Check collisions between pacwoman and the ghosts."""
         if self.invulnerable_timer > 0:
             self.invulnerable_timer -= 1
             return
@@ -554,7 +555,7 @@ class GameController(object):
                     return
 
     def pacwoman_hit(self) -> None:
-        """Handles pacwoman being hit: loses a life or the game ends."""
+        """Handle pacwoman being hit: loses a life or the game ends."""
         self.lives -= 1
         if self.lives <= 0:
             self.running = False
@@ -565,7 +566,7 @@ class GameController(object):
             self.game_state = "dying"
 
     def save_score(self, name: str) -> None:
-        """Saves the scores in the highscore.txt file"""
+        """Save the scores in the highscore.txt file"""
         if len(name) > 9:
             short_name = ""
             for i, letter in enumerate(name, start=1):
@@ -587,7 +588,7 @@ class GameController(object):
             self.sort_score_file()
 
     def get_top_scores(self, limit: int = 10) -> list[tuple[str, int]]:
-        """Gets the first 10 highest scores for the leaderboard."""
+        """Get the first 10 highest scores for the leaderboard."""
         scores: list[tuple[str, int]] = []
         try:
             with open(self.configuration.highscore_filename, 'r') as f:
@@ -600,14 +601,14 @@ class GameController(object):
         return scores[:limit]
 
     def quit_game_over(self) -> None:
-        """Ends the game when the quit button is pressed"""
+        """End the game when the quit button is pressed"""
         if self.won and self.current_level == self.max_level and self.player:
             self.save_score(self.player.get_value())
         pygame.quit()
         quit()
 
     def respawn_all(self) -> None:
-        """Respawns pacwoman and ghosts at their spawn points."""
+        """Respawn pacwoman and ghosts at their spawn points."""
         self.pacwoman.x, self.pacwoman.y = self.pacwoman_spawn
         self.pacwoman.pw_move_state = "idle"
         self.pacwoman.direction = (1, 0)
@@ -634,11 +635,11 @@ class GameController(object):
 
 
 class Gamemenus:
-    """Holds all the game menus."""
+    """Hold all the game menus."""
     def __init__(self, game: GameController):
-        """Loads the menu sprites and stores the game."""
+        """Load the menu sprites and stores the game."""
         self.game = game
-        self.logo = resourse_path("sprites/pacwoman_logo.png")
+        self.logo = resource_path("sprites/pacwoman_logo.png")
         self.num_frames = 41
         self.sprite_w = 322
         self.sprite_h = 119
@@ -663,7 +664,7 @@ class Gamemenus:
         self.ldbd_menu = False
 
     def update(self) -> None:
-        """Updates frames for the controls animation in instruction menu."""
+        """Update frames for the controls animation in instruction menu."""
         self.controls_timer += 1
         if self.controls_timer >= self.controls_animation_speed:
             self.controls_timer = 0
@@ -675,7 +676,7 @@ class Gamemenus:
             ]
 
     def start_menu(self) -> None:
-        """Initialzes start menu along with all the menu buttons."""
+        """Initialze start menu along with all the menu buttons."""
         main_menu = pygame_menu.Menu(
             "", SCREENWIDTH, SCREENHEIGHT,
             theme=pacwoman_theme(SCREENWIDTH, SCREENHEIGHT))
@@ -687,7 +688,7 @@ class Gamemenus:
         main_menu.mainloop(self.game.screen)
 
     def pause_menu(self) -> None:
-        """Shows the pause menu."""
+        """Show the pause menu."""
         pause_menu = pygame_menu.Menu(
             "", SCREENWIDTH, SCREENHEIGHT,
             theme=pacwoman_theme(SCREENWIDTH, SCREENHEIGHT))
@@ -699,7 +700,7 @@ class Gamemenus:
         pause_menu.mainloop(self.game.screen)
 
     def over_menu(self) -> None:
-        """Shows the win/game over menu."""
+        """Show the win/game over menu."""
         self.game.over = True
         title = "You Win!" if self.game.won else "Game Over"
 
@@ -728,7 +729,7 @@ class Gamemenus:
         over_menu.mainloop(self.game.screen)
 
     def cheat_menu(self) -> None:
-        """Shows the menu listing the cheat keys."""
+        """Show the menu listing the cheat keys."""
         cheat_menu = pygame_menu.Menu(
             "", SCREENWIDTH, SCREENHEIGHT,
             theme=pacwoman_theme(SCREENWIDTH, SCREENHEIGHT))
@@ -740,7 +741,7 @@ class Gamemenus:
         cheat_menu.mainloop(self.game.screen)
 
     def leaderboard_menu(self, save_current: bool = False) -> None:
-        """Shows the top 10 scores."""
+        """Show the top 10 scores."""
         if save_current:
             if self.game.player:
                 self.game.save_score(self.game.player.get_value())
@@ -763,7 +764,7 @@ class Gamemenus:
         board_menu.mainloop(self.game.screen)
 
     def instructions_menu(self) -> None:
-        """Shows the instructions menu with the controls animation."""
+        """Show the instructions menu with the controls animation."""
         instructions_page = pygame_menu.Menu(
             "", SCREENWIDTH, SCREENHEIGHT,
             theme=pacwoman_theme(SCREENWIDTH, SCREENHEIGHT))
