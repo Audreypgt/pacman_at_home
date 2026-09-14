@@ -52,4 +52,8 @@ lint-strict:
 # build:
 # 	python -m build
 
-pyinstaller --onedir --clean --name "PacWoman" --add-data "sprites/*.png:sprites" pac_man.py
+# pyinstaller --onedir --clean --name "PacWoman" --add-data "sprites/*.png:sprites" pac_man.py
+
+
+# pyinstaller main_game_script.py --onefile --windowed --collect-data assets/chars --collect-data assets/tiles --collect-data assets/fonts 
+

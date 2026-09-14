@@ -13,6 +13,7 @@ from mazegenerator import MazeGenerator
 from ghosts import Blinky, Pinky, Clyde, Inky, Ghosts
 from pacgums import Pacgums
 from parsing import Configuration
+from utils import resourse_path
 
 
 MAZE_CELL = 50
@@ -34,8 +35,7 @@ WHITE = (255, 255, 255)
 WALL_WIDTH = 12
 WALL_INNER_WIDTH = 4
 
-SPRITES_DIR = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), "sprites")
+SPRITES_DIR = pygame.image.load(resourse_path("sprites"))
 
 PAC_YELLOW = (255, 242, 0)
 PAC_PINK = (255, 100, 175)
