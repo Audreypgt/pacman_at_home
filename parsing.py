@@ -8,20 +8,20 @@ from pydantic_core import PydanticUseDefault
 
 
 class ArgsError(Exception):
-    """Raise an error during parsing if command line arguments are incorrect"""
+    """Raise an error during parsing if command line arguments are incorrect."""
     pass
 
 
 class LevelConfiguration(BaseModel):
     """Use BaseModel to implement a default value in case of incorrect value
-    for level specific attributes
+    for level specific attributes.
     """
     seed: int = Field(default=0)
     pacgum: int = Field(default=207)
 
 
 class Configuration(BaseModel):
-    """Use BaseModel to implement a default value if value is incorrect"""
+    """Use BaseModel to implement a default value if value is incorrect."""
     highscore_filename: str = Field(default="highscore.txt")
     levels: dict[str, LevelConfiguration] = Field(default={
         "level_1": LevelConfiguration(),
@@ -75,7 +75,7 @@ class Configuration(BaseModel):
         """Create a dummy BaseModel class to test each field and catch errors
         in order to return a default value for the given field, this allows us
         to prevent pydantic from exiting with an error in case a field is not
-        filled properly
+        filled properly.
         """
         try:
             field_info: Any = (
@@ -88,7 +88,7 @@ class Configuration(BaseModel):
                 the same conditions as the fields defined in Configuration
                 BaseModel, if everything is good, we return the value, else we
                 return the default value we put in the Field default in our
-                Configuration BaseModel
+                Configuration BaseModel.
                 """
                 # Annotated[type, x, y] adds metadata y to x,
                 test_field: Annotated[
@@ -104,7 +104,7 @@ class Configuration(BaseModel):
     @classmethod
     def validation_level(cls, value: Any) -> Any:
         """create a dictionary containing each level and validating them
-        using LevelConfiguration class
+        using LevelConfiguration class.
         """
         levels: dict[str, LevelConfiguration] = {}
         try:
@@ -118,7 +118,7 @@ class Configuration(BaseModel):
     @classmethod
     def validation(cls, value: Any) -> Any:
         """validate field highscore_filename, must be a string with .txt
-        extension
+        extension.
         """
         try:
             str(value)
@@ -130,14 +130,14 @@ class Configuration(BaseModel):
 
 
 class JSONWithCommentsDecoder(json.JSONDecoder):
-    """Ignore comments in json configuration file"""
+    """Ignore comments in json configuration file."""
     def __init__(self, **kw: Any) -> None:
-        """"Initialize class that inherits from JSONDecoder"""
+        """"Initialize class that inherits from JSONDecoder."""
         super().__init__(**kw)
 
     def decode(self, s: str, _: Callable[..., Any] = lambda: "") -> Any:
         """Create a string with the configuration, removing the lines
-        starting with # or //"""
+        starting with # or //."""
         s = '\n'.join(
             line if not line.lstrip().startswith(('//', '#'))
             else '' for line in s.split('\n'))
@@ -147,7 +147,7 @@ class JSONWithCommentsDecoder(json.JSONDecoder):
 def parse() -> Configuration:
     """Check that given command line arguments are correct and return
     dict with varibale names as keys and the values given in the
-    configuration file in order to use it in our program
+    configuration file in order to use it in our program.
     """
     if not len(argv) == 2:
         raise ArgsError("Wrong amount of arguments, parameters should be "

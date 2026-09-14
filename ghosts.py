@@ -7,12 +7,12 @@ from mazegenerator import MazeGenerator
 
 class Ghosts(Pacwoman):
     """Handle everything related to Ghosts, inherit from Pacwoman in order to
-     be able to use functions from this class
+     be able to use functions from this class.
      """
     def __init__(self, x: int, y: int, sprite_sheet: PacSpriteSheet,
                  screen_w: int, screen_y: int) -> None:
         """Initialize all needed variables and create dictionaries of sprites
-        depending on direction and state of ghosts
+        depending on direction and state of ghosts.
         """
         super().__init__(x, y, sprite_sheet, screen_w, screen_y)
         self.direction: tuple[int, int] = (1, 0)
@@ -71,7 +71,7 @@ class Ghosts(Pacwoman):
         self.curr_cell: tuple[int, int] = (self.coord_x, self.coord_y)
 
     def update(self) -> None:
-        """Update the sprites depending on ghost's state"""
+        """Update the sprites depending on ghost's state."""
         if self.dead:
             active_frames = self.dead_frame_sets
             self.frame_index = (self.frame_index + 1) % len(
@@ -97,7 +97,7 @@ class Ghosts(Pacwoman):
     def move(self, mazegen: MazeGenerator, move_state: str) -> bool:
         """Move like pacwoman, but when the ghost bumps into a wall, fall
         back to the idle state so a new direction is chosen on the next
-        frame instead of staying stuck facing the wall
+        frame instead of staying stuck facing the wall.
         """
         moved = super().move(mazegen, move_state)
         if not moved and move_state == "moving":
@@ -105,7 +105,7 @@ class Ghosts(Pacwoman):
         return moved
 
     def is_centered(self) -> bool:
-        """Make sure the sprite is centered between the maze's walls"""
+        """Make sure the sprite is centered between the maze's walls."""
         MAZE_CELL = 50
         offset = (MAZE_CELL - self.sprite_w) // 2
         return (self.x - offset) % MAZE_CELL == 0 and \
@@ -114,7 +114,7 @@ class Ghosts(Pacwoman):
     def find_neighbors(self, mazegen: MazeGenerator, x: int, y: int
                        ) -> list[tuple[int, int]]:
         """Find neighboring cells of the given cell to find path possibilities
-        for the BFS algorithm
+        for the BFS algorithm.
         """
         neighbors: list[tuple[int, int]] = []
 
@@ -131,8 +131,8 @@ class Ghosts(Pacwoman):
 
     def choose_random_direction(self, mazegen: MazeGenerator) -> None:
         """Find possible directions and pick a random for the ghosts
-        and prevent them from making U-turns
-        Used when ghosts are scared
+        and prevent them from making U-turns.
+        Used when ghosts are scared.
         """
         MAZE_CELL = 50
 
@@ -171,7 +171,7 @@ class Ghosts(Pacwoman):
             self.g_move_state = "moving"
 
     def move_random(self, mazegen: MazeGenerator) -> None:
-        """Call the function to find a random direction for the ghosts to go"""
+        """Call the function to find a random direction for the ghosts to go."""
         if self.g_move_state != "moving":
             self.choose_random_direction(mazegen)
 
@@ -185,14 +185,14 @@ class Ghosts(Pacwoman):
 
     def distance_to(self, other: Pacwoman) -> int:
         """Calculate a sprite's Manhattan distance to another sprite
-        in terms of maze cells
+        in terms of maze cells.
         """
         own_x, own_y = self.current_cell()
         other_x, other_y = other.current_cell()
         return abs(own_x - other_x) + abs(own_y - other_y)
 
     def snap_to_cell_center(self) -> None:
-        """Realign the sprite on its cell's centre slot"""
+        """Realign the sprite on its cell's centre slot."""
         col = (self.x + self.sprite_w // 2) // 50
         row = (self.y + self.sprite_h // 2) // 50
         offset = (50 - self.sprite_w) // 2
@@ -219,7 +219,7 @@ class Ghosts(Pacwoman):
     def scatter_mode(self, mazegen: MazeGenerator, spawn_x: int, spawn_y: int
                      ) -> bool:
         """Return True when the ghost reached its spawn cell, else follow the
-        BFS path towards it, used for respawn and scatter states
+        BFS path towards it, used for respawn and scatter states.
         """
         self.coord_x, self.coord_y = self.current_cell()
         spawn_cell = ((spawn_x + self.sprite_w // 2) // 50,
@@ -240,7 +240,7 @@ class Ghosts(Pacwoman):
     def scatter_move(self, mazegen: MazeGenerator, spawn_x: int, spawn_y: int
                      ) -> None:
         """Call the function to move ghost to spawn location and set new
-        current location
+        current location.
         """
         self.on_spawn = False
 
@@ -263,7 +263,7 @@ class Ghosts(Pacwoman):
     def bfs_distances(
             self, mazegen: MazeGenerator,
             target: tuple[int, int]) -> dict[tuple[int, int], int]:
-        """Calculate distance to reachable cell using BFS"""
+        """Calculate distance to reachable cell using BFS."""
         maze_width = len(mazegen.maze[0])
         maze_height = len(mazegen.maze)
         if not (0 <= target[0] < maze_width and 0 <= target[1] < maze_height):
@@ -283,7 +283,7 @@ class Ghosts(Pacwoman):
             self, mazegen: MazeGenerator, pacwoman: Pacwoman,
             pinky: bool) -> None:
         """Follow the BFS path to pacwoman; when pinky boolean is True the
-        target is 4 cells ahead of pacwoman
+        target is 4 cells ahead of pacwoman.
         """
         pw_x, pw_y = pacwoman.current_cell()
 
@@ -326,7 +326,7 @@ class Ghosts(Pacwoman):
         """Use BFS algorithm to find the shortest path to the target cell,
         (x, y) then set the direction to its first step, falls back to a
         random direction if no path is found, also prevent ghosts from
-        making U-turns unless allow_reverse is received as True
+        making U-turns unless allow_reverse is received as True.
         """
         self.coord_x, self.coord_y = self.current_cell()
         queue: deque[tuple[int, int]] = deque()
@@ -388,10 +388,10 @@ class Ghosts(Pacwoman):
 
 
 class Blinky(Ghosts):
-    """"Handle Blinky, who chases pacwoman directly"""
+    """"Handle Blinky, who chases pacwoman directly."""
     def __init__(self, x: int, y: int, sprite_sheet: PacSpriteSheet,
                  screen_w: int, screen_y: int) -> None:
-        """Initializes Blinky and its sprites"""
+        """Initialize Blinky and its sprites."""
         super().__init__(x, y, sprite_sheet, screen_w, screen_y)
 
         self.frame_sets = {
@@ -415,7 +415,7 @@ class Blinky(Ghosts):
 
     def bfs_move(self, mazegen: MazeGenerator, pacwoman: Pacwoman) -> None:
         """Call function to move Blinky depending on the ghost's state and set
-        new current location
+        new current location.
         """
         if self.g_move_state != "moving":
             self.choose_bfs_direction(mazegen, pacwoman, False)
@@ -431,11 +431,11 @@ class Blinky(Ghosts):
 
 class Pinky(Ghosts):
     """"Handle Pinky, who chases pacwoman and tries to ambushe her
-    by going 4 cells in front of her
+    by going 4 cells in front of her.
     """
     def __init__(self, x: int, y: int, sprite_sheet: PacSpriteSheet,
                  screen_w: int, screen_y: int) -> None:
-        """Initializes Pinky and its sprites"""
+        """Initialize Pinky and its sprites"""
         super().__init__(x, y, sprite_sheet, screen_w, screen_y)
         self.frame_sets = {
             # West
@@ -458,7 +458,7 @@ class Pinky(Ghosts):
 
     def bfs_move(self, mazegen: MazeGenerator, pacwoman: Pacwoman) -> None:
         """Call function to move Blinky depending on the ghost's state and set
-        new current location
+        new current location.
         """
         if self.g_move_state != "moving":
             self.choose_bfs_direction(mazegen, pacwoman, True)
@@ -474,14 +474,14 @@ class Pinky(Ghosts):
 
 class Clyde(Ghosts):
     """"Handle Clyde, who chases pacwoman, but runs back to his corner when
-    she gets too close
+    she gets too close.
     """
 
     SHY_RADIUS = 8
 
     def __init__(self, x: int, y: int, sprite_sheet: PacSpriteSheet,
                  screen_w: int, screen_y: int) -> None:
-        """Initializes Inky and its sprites"""
+        """Initialize Inky and its sprites."""
         super().__init__(x, y, sprite_sheet, screen_w, screen_y)
 
         self.frame_sets = {
@@ -506,7 +506,7 @@ class Clyde(Ghosts):
     def chase_or_retreat(self, mazegen: MazeGenerator, pacwoman: Pacwoman,
                          spawn_x: int, spawn_y: int) -> None:
         """Chase pacwoman, or walk home when she is closer than
-        SHY_RADIUS cells
+        SHY_RADIUS cells.
         """
         corner = ((spawn_x + self.sprite_w // 2) // 50,
                   (spawn_y + self.sprite_w // 2) // 50)
@@ -517,7 +517,7 @@ class Clyde(Ghosts):
 
     def clyde_move(self, mazegen: MazeGenerator, pacwoman: Pacwoman,
                    spawn_x: int, spawn_y: int) -> None:
-        """Call function to move Clyde depending on the ghost's state"""
+        """Call function to move Clyde depending on the ghost's state."""
         if self.g_move_state != "moving":
             self.chase_or_retreat(mazegen, pacwoman, spawn_x, spawn_y)
         super().move(mazegen, self.g_move_state)
@@ -528,14 +528,14 @@ class Clyde(Ghosts):
 
 class Inky(Ghosts):
     """Handle Inky, who hunts pacwoman from far away, but wanders randomly
-    once close to her
+    once close to her.
     """
 
     WANDER_RADIUS = 8
 
     def __init__(self, x: int, y: int, sprite_sheet: PacSpriteSheet,
                  screen_w: int, screen_y: int) -> None:
-        """Initializes Inky and its sprites"""
+        """Initialize Inky and its sprites."""
         super().__init__(x, y, sprite_sheet, screen_w, screen_y)
 
         self.frame_sets = {
@@ -560,7 +560,7 @@ class Inky(Ghosts):
     def hunt_or_wander(self, mazegen: MazeGenerator, pacwoman: Pacwoman
                        ) -> None:
         """Chase pacwoman, or move randomly when closer than
-        WANDER_RADIUS cells
+        WANDER_RADIUS cells.
         """
         if self.distance_to(pacwoman) > Inky.WANDER_RADIUS:
             self.choose_bfs_direction(mazegen, pacwoman, False)
@@ -568,7 +568,7 @@ class Inky(Ghosts):
             self.choose_random_direction(mazegen)
 
     def inky_move(self, mazegen: MazeGenerator, pacwoman: Pacwoman) -> None:
-        """Call function to move Inky depending on the ghost's state"""
+        """Call function to move Inky depending on the ghost's state."""
         if self.g_move_state != "moving":
             self.hunt_or_wander(mazegen, pacwoman)
         super().move(mazegen, self.g_move_state)
