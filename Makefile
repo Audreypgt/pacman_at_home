@@ -60,6 +60,4 @@ build:
 	&& $(P3) -m pip install pyinstaller \
 	&& pyinstaller --onedir --clean --name "PacWoman" --add-data "sprites/*.png:sprites" pac_man.py
 
-
-
-
+.PHONY:	run install debug venv-clean clean fclean lint lint-strict build

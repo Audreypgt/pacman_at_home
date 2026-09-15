@@ -63,10 +63,10 @@ class Configuration(BaseModel):
             pacgum=207
         )})
     lives: int = Field(le=999, default=3)
-    points_per_pacgum: int = Field(default=10)
-    points_per_super_pacgum: int = Field(default=50)
-    points_per_ghost: int = Field(default=200)
-    lvl_max_time: int = Field(default=120)
+    points_per_pacgum: int = Field(ge=0, default=10)
+    points_per_super_pacgum: int = Field(ge=0, default=50)
+    points_per_ghost: int = Field(ge=0, default=200)
+    lvl_max_time: int = Field(ge=0, default=120)
 
     @field_validator("*", mode="before")
     @classmethod
@@ -96,10 +96,12 @@ class Configuration(BaseModel):
                     Any, *field_info["metadata"],
                     Field(**field_info["attributes"])]
             TestValues(test_field=value)
-
             return value
         except Exception:
-            print(f"{TestValues.test_field} is not valid.")
+            field_info = cls.model_fields[str(field.field_name)]
+            print("Config file warning:")
+            print(f"{field.field_name} value '{value}' is invalid.")
+            print(f"Using default value: {field_info.get_default()}")
             raise PydanticUseDefault
 
     @field_validator("levels", mode="before")
@@ -108,13 +110,13 @@ class Configuration(BaseModel):
         """create a dictionary containing each level and validating them
         using LevelConfiguration class.
         """
+        index: int = 1
         levels: dict[str, LevelConfiguration] = {}
         try:
             for index, level in enumerate(value.values(), start=1):
                 levels["level_" + str(index)] = LevelConfiguration(**level)
             return levels
         except Exception:
-            print(f"Level_{str(index)} has invalid value.")
             raise PydanticUseDefault
 
     @field_validator("highscore_filename", mode="before")
@@ -129,7 +131,8 @@ class Configuration(BaseModel):
                 raise ValueError
             return value
         except ValueError:
-            print("Score file should end with '.txt'")
+            print("Score file should end with '.txt', value will be set to "
+                  "default.")
             return "highscore.txt"
 
 
@@ -162,6 +165,35 @@ def parse() -> Configuration:
 
     with open(argv[1], "r") as file:
         parse_file = json.load(file, cls=JSONWithCommentsDecoder)
+
+    try:
+        level_list = [
+            "level_1", "level_2", "level_3", "level_4",
+            "level_5", "level_6", "level_7", "level_8", "level_9", "level_10"]
+
+        level_key_list = ["pacgum"]
+
+        for key in Configuration.model_fields.keys():
+            if key not in parse_file.keys():
+                raise KeyError(f"Missing key '{key}', value will be set to "
+                               "default.")
+
+        if not isinstance(parse_file["levels"], dict):
+            raise ValueError("Key 'levels' should be a dictionary.")
+        for level in level_list:
+            if level not in parse_file["levels"].keys():
+                raise KeyError(f"Missing level '{level}', value will be set to"
+                      " default.")
+
+        for i in range(1, 11):
+            if not isinstance(parse_file["levels"][f"level_{i}"], dict):
+                raise ValueError(f"Key 'level_{i}' should be a dictionary.")
+            for level_key in level_key_list:
+                if level_key not in parse_file["levels"][f"level_{i}"].keys():
+                    raise KeyError(f"Missing level key '{level_key}', value "
+                                   "will be set to default.")
+    except (KeyError, ValueError) as e:
+        print(e)
 
     return Configuration(**parse_file)
 
